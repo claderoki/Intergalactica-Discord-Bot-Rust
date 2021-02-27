@@ -50,7 +50,17 @@ impl EventHandler for Handler {
         for cap in re.captures_iter(&message.content) {
             let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();
             let unit = cap[3].to_lowercase();
-            println!("{:?}", core::convert_measurement(value, unit));
+            let r = core::convert_measurement(value, unit);
+
+            match r {
+                Ok(result) => {
+                    println!("{:?}", result.base);
+                    for conversion in result.to.iter() {
+                        println!("{:?}", conversion)
+                    }
+                }
+                Err(_) => {},
+            };
         }
     }
 

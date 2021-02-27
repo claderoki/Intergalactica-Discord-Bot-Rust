@@ -32,10 +32,15 @@ measurements = [
 name = "Fahrenheit", code = "f", symbol = °F
 */
 
-struct Unit {
-    name: String,
-    code: String,
-    symbol: String,
+use std::fmt;
+extern crate measurements;
+use measurements::Temperature;
+
+#[derive(Debug)]
+pub struct Unit {
+    pub name: String,
+    pub code: String,
+    pub symbol: String,
 }
 
 impl Unit {
@@ -56,84 +61,73 @@ impl Unit {
     }
 }
 
-struct Conversion {
-    unit: Unit,
-    value: f64,
+#[derive(Debug)]
+pub struct Conversion {
+    pub unit: Unit,
+    pub value: f64,
 }
 
-struct ConversionResult {
-    base: Conversion,
-    to: Vec<Conversion>,
+pub struct ConversionResult {
+    pub base: Conversion,
+    pub to: Vec<Conversion>,
 }
 
 impl ConversionResult {
     pub fn new(base: Conversion) -> ConversionResult {
         ConversionResult {
             base: base,
-            to: Vec::new(),
+            to : Vec::new(),
         }
     }
 }
 
-extern crate measurements;
-
-use measurements::Temperature;
-
 fn to_unit(text: String) -> Result<Unit, &'static str> {
-    let name: String;
-    let code: String;
-    let symbol: String;
-
-    let unit: Option<Unit> = match text.to_lowercase().as_str() {
-        "c" | "celsius" => Some(Unit::celsius()),
-        "f" | "fahrenheit" => Some(Unit::fahrenheit()),
-        _ => None,
+    let result = match text.to_lowercase().as_str() {
+        "c" | "celsius" => Ok(Unit::celsius()),
+        "f" | "fahrenheit" => Ok(Unit::fahrenheit()),
+        _ => Err("No units found"),
     };
 
-    if let Some(u) = unit {
-        Ok(u)
-    } else {
-        Err("No units found")
-    }
+    result
 }
 
 pub fn convert_measurement(value: f64, from: String) -> Result<ConversionResult, &'static str> {
-    let unit: Result<Unit, &'static str> = to_unit(from);
+    let unit = to_unit(from);
 
-    let conversion = match unit {
+    let base = match unit {
         Ok(u) => Some(Conversion {
             unit: u,
             value: value,
         }),
-        Err(e) => None,
+        Err(e) => return Err(e),
     };
 
-    let r = match Some(conversion) {
-        Conversion => Some(ConversionResult::new(conversion.unwrap())),
-        None => None,
-    };
+    // check if we can pass here without unwrapping
+    let mut result = ConversionResult::new(base.unwrap());
 
-    if let Some(result) = r {
-        match result.base.unit.code.as_str() {
-            "f" => {
-                let temperature = Temperature::from_fahrenheit(value);
-                result.to.push(Conversion {
-                    unit: Unit::celsius(),
-                    value: temperature.as_celsius(),
-                })
-            }
-            "c" => {
-                let temperature = Temperature::from_celsius(value);
-                result.to.push(Conversion {
-                    unit: Unit::fahrenheit(),
-                    value: temperature.as_fahrenheit(),
-                })
-            }
+    result.convert(base) -> conversionResult
+
+    match result.base.unit.code.as_str() {
+        "f" => {
+            let temperature = Temperature::from_fahrenheit(value);
+            result.to.push(Conversion {
+                unit: Unit::celsius(),
+                value: temperature.as_celsius(),
+            })
         }
-        return Ok(result);
-    } else {
-        Err("");
+        "c" => {
+            let temperature = Temperature::from_celsius(value);
+            result.to.push(Conversion {
+                unit: Unit::fahrenheit(),
+                value: temperature.as_fahrenheit(),
+            })
+        }
+        _ => {
+            panic!("something");
+        }
     }
+
+    return Ok(result);
 }
 
 // fn main() {
