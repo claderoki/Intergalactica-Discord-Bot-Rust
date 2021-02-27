@@ -10,34 +10,25 @@
 //! ```
 mod commands;
 
-use std::{
-    collections::HashSet,
-    env,
-    sync::Arc,
-};
 use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
-    framework::{
-        StandardFramework,
-        standard::macros::group,
-    },
+    framework::{standard::macros::group, StandardFramework},
     http::Http,
-    model::{event::ResumedEvent, gateway::Ready},
+    model::{channel::Message, event::ResumedEvent, gateway::Ready},
     prelude::*,
 };
+use std::{collections::HashSet, env, sync::Arc};
 
 use tracing::{error, info};
-use tracing_subscriber::{
-    FmtSubscriber,
-    EnvFilter,
-};
+use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-use commands::{
-    math::*,
-    meta::*,
-    owner::*,
-};
+use commands::{math::*, meta::*, owner::*};
+
+use regex::Regex;
+
+mod modules;
+use modules::conversion::core;
 
 pub struct ShardManagerContainer;
 
@@ -51,6 +42,16 @@ struct Handler;
 impl EventHandler for Handler {
     async fn ready(&self, _: Context, ready: Ready) {
         info!("Connected as {}", ready.user.name);
+    }
+
+    async fn message(&self, _: Context, message: Message) {
+        let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
+
+        for cap in re.captures_iter(&message.content) {
+            let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();
+            let unit = cap[3].to_lowercase();
+            println!("{:?}", core::convert_measurement(value, unit));
+        }
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
@@ -78,8 +79,7 @@ async fn main() {
 
     tracing::subscriber::set_global_default(subscriber).expect("Failed to start the logger");
 
-    let token = env::var("DISCORD_TOKEN")
-        .expect("Expected a token in the environment");
+    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
     let http = Http::new_with_token(&token);
 
@@ -90,15 +90,13 @@ async fn main() {
             owners.insert(info.owner.id);
 
             (owners, info.id)
-        },
+        }
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
     // Create the framework
     let framework = StandardFramework::new()
-        .configure(|c| c
-                   .owners(owners)
-                   .prefix("~"))
+        .configure(|c| c.owners(owners).prefix("~"))
         .group(&GENERAL_GROUP);
 
     let mut client = Client::builder(&token)
@@ -115,7 +113,9 @@ async fn main() {
     let shard_manager = client.shard_manager.clone();
 
     tokio::spawn(async move {
-        tokio::signal::ctrl_c().await.expect("Could not register ctrl+c handler");
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Could not register ctrl+c handler");
         shard_manager.lock().await.shutdown_all().await;
     });
 
