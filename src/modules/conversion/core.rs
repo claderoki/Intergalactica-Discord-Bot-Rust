@@ -32,7 +32,6 @@ measurements = [
 name = "Fahrenheit", code = "f", symbol = °F
 */
 
-use std::fmt;
 extern crate measurements;
 use measurements::Temperature;
 
@@ -65,6 +64,12 @@ impl Unit {
 pub struct Conversion {
     pub unit: Unit,
     pub value: f64,
+}
+
+impl Conversion {
+    pub fn to_string(&self) -> String {
+        format!("{}{}", self.value, self.unit.symbol)
+    }
 }
 
 pub struct ConversionResult {
@@ -105,7 +110,7 @@ pub fn convert_measurement(value: f64, from: String) -> Result<ConversionResult,
     // check if we can pass here without unwrapping
     let mut result = ConversionResult::new(base.unwrap());
 
-    result.convert(base) -> conversionResult
+    // result.convert(base) -> conversionResult
 
     match result.base.unit.code.as_str() {
         "f" => {

@@ -15,7 +15,7 @@ use serenity::{
     client::bridge::gateway::ShardManager,
     framework::{standard::macros::group, StandardFramework},
     http::Http,
-    model::{channel::Message, event::ResumedEvent, gateway::Ready},
+    model::{channel::Message, event::ResumedEvent, gateway::Ready, channel::Embed},
     prelude::*,
 };
 use std::{collections::HashSet, env, sync::Arc};
@@ -38,15 +38,27 @@ impl TypeMapKey for ShardManagerContainer {
 
 struct Handler;
 
+pub fn add_conversion_result_to_embed(embed : &Embed, result : &core::ConversionResult){
+    let mut value_field : String = String::from("").to_owned();
+
+    for conversion in result.to.iter() {
+        value_field.push_str(conversion.to_string().as_str());
+    }
+
+    &embed.field(|f| f.name(result.base.to_string()).value(value_field).inline(false))
+}
+
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, _: Context, ready: Ready) {
         info!("Connected as {}", ready.user.name);
     }
 
-    async fn message(&self, _: Context, message: Message) {
+    async fn message(&self, ctx: Context, message: Message) {
         let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
 
+        let embed = Embed {};
+        let i : u32 = 0;
         for cap in re.captures_iter(&message.content) {
             let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();
             let unit = cap[3].to_lowercase();
@@ -54,14 +66,17 @@ impl EventHandler for Handler {
 
             match r {
                 Ok(result) => {
-                    println!("{:?}", result.base);
-                    for conversion in result.to.iter() {
-                        println!("{:?}", conversion)
-                    }
+                    add_conversion_result_to_embed(&embed, &result);
+                    i += 1;
                 }
                 Err(_) => {},
             };
         }
+        if i > 0 {
+            message.reply(&ctx, |m| { m.embed });
+        }
+
+
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
