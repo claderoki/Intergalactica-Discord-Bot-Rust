@@ -81,7 +81,7 @@ impl ConversionResult {
     pub fn new(base: Conversion) -> ConversionResult {
         ConversionResult {
             base: base,
-            to : Vec::new(),
+            to: Vec::new(),
         }
     }
 }
