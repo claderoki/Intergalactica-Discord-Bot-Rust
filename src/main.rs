@@ -49,10 +49,10 @@ pub fn get_conversion_result_field(result: &core::ConversionResult) -> (String, 
     let mut value_field: String = String::from("").to_owned();
 
     for conversion in result.to.iter() {
-        value_field.push_str(conversion.to_string().as_str());
+        value_field.push_str(clean_value(conversion.value).to_str());
     }
 
-    (result.base.to_string(), value_field, false)
+    (clean_value(result.base.value), value_field, false)
 }
 
 #[async_trait]
