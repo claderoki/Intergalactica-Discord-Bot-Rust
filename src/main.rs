@@ -37,6 +37,14 @@ impl TypeMapKey for ShardManagerContainer {
 }
 struct Handler;
 
+pub fn clean_value(value: f64) -> String {
+    if value % 1.0 == 0.0 {
+        return format!("{}", (value as i64));
+    }
+
+    return format!("{0:.2}", value);
+}
+
 pub fn get_conversion_result_field(result: &core::ConversionResult) -> (String, String, bool) {
     let mut value_field: String = String::from("").to_owned();
 
