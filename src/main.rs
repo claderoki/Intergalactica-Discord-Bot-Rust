@@ -35,10 +35,9 @@ pub struct ShardManagerContainer;
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
-
 struct Handler;
 
-pub fn add_conversion_result_to_embed(result: &core::ConversionResult) -> (String, String, bool) {
+pub fn get_conversion_result_field(result: &core::ConversionResult) -> (String, String, bool) {
     let mut value_field: String = String::from("").to_owned();
 
     for conversion in result.to.iter() {
@@ -65,8 +64,7 @@ impl EventHandler for Handler {
 
             match r {
                 Ok(result) => {
-                    let r = add_conversion_result_to_embed(&result);
-                    vec.push(r);
+                    vec.push(get_conversion_result_field(&result));
                 }
                 Err(_) => {}
             };
