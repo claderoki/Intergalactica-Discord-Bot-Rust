@@ -45,14 +45,37 @@ pub fn clean_value(value: f64) -> String {
     return format!("{0:.2}", value);
 }
 
+fn convert_conversion_to_str(conversion : &core::Conversion) -> String {
+    let mut value: String = String::from("").to_owned();
+
+    value.push_str(clean_value(conversion.value).as_str());
+    value.push_str(conversion.unit.symbol.as_str());
+
+    value
+}
+
 pub fn get_conversion_result_field(result: &core::ConversionResult) -> (String, String, bool) {
     let mut value_field: String = String::from("").to_owned();
 
+    let mut i = 0;
     for conversion in result.to.iter() {
-        value_field.push_str(clean_value(conversion.value).to_str());
+        if i != 0 {
+            value_field.push_str("\n");
+        }
+        value_field.push_str(convert_conversion_to_str(conversion).as_str());
+        i += 1;
     }
 
-    (clean_value(result.base.value), value_field, false)
+    (convert_conversion_to_str(&result.base), value_field, false)
+}
+trait Utils {
+    fn get_color(&self) -> serenity::utils::Color;
+}
+
+impl Utils for Context {
+    fn get_color(&self) -> serenity::utils::Color {
+        serenity::utils::Color::from_rgb(242, 181, 37)
+    }
 }
 
 #[async_trait]
@@ -80,7 +103,7 @@ impl EventHandler for Handler {
         if !vec.is_empty() {
             message
                 .channel_id
-                .send_message(&ctx, |m| m.embed(|e| e.fields(vec)))
+                .send_message(&ctx, |m| m.embed(|e| e.color(ctx.get_color()).fields(vec)))
                 .await
                 .unwrap();
         }
