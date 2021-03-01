@@ -110,7 +110,14 @@ pub fn convert_measurement(value: f64, from: String) -> Result<ConversionResult,
     // check if we can pass here without unwrapping
     let mut result = ConversionResult::new(base.unwrap());
 
-    // result.convert(base) -> conversionResult
+    // let mut measurement_mapping = Vec::new();
+    // measurement_mapping.push(vec!["f", "c", "k"]);
+    // measurement_mapping.push(vec!["kg", "lb"]);
+    // measurement_mapping.push(vec!["cm", "inch", "ft"]);
+    // measurement_mapping.push(vec!["g", "oz"]);
+    // measurement_mapping.push(vec!["ml", "us_cup"]);
+    // measurement_mapping.push(vec!["km", "mi"]);
+    // measurement_mapping.push(vec!["m", "yd", "ft"]);
 
     match result.base.unit.code.as_str() {
         "f" => {
