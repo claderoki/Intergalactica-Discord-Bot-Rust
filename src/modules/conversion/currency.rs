@@ -1,10 +1,11 @@
 
-extern crate hyper;
+extern crate reqwest;
 extern crate serde;
-extern crate serde_json;
 
-use hyper::Request;
-use hyper::http::request::Builder;
+use std::{collections::HashMap, error};
+
+use serde::Deserialize;
+use reqwest::Error;
 
 enum FixerioEndpoint {
     SYMBOLS,
@@ -20,59 +21,69 @@ impl FixerioEndpoint {
     }
 }
 
-pub struct Fixerio {
-    access_key : String,
-    base_url   : String
+#[derive(Deserialize, Debug)]
+pub struct SymbolsResponse {
+    success : bool,
+    symbols : HashMap<String, String>
 }
-
+#[derive(Deserialize, Debug)]
 pub struct Symbol {
     code: String,
     name: String
 }
 
-use serde::de;
-// use serde_json;
-
-fn deserialize<T>(req: Request<Vec<u8>>) -> serde_json::Result<Request<T>>
-    where for<'de> T: de::Deserialize<'de>,
-{
-    let (parts, body) = req.into_parts();
-    let body = serde_json::from_slice(&body)?;
-    Ok(Request::from_parts(parts, body))
+pub struct Fixerio {
+    access_key : String,
+    base_url   : String
 }
 
 impl Fixerio {
     pub fn new(access_key : String) -> Self {
         Self {
             access_key: access_key,
-            base_url: String::from("https://data.fixer.io/api"),
+            base_url: String::from("http://data.fixer.io/api"),
         }
     }
 
-    fn get_base_builder(&self, endpoint : FixerioEndpoint) -> Builder {
+    fn get_base_uri(&self, endpoint : FixerioEndpoint) -> String {
         let mut uri = String::from(self.base_url.as_str());
         uri.push_str("/");
         uri.push_str(endpoint.get_name().as_str());
-
-        Request::builder()
-        .method("GET")
-        .uri(uri.as_str())
-        .header("access_key", self.access_key.as_str())
+        uri.push_str("?");
+        uri.push_str("access_key=");
+        uri.push_str(self.access_key.as_str());
+        uri
     }
 
-    pub fn get_symbols(&self) -> Vec<Symbol> {
-        let request = self.get_base_builder(FixerioEndpoint::SYMBOLS)
-        .body(())
-        .unwrap();
+    pub async fn get_symbols(&self) -> Result<Vec<Symbol>, &'static str> {
+        let uri = self.get_base_uri(FixerioEndpoint::SYMBOLS);
 
-        deserialize(request);
+        let response = match reqwest::get(uri.as_str()).await {
+            Ok(response) => {
+                response
+            },
+            Err(e) => {
+                println!("{:?}", e);
+                return Err("something went wrong");
+            }
+        };
 
-        Vec::new()
+        let data = match response.json::<SymbolsResponse>().await {
+            Ok(data) => {
+                data
+            },
+            Err(e) => {
+                println!("{:?}", e);
+                return Err("something went wrong");
+            }
+        };
+
+        let mut symbols = Vec::new();
+
+        for (key, value) in data.symbols.iter() {
+                symbols.push(Symbol { code : String::from(key.as_str()), name : String::from(value)} );
+            }
+
+        Ok(symbols)
     }
-
-
-
 }
-
-
-
