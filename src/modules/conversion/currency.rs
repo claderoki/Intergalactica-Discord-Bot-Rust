@@ -21,15 +21,24 @@ impl FixerioEndpoint {
     }
 }
 
+#[derive(Debug)]
+pub struct Symbol {
+    code: String,
+    name: String
+}
 #[derive(Deserialize, Debug)]
 pub struct SymbolsResponse {
     success : bool,
     symbols : HashMap<String, String>
 }
+
 #[derive(Deserialize, Debug)]
-pub struct Symbol {
-    code: String,
-    name: String
+pub struct RatesResponse {
+    success: bool,
+    timestamp: i64,
+    base: String,
+    date: String,
+    rates: HashMap<String, f64>,
 }
 
 pub struct Fixerio {
@@ -81,9 +90,36 @@ impl Fixerio {
         let mut symbols = Vec::new();
 
         for (key, value) in data.symbols.iter() {
-                symbols.push(Symbol { code : String::from(key.as_str()), name : String::from(value)} );
-            }
+            symbols.push(Symbol { code : String::from(key.as_str()), name : String::from(value)});
+        }
 
         Ok(symbols)
     }
+
+    pub async fn get_rates(&self) -> Result<RatesResponse, &'static str> {
+        let uri = self.get_base_uri(FixerioEndpoint::LATEST);
+
+        let response = match reqwest::get(uri.as_str()).await {
+            Ok(response) => {
+                response
+            },
+            Err(e) => {
+                println!("{:?}", e);
+                return Err("something went wrong");
+            }
+        };
+
+        let data = match response.json::<RatesResponse>().await {
+            Ok(data) => {
+                data
+            },
+            Err(e) => {
+                println!("{:?}", e);
+                return Err("something went wrong");
+            }
+        };
+
+        Ok(data)
+    }
+
 }
