@@ -1,11 +1,7 @@
-
 extern crate reqwest;
 extern crate serde;
 
-use std::{collections::HashMap, error};
-
-use serde::Deserialize;
-use reqwest::Error;
+use super::models::{Symbol, SymbolsResponse, RatesResponse};
 
 enum FixerioEndpoint {
     SYMBOLS,
@@ -19,26 +15,6 @@ impl FixerioEndpoint {
             Self::LATEST => String::from("latest"),
         }
     }
-}
-
-#[derive(Debug)]
-pub struct Symbol {
-    code: String,
-    name: String
-}
-#[derive(Deserialize, Debug)]
-pub struct SymbolsResponse {
-    success : bool,
-    symbols : HashMap<String, String>
-}
-
-#[derive(Deserialize, Debug)]
-pub struct RatesResponse {
-    success: bool,
-    timestamp: i64,
-    base: String,
-    date: String,
-    rates: HashMap<String, f64>,
 }
 
 pub struct Fixerio {
@@ -79,6 +55,9 @@ impl Fixerio {
 
         let data = match response.json::<SymbolsResponse>().await {
             Ok(data) => {
+                if !data.success {
+                    return Err("Success is false")
+                }
                 data
             },
             Err(e) => {
@@ -111,6 +90,9 @@ impl Fixerio {
 
         let data = match response.json::<RatesResponse>().await {
             Ok(data) => {
+                if !data.success {
+                    return Err("Success is false")
+                }
                 data
             },
             Err(e) => {
