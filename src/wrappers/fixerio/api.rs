@@ -1,7 +1,8 @@
 extern crate reqwest;
 extern crate serde;
 
-use super::models::{Symbol, SymbolsResponse, RatesResponse};
+use serde::de::DeserializeOwned;
+use super::models::{Symbol, SymbolsResponse, RatesResponse, ApiResponse};
 
 enum FixerioEndpoint {
     SYMBOLS,
@@ -40,9 +41,9 @@ impl Fixerio {
         uri
     }
 
-    pub async fn get_symbols(&self) -> Result<Vec<Symbol>, &'static str> {
-        let uri = self.get_base_uri(FixerioEndpoint::SYMBOLS);
-
+    async fn call<T>(&self, uri : String) -> Result<T, &'static str>
+    where
+    T: DeserializeOwned {
         let response = match reqwest::get(uri.as_str()).await {
             Ok(response) => {
                 response
@@ -53,18 +54,20 @@ impl Fixerio {
             }
         };
 
-        let data = match response.json::<SymbolsResponse>().await {
+        match response.json::<T>().await {
             Ok(data) => {
-                if !data.success {
-                    return Err("Success is false")
-                }
-                data
+                return Ok(data)
             },
             Err(e) => {
                 println!("{:?}", e);
                 return Err("something went wrong");
             }
         };
+    }
+
+    pub async fn get_symbols(&self) -> Result<Vec<Symbol>, &'static str> {
+        let uri = self.get_base_uri(FixerioEndpoint::SYMBOLS);
+        let data = self.call::<SymbolsResponse>(uri).await?;
 
         let mut symbols = Vec::new();
 
@@ -77,30 +80,7 @@ impl Fixerio {
 
     pub async fn get_rates(&self) -> Result<RatesResponse, &'static str> {
         let uri = self.get_base_uri(FixerioEndpoint::LATEST);
-
-        let response = match reqwest::get(uri.as_str()).await {
-            Ok(response) => {
-                response
-            },
-            Err(e) => {
-                println!("{:?}", e);
-                return Err("something went wrong");
-            }
-        };
-
-        let data = match response.json::<RatesResponse>().await {
-            Ok(data) => {
-                if !data.success {
-                    return Err("Success is false")
-                }
-                data
-            },
-            Err(e) => {
-                println!("{:?}", e);
-                return Err("something went wrong");
-            }
-        };
-
+        let data = self.call::<RatesResponse>(uri).await?;
         Ok(data)
     }
 

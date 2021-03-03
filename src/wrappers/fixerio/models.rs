@@ -21,3 +21,10 @@ pub struct RatesResponse {
     pub date: String,
     pub rates: HashMap<String, f64>,
 }
+
+pub trait ApiResponse {
+    
+}
+
+// impl ApiResponse for RatesResponse {}
+// impl ApiResponse for SymbolsResponse {}
