@@ -2,7 +2,7 @@ extern crate reqwest;
 extern crate serde;
 
 use serde::de::DeserializeOwned;
-use super::models::{Symbol, SymbolsResponse, RatesResponse, ApiResponse};
+use super::models::{SymbolsResponse, RatesResponse};
 
 enum FixerioEndpoint {
     SYMBOLS,
@@ -65,17 +65,10 @@ impl Fixerio {
         };
     }
 
-    pub async fn get_symbols(&self) -> Result<Vec<Symbol>, &'static str> {
+    pub async fn get_symbols(&self) -> Result<SymbolsResponse, &'static str> {
         let uri = self.get_base_uri(FixerioEndpoint::SYMBOLS);
         let data = self.call::<SymbolsResponse>(uri).await?;
-
-        let mut symbols = Vec::new();
-
-        for (key, value) in data.symbols.iter() {
-            symbols.push(Symbol { code : String::from(key.as_str()), name : String::from(value)});
-        }
-
-        Ok(symbols)
+        Ok(data)
     }
 
     pub async fn get_rates(&self) -> Result<RatesResponse, &'static str> {
