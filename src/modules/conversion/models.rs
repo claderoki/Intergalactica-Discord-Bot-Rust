@@ -14,7 +14,19 @@ pub struct Unit {
 }
 
 impl Unit {
-    pub fn celsius() -> Unit {
+    pub fn new_currency(code : String, name : Option<String>, symbol : Option<String>) -> Self {
+        let new_name : String = if name == None {String::from(code.as_str())} else {name.unwrap()};
+        let new_symbol : String = if symbol == None {String::from(code.as_str())} else {symbol.unwrap()};
+
+        Unit {
+            name:      new_name,
+            code:      String::from(code.as_str()),
+            symbol:    new_symbol,
+            unit_type: UnitType::CURRENCY,
+        }
+    }
+
+    pub fn celsius() -> Self {
         Unit {
             name: String::from("celsius"),
             code: String::from("c"),
@@ -23,7 +35,7 @@ impl Unit {
         }
     }
 
-    pub fn fahrenheit() -> Unit {
+    pub fn fahrenheit() -> Self {
         Unit {
             name: String::from("fahrenheit"),
             code: String::from("f"),

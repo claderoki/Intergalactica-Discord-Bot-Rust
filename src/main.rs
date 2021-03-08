@@ -29,6 +29,10 @@ use regex::Regex;
 
 mod modules;
 use modules::conversion::core;
+use modules::conversion::models;
+use modules::conversion::currency;
+mod wrappers;
+use wrappers::fixerio;
 
 pub struct ShardManagerContainer;
 
@@ -45,14 +49,14 @@ pub fn clean_value(value: f64) -> String {
     return format!("{0:.2}", value);
 }
 
-fn convert_conversion_to_str(conversion : &core::Conversion) -> String {
+fn convert_conversion_to_str(conversion : &models::Conversion) -> String {
     let mut value: String = String::from("").to_owned();
     value.push_str(clean_value(conversion.value).as_str());
     value.push_str(conversion.unit.symbol.as_str());
     value
 }
 
-pub fn get_conversion_result_field(result: &core::ConversionResult) -> (String, String, bool) {
+pub fn get_conversion_result_field(result: &models::ConversionResult) -> (String, String, bool) {
     let mut value_field: String = String::from("").to_owned();
 
     let mut i = 0;
@@ -82,28 +86,45 @@ impl EventHandler for Handler {
     }
 
     async fn message(&self, ctx: Context, message: Message) {
-        let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
-
-        let mut vec = Vec::new();
-        for cap in re.captures_iter(&message.content) {
-            let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();
-            let unit = cap[3].to_lowercase();
-            let r = core::convert_measurement(value, unit);
-
-            match r {
-                Ok(result) => {
-                    vec.push(get_conversion_result_field(&result));
+        match currency::convert("EUR", 5.0, vec!["PHP", "USD"]).await {
+            Ok(data) => {
+                println!("{}", data.base.to_string());
+                for conversion in data.to {
+                    println!("{}", conversion.to_string());
                 }
-                Err(_) => {}
-            };
+
+            },
+            Err(e) => {
+            }
         }
-        if !vec.is_empty() {
-            message
-                .channel_id
-                .send_message(&ctx, |m| m.embed(|e| e.color(ctx.get_color()).fields(vec)))
-                .await
-                .unwrap();
-        }
+
+
+        // let fixerio = fixerio::api::Fixerio::new(env::var("FIXERIO_ACCESS_KEY").expect("No fixerio access key set."));
+        // let rates = fixerio.get_rates().await;
+        // println!("{:?}", rates);
+
+        // let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
+
+        // let mut vec = Vec::new();
+        // for cap in re.captures_iter(&message.content) {
+        //     let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();
+        //     let unit = cap[3].to_lowercase();
+        //     let r = core::convert_measurement(value, unit);
+
+        //     match r {
+        //         Ok(result) => {
+        //             vec.push(get_conversion_result_field(&result));
+        //         }
+        //         Err(_) => {}
+        //     };
+        // }
+        // if !vec.is_empty() {
+        //     message
+        //         .channel_id
+        //         .send_message(&ctx, |m| m.embed(|e| e.color(ctx.get_color()).fields(vec)))
+        //         .await
+        //         .unwrap();
+        // }
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
