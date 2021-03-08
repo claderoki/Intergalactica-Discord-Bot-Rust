@@ -31,6 +31,7 @@ mod modules;
 use modules::conversion::core;
 use modules::conversion::models;
 use modules::conversion::currency;
+use modules::conversion::currency_symbols;
 mod wrappers;
 use wrappers::fixerio;
 
@@ -86,18 +87,22 @@ impl EventHandler for Handler {
     }
 
     async fn message(&self, ctx: Context, message: Message) {
-        match currency::convert("EUR", 5.0, vec!["PHP", "USD"]).await {
-            Ok(data) => {
-                println!("{}", data.base.to_string());
-                for conversion in data.to {
-                    println!("{}", conversion.to_string());
-                }
+        // match currency::convert("EUR", 5.0, vec!["PHP", "USD"]).await {
+        //     Ok(data) => {
+        //         println!("{}", data.base.to_string());
+        //         for conversion in data.to {
+        //             println!("{}", conversion.to_string());
+        //         }
 
-            },
-            Err(e) => {
+        //     },
+        //     Err(e) => {
+        //     }
+        // }
+        if let Ok(currencies) = currency_symbols::get_currencies() {
+            if let Some(usd) = currencies.get("USD") {
+                println!("{}", usd);
             }
         }
-
 
         // let fixerio = fixerio::api::Fixerio::new(env::var("FIXERIO_ACCESS_KEY").expect("No fixerio access key set."));
         // let rates = fixerio.get_rates().await;
