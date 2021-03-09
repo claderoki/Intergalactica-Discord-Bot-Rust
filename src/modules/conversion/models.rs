@@ -53,7 +53,14 @@ pub struct Conversion {
 
 impl Conversion {
     pub fn to_string(&self) -> String {
-        format!("{}{}", self.value, self.unit.symbol)
+        match self.unit.unit_type {
+            UnitType::CURRENCY => {
+                format!("{}{}", self.value, self.unit.code)
+            },
+            UnitType::MEASUREMENT => {
+                format!("{}{}", self.value, self.unit.symbol)
+            }
+        }
     }
 }
 

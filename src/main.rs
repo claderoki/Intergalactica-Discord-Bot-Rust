@@ -30,8 +30,7 @@ use regex::Regex;
 mod modules;
 use modules::conversion::core;
 use modules::conversion::models;
-use modules::conversion::currency;
-use modules::conversion::currency_symbols;
+use modules::conversion::currency::currency;
 mod wrappers;
 use wrappers::fixerio;
 
@@ -98,11 +97,9 @@ impl EventHandler for Handler {
         //     Err(e) => {
         //     }
         // }
-        if let Ok(currencies) = currency_symbols::get_currencies() {
-            if let Some(usd) = currencies.get("USD") {
-                println!("{}", usd);
-            }
-        }
+
+        let currency = currency::get_currency_unit(String::from("EUR")).await;
+        println!("{:?}" , currency);
 
         // let fixerio = fixerio::api::Fixerio::new(env::var("FIXERIO_ACCESS_KEY").expect("No fixerio access key set."));
         // let rates = fixerio.get_rates().await;
