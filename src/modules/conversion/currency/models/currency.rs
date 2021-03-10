@@ -1,3 +1,5 @@
+use mysql::prelude::FromValue;
+
 pub struct Currency {
     pub id: i32,
     pub rate: f64,

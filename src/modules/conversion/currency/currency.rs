@@ -1,9 +1,12 @@
 extern crate mysql;
 
 use std::{collections::{HashMap}, fs::File, io::{BufReader}, env};
+use mysql::{Conn, OptsBuilder, from_row, from_value, prelude::Queryable};
+
+// use mysql::*;
+// use mysql::prelude::*;
 use super::{super::super::super::wrappers::fixerio::api::Fixerio, super::models::{Unit, UnitType, ConversionResult, Conversion}};
 
-use mysql as my;
 
 /*TODO: cache*/
 pub async fn get_rates() -> Result<HashMap<String, f64>, &'static str> {
@@ -58,7 +61,7 @@ pub fn get_currencies() -> Result<HashMap<String, String>, &'static str> {
 pub async fn get_currency_symbol(code : String) -> Option<String> {
     match get_currencies() {
         Ok(currencies) => {
-            if let Some(symbol) = currencies.get(code.as_str()) {   
+            if let Some(symbol) = currencies.get(code.as_str()) {
                 return Some(String::from(symbol.as_str()));
             } else {
                 return None;
@@ -86,28 +89,40 @@ pub async fn get_currency_name(code : String) -> Option<String> {
     }
 }
 
-pub async fn get_all_currencies() {
-    let url = "mysql://root:password@localhost:3307/db_name";
+fn get_db_opts() -> OptsBuilder {
+    OptsBuilder::new()
+    .user(Some(env::var("DB_USER").expect("Expected DB_USER in the environment")))
+    .db_name(Some(env::var("DB_NAME").expect("Expected DB_NAME in the environment")))
+    .ip_or_hostname(Some(env::var("DB_HOST").expect("Expected DB_HOST in the environment")))
+    .pass(Some(env::var("DB_PASSWORD").expect("Expected DB_PASSWORD in the environment")))
+}
 
-    let pool = match my::Pool::new(url) {
-        Ok(data) => {data},
-        Err(_) => {return ();}
-    };
+use super::models::currency::{Currency};
 
-    for mut stmt in pool.prepare(r"INSERT INTO payment
-                                       (customer_id, amount, account_name)
-                                   VALUES
-                                       (:customer_id, :amount, :account_name)").into_iter() {
-        for p in payments.iter() {
-            // `execute` takes ownership of `params` so we pass account name by reference.
-            // Unwrap each result just to make sure no errors happened.
-            stmt.execute(params!{
-                "customer_id" => p.customer_id,
-                "amount" => p.amount,
-                "account_name" => &p.account_name,
-            }).unwrap();
+pub fn get_all_currencies() -> Vec<Currency> {
+    let currencies : Vec<Currency> = Vec::new();
+
+    match Conn::new(get_db_opts()) {
+        Ok(mut conn) => {
+            let query = "SELECT * FROM currency";
+            if let Ok(mut result) = conn.query_iter(query) {
+                while let Some(result_set) = result.next_set() {
+                    if let Ok(set) = result_set {
+                        for r in set {
+                            if let Ok(row) = r {
+                                let currency = from_row::<Currency>(row);
+                                println!("{:?}", currency);
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        Err(e) => {
+            println!("CONN NOT OK: {:?}", e);
         }
     }
+    currencies
 }
 
 pub async fn get_currency_unit(code : String) -> Unit {
