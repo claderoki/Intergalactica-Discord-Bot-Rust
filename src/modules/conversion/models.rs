@@ -14,6 +14,20 @@ pub struct Unit {
 }
 
 impl Unit {
+    pub fn new(
+        name: &'static str,
+        code: &'static str,
+        symbol: &'static str,
+        unit_type: UnitType,
+    ) -> Self {
+        Self {
+            name,
+            code,
+            symbol,
+            unit_type,
+        }
+    }
+
     pub fn new_currency(
         code: &'static str,
         name: Option<&'static str>,
@@ -31,24 +45,6 @@ impl Unit {
             code: code,
             symbol: new_symbol,
             unit_type: UnitType::CURRENCY,
-        }
-    }
-
-    pub fn celsius() -> Self {
-        Unit {
-            name: "celsius",
-            code: "c",
-            symbol: "°C",
-            unit_type: UnitType::MEASUREMENT,
-        }
-    }
-
-    pub fn fahrenheit() -> Self {
-        Unit {
-            name: "fahrenheit",
-            code: "f",
-            symbol: "°F",
-            unit_type: UnitType::MEASUREMENT,
         }
     }
 }

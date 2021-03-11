@@ -6,8 +6,19 @@ use super::models::{Conversion, ConversionResult, Unit, UnitType};
 
 fn to_unit(text: String) -> Result<Unit, &'static str> {
     let result = match text.to_lowercase().as_str() {
-        "c" | "celsius" => Ok(Unit::celsius()),
-        "f" | "fahrenheit" => Ok(Unit::fahrenheit()),
+        "c" | "celsius" => Ok(Unit {
+            name: "celsius",
+            code: "c",
+            symbol: "°C",
+            unit_type: UnitType::MEASUREMENT,
+        }),
+
+        "f" | "fahrenheit" => Ok(Unit {
+            name: "fahrenheit",
+            code: "f",
+            symbol: "°F",
+            unit_type: UnitType::MEASUREMENT,
+        }),
         _ => Err("No units found"),
     };
     result
