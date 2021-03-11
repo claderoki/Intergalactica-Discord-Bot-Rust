@@ -7,39 +7,47 @@ pub enum UnitType {
 
 #[derive(Debug)]
 pub struct Unit {
-    pub name: String,
-    pub code: String,
-    pub symbol: String,
+    pub name: &'static str,
+    pub code: &'static str,
+    pub symbol: &'static str,
     pub unit_type: UnitType,
 }
 
 impl Unit {
-    pub fn new_currency(code : String, name : Option<String>, symbol : Option<String>) -> Self {
-        let new_name : String = if name == None {String::from(code.as_str())} else {name.unwrap()};
-        let new_symbol : String = if symbol == None {String::from(code.as_str())} else {symbol.unwrap()};
+    pub fn new_currency(
+        code: &'static str,
+        name: Option<&'static str>,
+        symbol: Option<&'static str>,
+    ) -> Self {
+        let new_name: &'static str = if name == None { code } else { name.unwrap() };
+        let new_symbol: &'static str = if symbol == None {
+            code
+        } else {
+            symbol.unwrap()
+        };
 
         Unit {
-            name:      new_name,
-            code:      String::from(code.as_str()),
-            symbol:    new_symbol,
+            name: new_name,
+            code: code,
+            symbol: new_symbol,
             unit_type: UnitType::CURRENCY,
         }
     }
 
     pub fn celsius() -> Self {
         Unit {
-            name: String::from("celsius"),
-            code: String::from("c"),
-            symbol: String::from("°C"),
+            name: "celsius",
+            code: "c",
+            symbol: "°C",
             unit_type: UnitType::MEASUREMENT,
         }
     }
 
     pub fn fahrenheit() -> Self {
         Unit {
-            name: String::from("fahrenheit"),
-            code: String::from("f"),
-            symbol: String::from("°F"),
+            name: "fahrenheit",
+            code: "f",
+            symbol: "°F",
             unit_type: UnitType::MEASUREMENT,
         }
     }
