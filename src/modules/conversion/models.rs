@@ -1,11 +1,10 @@
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum UnitType {
     MEASUREMENT,
     CURRENCY,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Unit {
     pub name: &'static str,
     pub code: &'static str,
@@ -49,7 +48,7 @@ impl Unit {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Conversion {
     pub unit: Unit,
     pub value: f64,
