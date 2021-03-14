@@ -28,7 +28,7 @@ use commands::{math::*, meta::*, owner::*};
 use regex::Regex;
 
 mod modules;
-use modules::conversion::core;
+use modules::conversion::{core, currency::currency::UpdateType};
 use modules::conversion::models;
 use modules::conversion::currency::currency;
 mod wrappers;
@@ -98,8 +98,8 @@ impl EventHandler for Handler {
         //     }
         // }
 
-        let currency = currency::get_currency_unit(String::from("EUR")).await;
-        println!("{:?}" , currency);
+        currency::update_currencies(UpdateType::All).await;
+        // println!("{:?}" , currency);
 
         // let fixerio = fixerio::api::Fixerio::new(env::var("FIXERIO_ACCESS_KEY").expect("No fixerio access key set."));
         // let rates = fixerio.get_rates().await;

@@ -1,12 +1,10 @@
 extern crate mysql;
 
 use std::{collections::{HashMap}, fs::File, io::{BufReader}, env};
-use mysql::{Conn, OptsBuilder, from_row, from_value, prelude::Queryable};
+use mysql::{Conn, OptsBuilder, params, Row, prelude::Queryable, };
 
-// use mysql::*;
-// use mysql::prelude::*;
 use super::{super::super::super::wrappers::fixerio::api::Fixerio, super::models::{Unit, UnitType, ConversionResult, Conversion}};
-
+use super::models::currency::{Currency};
 
 /*TODO: cache*/
 pub async fn get_rates() -> Result<HashMap<String, f64>, &'static str> {
@@ -97,32 +95,105 @@ fn get_db_opts() -> OptsBuilder {
     .pass(Some(env::var("DB_PASSWORD").expect("Expected DB_PASSWORD in the environment")))
 }
 
-use super::models::currency::{Currency};
-
-pub fn get_all_currencies() -> Vec<Currency> {
-    let currencies : Vec<Currency> = Vec::new();
+pub fn get_select_rows(query : &'static str) -> Vec<Row> {
+    let mut rows : Vec<Row> = Vec::new();
 
     match Conn::new(get_db_opts()) {
         Ok(mut conn) => {
-            let query = "SELECT * FROM currency";
             if let Ok(mut result) = conn.query_iter(query) {
                 while let Some(result_set) = result.next_set() {
                     if let Ok(set) = result_set {
                         for r in set {
                             if let Ok(row) = r {
-                                let currency = from_row::<Currency>(row);
-                                println!("{:?}", currency);
+                                rows.push(row);
                             }
                         }
                     }
                 }
             }
         },
-        Err(e) => {
-            println!("CONN NOT OK: {:?}", e);
-        }
+        Err(_) => {}
+    }
+
+    rows
+}
+
+pub fn get_all_currencies() -> Vec<Currency> {
+    let mut currencies : Vec<Currency> = Vec::new();
+    for row in get_select_rows("SELECT * FROM currency") {
+        let currency = Currency::from_row(row);
+        println!("{:?}", currency);
+        currencies.push(currency);
     }
     currencies
+}
+
+pub enum UpdateType {
+    All,
+    Rate,
+}
+
+pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static str> {
+    let db_currencies = get_all_currencies();
+    let api_rates     = get_rates().await?;
+    let symbols : HashMap<String, String>;
+    let names : HashMap<String, String>;
+
+    let mut missing : Vec<String> = Vec::new();
+    let mut currencies: Vec<Currency> = Vec::new();
+
+    for (code, _) in &api_rates {
+        let mut found = false;
+        for currency in &db_currencies {
+            if &currency.code == code {
+                found = true;
+            }
+        }
+        if !found {
+            missing.push(String::from(code.as_str()));
+        }
+    }
+
+    // if missing.len() > 0 {
+    symbols = get_currencies()?;
+    names = get_symbols().await?;
+    // }
+
+    for code in missing {
+        if let Some(name) = names.get(code.as_str()) {
+            if let Some(symbol) = symbols.get(code.as_str()) {
+                if let Some(rate) = api_rates.get(code.as_str()) {
+                    currencies.push(Currency {
+                        id: 0,
+                        rate: *rate,
+                        is_base: code.as_str() == "EUR",
+                        name: String::from(name.as_str()),
+                        code: String::from(code.as_str()),
+                        symbol: String::from(symbol.as_str())
+                    });
+                }
+            }
+        }
+    }
+
+    for mut currency in db_currencies {
+        if let Some(name) = names.get(currency.code.as_str()) {
+            if let Some(symbol) = symbols.get(currency.code.as_str()) {
+                if let Some(rate) = api_rates.get(currency.code.as_str()) {
+                    currency.rate = *rate;
+                    currency.name = String::from(name.as_str());
+                    currency.symbol = String::from(symbol.as_str());
+                    currencies.push(currency);
+                }
+            }
+        }
+    }
+
+    for currency in currencies {
+        save_currency(currency);
+    }
+
+    return Ok(());
 }
 
 pub async fn get_currency_unit(code : String) -> Unit {
@@ -150,4 +221,37 @@ pub async fn convert(from : &'static str, value : f64, to : Vec<&'static str>) -
     }
 
     Ok(result)
+}
+
+pub fn save_currency(currency : Currency) {
+    let mut query = String::from("");
+    if currency.id == 0 {
+        query.push_str("INSERT INTO currency ");
+        query.push_str("(`rate`, `is_base`, `name`, `code`, `symbol`)");
+        query.push_str("VALUES ");
+        query.push_str("(:rate, :is_base, :name, :code, :symbol)");
+        println!("INSERT: {:?}", currency);
+    } else {
+        query.push_str("UPDATE currency ");
+        query.push_str("SET `rate` = :rate, `is_base` = :is_base, `name` = :name, `code` = :code, `symbol` = :symbol ");
+        query.push_str("WHERE `id` = :id");
+        println!("UPDATE: {:?}", currency);
+    }
+
+    match Conn::new(get_db_opts()) {
+        Ok(mut conn) => {
+            conn.exec_batch(
+                query,
+                params! {
+                    "id" => currency.id,
+                    "rate" => currency.rate,
+                    "is_base" => currency.is_base,
+                    "name" => currency.name,
+                    "code" => currency.code,
+                    "symbol" => currency.symbol
+                }
+            );
+        },
+        Err(_) => {}
+    }
 }
