@@ -218,18 +218,32 @@ pub fn save_currency(currency : Currency) {
 
     match Conn::new(get_db_opts()) {
         Ok(mut conn) => {
-            // conn.exec_batch(
-            //     query,
-            //     params! {
-            //         "id" => currency.id,
-            //         "rate" => currency.rate,
-            //         "is_base" => currency.is_base,
-            //         "name" => currency.name,
-            //         "code" => currency.code,
-            //         "symbol" => currency.symbol
-            //     }
-            // );
+            let result = conn.exec::<i64,_,_>(
+                query,
+                params! {
+                    "id" => currency.id,
+                    "rate" => currency.rate,
+                    "is_base" => currency.is_base,
+                    "name" => currency.name,
+                    "code" => currency.code,
+                    "symbol" => currency.symbol
+                }
+            );
+            println!("result: {:?}", result);
         },
         Err(_) => {}
     }
+}
+
+#[test]
+fn test_insert_db() {
+    let currency = Currency {
+        id: 45,
+        rate: 43.3,
+        is_base: true,
+        name: "something".into(),
+        code: "l".into(),
+        symbol: "x".into(),
+    };
+    save_currency(currency)
 }
