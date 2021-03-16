@@ -8,7 +8,6 @@
 //! git = "https://github.com/serenity-rs/serenity.git"
 //! features = ["framework", "standard_framework"]
 //! ```
-mod commands;
 
 use serenity::{
     async_trait,
@@ -18,7 +17,15 @@ use serenity::{
     model::{channel::Message, event::ResumedEvent, gateway::Ready},
     prelude::*,
 };
-use std::{collections::HashSet, env, sync::Arc};
+
+use once_cell::sync::Lazy;
+use std::{
+    collections::{HashMap, HashSet},
+    env,
+    sync::Arc,
+};
+pub static SYMBOLS: Lazy<std::sync::Mutex<HashMap<String, String>>> =
+    Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
 
 use tracing::{error, info};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
@@ -27,10 +34,11 @@ use commands::{math::*, meta::*, owner::*};
 
 use regex::Regex;
 
+mod commands;
 mod modules;
-use modules::conversion::{core, currency::currency::UpdateType};
-use modules::conversion::models;
 use modules::conversion::currency::currency;
+use modules::conversion::models;
+use modules::conversion::{core, currency::currency::UpdateType};
 mod wrappers;
 use wrappers::fixerio;
 
@@ -49,10 +57,10 @@ pub fn clean_value(value: f64) -> String {
     return format!("{0:.2}", value);
 }
 
-fn convert_conversion_to_str(conversion : &models::Conversion) -> String {
+fn convert_conversion_to_str(conversion: &models::Conversion) -> String {
     let mut value: String = String::from("").to_owned();
     value.push_str(clean_value(conversion.value).as_str());
-    value.push_str(conversion.unit.symbol);
+    value.push_str(conversion.unit.symbol.as_str());
     value
 }
 

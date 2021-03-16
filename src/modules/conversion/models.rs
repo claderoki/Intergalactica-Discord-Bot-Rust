@@ -6,19 +6,14 @@ pub enum UnitType {
 
 #[derive(Debug, Clone)]
 pub struct Unit {
-    pub name: &'static str,
-    pub code: &'static str,
-    pub symbol: &'static str,
+    pub name: String,
+    pub code: String,
+    pub symbol: String,
     pub unit_type: UnitType,
 }
 
 impl Unit {
-    pub fn new(
-        name: &'static str,
-        code: &'static str,
-        symbol: &'static str,
-        unit_type: UnitType,
-    ) -> Self {
+    pub fn new(name: String, code: String, symbol: String, unit_type: UnitType) -> Self {
         Self {
             name,
             code,
@@ -27,22 +22,11 @@ impl Unit {
         }
     }
 
-    pub fn new_currency(
-        code: &'static str,
-        name: Option<&'static str>,
-        symbol: Option<&'static str>,
-    ) -> Self {
-        let new_name: &'static str = if name == None { code } else { name.unwrap() };
-        let new_symbol: &'static str = if symbol == None {
-            code
-        } else {
-            symbol.unwrap()
-        };
-
+    pub fn new_currency(code: String, name: Option<String>, symbol: Option<String>) -> Self {
         Unit {
-            name: new_name,
-            code: code,
-            symbol: new_symbol,
+            name: name.unwrap_or(code.clone()),
+            symbol: symbol.unwrap_or(code.clone()),
+            code,
             unit_type: UnitType::CURRENCY,
         }
     }
@@ -59,7 +43,7 @@ impl Conversion {
         match self.unit.unit_type {
             UnitType::CURRENCY => {
                 format!("{}{}", self.value, self.unit.code)
-            },
+            }
             UnitType::MEASUREMENT => {
                 format!("{}{}", self.value, self.unit.symbol)
             }

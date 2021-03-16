@@ -9,16 +9,16 @@ use super::models::{Conversion, ConversionResult, Unit, UnitType};
 fn to_unit(text: String) -> Result<Unit, &'static str> {
     let result = match text.to_lowercase().as_str() {
         "c" | "celsius" => Ok(Unit {
-            name: "celsius",
-            code: "c",
-            symbol: "°C",
+            name: "celsius".to_string(),
+            code: "c".to_string(),
+            symbol: "°C".to_string(),
             unit_type: UnitType::MEASUREMENT,
         }),
 
         "f" | "fahrenheit" => Ok(Unit {
-            name: "fahrenheit",
-            code: "f",
-            symbol: "°F",
+            name: "fahrenheit".to_string(),
+            code: "f".to_string(),
+            symbol: "°F".to_string(),
             unit_type: UnitType::MEASUREMENT,
         }),
         _ => Err("No units found"),
@@ -33,7 +33,12 @@ fn get_units() -> Units {
     hm.insert(
         "c",
         (
-            Unit::new("celsius", "c", "°C", UnitType::MEASUREMENT),
+            Unit::new(
+                "celsius".to_string(),
+                "c".to_string(),
+                "°C".to_string(),
+                UnitType::MEASUREMENT,
+            ),
             |x: f64| Temperature::from_celsius(x).as_base_units(),
             |x: f64| Temperature::from_base_units(x).as_celsius(),
         ),
@@ -41,7 +46,12 @@ fn get_units() -> Units {
     hm.insert(
         "f",
         (
-            Unit::new("fahrenheit", "f", "°F", UnitType::MEASUREMENT),
+            Unit::new(
+                "fahrenheit".to_string(),
+                "f".to_string(),
+                "°F".to_string(),
+                UnitType::MEASUREMENT,
+            ),
             |x: f64| Temperature::from_fahrenheit(x).as_base_units(),
             |x: f64| Temperature::from_base_units(x).as_fahrenheit(),
         ),
@@ -49,7 +59,12 @@ fn get_units() -> Units {
     hm.insert(
         "m",
         (
-            Unit::new("meters", "m", "m", UnitType::MEASUREMENT),
+            Unit::new(
+                "meters".to_string(),
+                "m".to_string(),
+                "m".to_string(),
+                UnitType::MEASUREMENT,
+            ),
             |x: f64| Length::from_meters(x).as_base_units(),
             |x: f64| Length::from_base_units(x).as_meters(),
         ),
@@ -57,7 +72,12 @@ fn get_units() -> Units {
     hm.insert(
         "ft",
         (
-            Unit::new("feet", "ft", "\"", UnitType::MEASUREMENT),
+            Unit::new(
+                "feet".to_string(),
+                "ft".to_string(),
+                "\"".to_string(),
+                UnitType::MEASUREMENT,
+            ),
             |x: f64| Length::from_feet(x).as_base_units(),
             |x: f64| Length::from_base_units(x).as_feet(),
         ),
@@ -69,7 +89,9 @@ fn get_units() -> Units {
 impl Conversion {
     fn convert(&self) -> Result<ConversionResult, &'static str> {
         let units = get_units();
-        let (_, to_base, _) = units.get(self.unit.code).ok_or("unit no on the list")?;
+        let (_, to_base, _) = units
+            .get(self.unit.code.as_str())
+            .ok_or("unit no on the list")?;
         let base = to_base(self.value);
 
         let conversions =

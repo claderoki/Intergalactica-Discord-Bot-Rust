@@ -2,6 +2,9 @@ extern crate mysql;
 
 use std::{collections::{HashMap}, fs::File, io::{BufReader}, env};
 use mysql::{Conn, OptsBuilder, params, Row, prelude::Queryable, };
+use once_cell::sync::Lazy;
+
+use crate::SYMBOLS;
 
 use super::{super::super::super::wrappers::fixerio::api::Fixerio, super::models::{Unit, UnitType, ConversionResult, Conversion}};
 use super::models::currency::{Currency};
@@ -22,18 +25,18 @@ pub async fn get_rates() -> Result<HashMap<String, f64>, &'static str> {
 }
 
 /*TODO: cache*/
-pub async fn get_symbols() -> Result<HashMap<String, String>, &'static str> {
+pub async fn get_symbols() -> &'static Lazy<std::sync::Mutex<HashMap<String, String>>>  {
     let fixerio = Fixerio::new(env::var("FIXERIO_ACCESS_KEY").expect("No fixerio access key set."));
     let symbols = fixerio.get_symbols().await;
 
-    match symbols {
-        Ok(data) => {
-            return Ok(data.symbols);
-        }
-        Err(e) => {
-            return Err(e)
+    if let Ok(sym) = symbols{
+        SYMBOLS.lock().unwrap().clear();
+        for (k, v) in sym.symbols {
+            SYMBOLS.lock().unwrap().insert(k, v);
         }
     }
+
+    &SYMBOLS
 }
 
 /*TODO: cache*/
@@ -56,35 +59,12 @@ pub fn get_currencies() -> Result<HashMap<String, String>, &'static str> {
     }
 }
 
-pub async fn get_currency_symbol(code : String) -> Option<String> {
-    match get_currencies() {
-        Ok(currencies) => {
-            if let Some(symbol) = currencies.get(code.as_str()) {
-                return Some(String::from(symbol.as_str()));
-            } else {
-                return None;
-            }
-        },
-        Err(e) => {
-            println!("Error getting currencies: {}", e);
-            return None;
-        }
-    }
+pub async fn get_currency_symbol(code : &str) -> Option<String> {
+    get_currencies().ok()?.get(code).cloned()
 }
 
-pub async fn get_currency_name(code : String) -> Option<String> {
-    match get_symbols().await {
-        Ok(symbols) => {
-            if let Some(name) = symbols.get(code.as_str()) {
-                return Some(String::from(name.as_str()));
-            } else {
-                return None;
-            }
-        },
-        Err(e) => {
-            return None;
-        }
-    }
+pub async fn get_currency_name(code : &str) -> Option<String> {
+    get_symbols().await.lock().ok()?.get(code).cloned()
 }
 
 fn get_db_opts() -> OptsBuilder {
@@ -136,8 +116,6 @@ pub enum UpdateType {
 pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static str> {
     let db_currencies = get_all_currencies();
     let api_rates     = get_rates().await?;
-    let symbols : HashMap<String, String>;
-    let names : HashMap<String, String>;
 
     let mut missing : Vec<String> = Vec::new();
     let mut currencies: Vec<Currency> = Vec::new();
@@ -155,37 +133,34 @@ pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static 
     }
 
     // if missing.len() > 0 {
-    symbols = get_currencies()?;
-    names = get_symbols().await?;
+    let symbols = get_currencies()?;
+    let names = get_symbols().await;
     // }
 
-    for code in missing {
-        if let Some(name) = names.get(code.as_str()) {
-            if let Some(symbol) = symbols.get(code.as_str()) {
-                if let Some(rate) = api_rates.get(code.as_str()) {
-                    currencies.push(Currency {
-                        id: 0,
-                        rate: *rate,
-                        is_base: code.as_str() == "EUR",
-                        name: String::from(name.as_str()),
-                        code: String::from(code.as_str()),
-                        symbol: String::from(symbol.as_str())
-                    });
-                }
-            }
+    if names.lock().is_ok() {
+        for code in missing {
+            let name = names.lock().unwrap().get(code.as_str()).cloned().ok_or("err")?;
+            let symbol = symbols.get(code.as_str()).ok_or("err")?;
+            let rate = api_rates.get(code.as_str()).ok_or("err")?;
+            currencies.push(Currency {
+                id: 0,
+                rate: *rate,
+                is_base: code.as_str() == "EUR",
+                name: String::from(name.as_str()),
+                code: String::from(code.as_str()),
+                symbol: String::from(symbol.as_str())
+            });
         }
-    }
 
-    for mut currency in db_currencies {
-        if let Some(name) = names.get(currency.code.as_str()) {
-            if let Some(symbol) = symbols.get(currency.code.as_str()) {
-                if let Some(rate) = api_rates.get(currency.code.as_str()) {
-                    currency.rate = *rate;
-                    currency.name = String::from(name.as_str());
-                    currency.symbol = String::from(symbol.as_str());
-                    currencies.push(currency);
-                }
-            }
+        for mut currency in db_currencies {
+            let code = currency.code.as_str();
+            let name = names.lock().unwrap().get(code).cloned().ok_or("err")?;
+            let symbol = symbols.get(code).ok_or("err")?;
+            let rate = api_rates.get(code).ok_or("err")?;
+            currency.rate = *rate;
+            currency.name = String::from(name.as_str());
+            currency.symbol = String::from(symbol.as_str());
+            currencies.push(currency);
         }
     }
 
@@ -196,11 +171,14 @@ pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static 
     return Ok(());
 }
 
-pub async fn get_currency_unit(code : String) -> Unit {
+pub async fn get_currency_unit(code : &'static str) -> Unit {
+
+    let foo = get_currency_name(code).await;
+    // foo
     Unit::new_currency(
-        String::from(code.as_str()),
-        get_currency_name(String::from(code.as_str())).await,
-        get_currency_symbol(String::from(code.as_str())).await
+        code.to_string(),
+        get_currency_name(code).await,
+        get_currency_symbol(code).await
     )
 }
 
@@ -208,14 +186,14 @@ pub async fn convert(from : &'static str, value : f64, to : Vec<&'static str>) -
     let rates = get_rates().await?;
 
     let mut result = ConversionResult::new(Conversion {
-        unit  : get_currency_unit(String::from(from)).await,
-        value : value
+        unit  : get_currency_unit(from).await,
+        value
     });
 
     let base_value : f64 = rates[&String::from(from)];
     for currency in to {
         result.to.push(Conversion {
-            unit  : Unit::new_currency(String::from(currency), None, None),
+            unit  : Unit::new_currency(currency.to_string(), None, None),
             value : (rates[&String::from(currency)] * value) / base_value
         });
     }
@@ -240,17 +218,17 @@ pub fn save_currency(currency : Currency) {
 
     match Conn::new(get_db_opts()) {
         Ok(mut conn) => {
-            conn.exec_batch(
-                query,
-                params! {
-                    "id" => currency.id,
-                    "rate" => currency.rate,
-                    "is_base" => currency.is_base,
-                    "name" => currency.name,
-                    "code" => currency.code,
-                    "symbol" => currency.symbol
-                }
-            );
+            // conn.exec_batch(
+            //     query,
+            //     params! {
+            //         "id" => currency.id,
+            //         "rate" => currency.rate,
+            //         "is_base" => currency.is_base,
+            //         "name" => currency.name,
+            //         "code" => currency.code,
+            //         "symbol" => currency.symbol
+            //     }
+            // );
         },
         Err(_) => {}
     }
