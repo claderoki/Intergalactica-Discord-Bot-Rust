@@ -139,17 +139,19 @@ pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static 
 
     if names.lock().is_ok() {
         for code in missing {
-            let name = names.lock().unwrap().get(code.as_str()).cloned().ok_or("err")?;
-            let symbol = symbols.get(code.as_str()).ok_or("err")?;
-            let rate = api_rates.get(code.as_str()).ok_or("err")?;
-            currencies.push(Currency {
-                id: 0,
-                rate: *rate,
-                is_base: code.as_str() == "EUR",
-                name: String::from(name.as_str()),
-                code: String::from(code.as_str()),
-                symbol: String::from(symbol.as_str())
-            });
+            let name = names.lock().unwrap().get(code.as_str()).cloned();
+            let symbol = symbols.get(code.as_str());
+            let rate = api_rates.get(code.as_str());
+            if let (Some(name), Some(symbol), Some(rate)) = (name, symbol, rate) {
+                currencies.push(Currency {
+                    id: 0,
+                    rate: *rate,
+                    is_base: code.as_str() == "EUR",
+                    name: String::from(name.as_str()),
+                    code: String::from(code.as_str()),
+                    symbol: String::from(symbol.as_str())
+                });
+            }
         }
 
         for mut currency in db_currencies {
@@ -231,7 +233,9 @@ pub fn save_currency(currency : Currency) {
             );
             println!("result: {:?}", result);
         },
-        Err(_) => {}
+        Err(e) => {
+            println!("Error : {:?}", e);
+        }
     }
 }
 
