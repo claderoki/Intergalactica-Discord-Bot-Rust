@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use measurements::{Length, Measurement, Temperature};
 
-use super::models::{Conversion, ConversionResult, Unit, UnitType};
+use super::{currency::currency::get_all_currencies, models::{Conversion, ConversionResult, Unit, UnitType}};
 
 fn to_unit(text: String) -> Result<Unit, &'static str> {
     let result = match text.to_lowercase().as_str() {
@@ -108,6 +108,22 @@ impl Conversion {
             to: conversions.collect(),
         })
     }
+}
+
+pub fn get_all_codes_and_symbols() -> Vec<String> {
+    let mut values = Vec::new();
+
+    for (code, (unit, _, _)) in get_units() {
+        values.push(String::from(code).to_lowercase());
+        values.push(unit.symbol.to_lowercase());
+    }
+
+    for currency in get_all_currencies() {
+        values.push(currency.code.to_lowercase());
+        values.push(currency.symbol.to_lowercase());
+    }
+
+    return values;
 }
 
 pub fn convert_measurement(value: f64, from: String) -> Result<ConversionResult, &'static str> {
