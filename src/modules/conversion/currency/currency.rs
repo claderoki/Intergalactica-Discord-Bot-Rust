@@ -102,7 +102,6 @@ pub fn get_all_currencies() -> Vec<Currency> {
     let mut currencies : Vec<Currency> = Vec::new();
     for row in get_select_rows("SELECT * FROM currency") {
         let currency = Currency::from_row(row);
-        println!("{:?}", currency);
         currencies.push(currency);
     }
     currencies
@@ -132,38 +131,34 @@ pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static 
         }
     }
 
-    // if missing.len() > 0 {
-    let symbols = get_currencies()?;
-    let names = get_symbols().await;
-    // }
+    if missing.len() > 0 {
+        let symbols = get_currencies()?;
+        let names = get_symbols().await;
 
-    if names.lock().is_ok() {
-        for code in missing {
-            let name = names.lock().unwrap().get(code.as_str()).cloned();
-            let symbol = symbols.get(code.as_str());
-            let rate = api_rates.get(code.as_str());
-            if let (Some(name), Some(symbol), Some(rate)) = (name, symbol, rate) {
-                currencies.push(Currency {
-                    id: 0,
-                    rate: *rate,
-                    is_base: code.as_str() == "EUR",
-                    name: String::from(name.as_str()),
-                    code: String::from(code.as_str()),
-                    symbol: String::from(symbol.as_str())
-                });
+        if names.lock().is_ok() {
+            for code in missing {
+                let name = names.lock().unwrap().get(code.as_str()).cloned();
+                let symbol = symbols.get(code.as_str());
+                let rate = api_rates.get(code.as_str());
+                if let (Some(name), Some(symbol), Some(rate)) = (name, symbol, rate) {
+                    currencies.push(Currency {
+                        id: 0,
+                        rate: *rate,
+                        is_base: code.as_str() == "EUR",
+                        name: String::from(name.as_str()),
+                        code: String::from(code.as_str()),
+                        symbol: String::from(symbol.as_str())
+                    });
+                }
             }
         }
+    }
 
-        for mut currency in db_currencies {
-            let code = currency.code.as_str();
-            let name = names.lock().unwrap().get(code).cloned().ok_or("err")?;
-            let symbol = symbols.get(code).ok_or("err")?;
-            let rate = api_rates.get(code).ok_or("err")?;
-            currency.rate = *rate;
-            currency.name = String::from(name.as_str());
-            currency.symbol = String::from(symbol.as_str());
-            currencies.push(currency);
-        }
+    for mut currency in db_currencies {
+        let code = currency.code.as_str();
+        let rate = api_rates.get(code).ok_or("err")?;
+        currency.rate = *rate;
+        currencies.push(currency);
     }
 
     for currency in currencies {
@@ -171,36 +166,6 @@ pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static 
     }
 
     return Ok(());
-}
-
-pub async fn get_currency_unit(code : &'static str) -> Unit {
-
-    let foo = get_currency_name(code).await;
-    // foo
-    Unit::new_currency(
-        code.to_string(),
-        get_currency_name(code).await,
-        get_currency_symbol(code).await
-    )
-}
-
-pub async fn convert(from : &'static str, value : f64, to : Vec<&'static str>) -> Result<ConversionResult, &'static str> {
-    let rates = get_rates().await?;
-
-    let mut result = ConversionResult::new(Conversion {
-        unit  : get_currency_unit(from).await,
-        value
-    });
-
-    let base_value : f64 = rates[&String::from(from)];
-    for currency in to {
-        result.to.push(Conversion {
-            unit  : Unit::new_currency(currency.to_string(), None, None),
-            value : (rates[&String::from(currency)] * value) / base_value
-        });
-    }
-
-    Ok(result)
 }
 
 pub fn save_currency(currency : Currency) {
@@ -239,15 +204,38 @@ pub fn save_currency(currency : Currency) {
     }
 }
 
-#[test]
-fn test_insert_db() {
-    let currency = Currency {
-        id: 45,
-        rate: 43.3,
-        is_base: true,
-        name: "something".into(),
-        code: "l".into(),
-        symbol: "x".into(),
-    };
-    save_currency(currency)
+pub fn currency_to_unit(currency : &Currency) -> Unit {
+    Unit {
+        name: String::from(currency.name.as_str()),
+        code: String::from(currency.code.as_str()),
+        symbol: String::from(currency.symbol.as_str()),
+        unit_type: UnitType::CURRENCY
+    }
+}
+
+pub async fn convert(from : &'static str, value : f64, to : Vec<&'static str>) -> Result<ConversionResult, &'static str> {
+    let mut currencies = HashMap::new();
+
+    // TODO: Add a parameter to get_all_currencies so we can only get the currencies we need.
+    for currency in get_all_currencies() {
+        currencies.insert(String::from(currency.code.as_str()), currency);
+    }
+
+    let base_currency = currencies.get(from).ok_or("Base not found.")?;
+
+    let mut result = ConversionResult::new(Conversion {
+        unit  : currency_to_unit(base_currency),
+        value
+    });
+
+    for code in to {
+        if let Some(currency) = currencies.get(code) {
+            result.to.push(Conversion {
+                unit  : currency_to_unit(currency),
+                value : (currency.rate * value) / base_currency.rate
+            });
+        }
+    }
+
+    Ok(result)
 }
