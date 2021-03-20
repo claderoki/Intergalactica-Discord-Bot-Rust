@@ -91,7 +91,7 @@ impl Conversion {
         let units = get_units();
         let (_, to_base, _) = units
             .get(self.unit.code.as_str())
-            .ok_or("unit no on the list")?;
+            .ok_or("Unit not found.")?;
         let base = to_base(self.value);
 
         let conversions =
