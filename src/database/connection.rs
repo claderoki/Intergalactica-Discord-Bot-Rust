@@ -1,14 +1,12 @@
-#[macro_use]
-extern crate diesel;
-extern crate dotenv;
 
-use diesel::prelude::*;
-use diesel::pg::PgConnection;
-use dotenv::dotenv;
-use std::env;
+fn get_db_opts() -> OptsBuilder {
+    OptsBuilder::new()
+    .user(Some(env::var("DB_USER").expect("Expected DB_USER in the environment")))
+    .db_name(Some(env::var("DB_NAME").expect("Expected DB_NAME in the environment")))
+    .ip_or_hostname(Some(env::var("DB_HOST").expect("Expected DB_HOST in the environment")))
+    .pass(Some(env::var("DB_PASSWORD").expect("Expected DB_PASSWORD in the environment")))
+}
 
-pub fn establish_connection() -> PgConnection {
-    dotenv().ok();
-    let db_host = env::var("DB_HOST").expect("DB_HOST must be set");
-    PgConnection::establish(&db_host).expect(&format!("Error connecting to {}", db_host))
+fn get_connection() -> Conn {
+    Conn::new(get_db_opts())
 }
