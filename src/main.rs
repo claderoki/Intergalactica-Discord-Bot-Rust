@@ -1,14 +1,3 @@
-//! Requires the 'framework' feature flag be enabled in your project's
-//! `Cargo.toml`.
-//!
-//! This can be enabled by specifying the feature in the dependency section:
-//!
-//! ```toml
-//! [dependencies.serenity]
-//! git = "https://github.com/serenity-rs/serenity.git"
-//! features = ["framework", "standard_framework"]
-//! ```
-
 use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
@@ -31,6 +20,8 @@ use tracing::{error, info};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{math::*, meta::*, owner::*};
+use modules::pigeon::commands::{buy};
+
 
 use regex::Regex;
 
@@ -40,7 +31,6 @@ use modules::conversion::currency::currency;
 use modules::conversion::models;
 use modules::conversion::{core, currency::currency::UpdateType};
 mod wrappers;
-use wrappers::fixerio;
 
 pub struct ShardManagerContainer;
 
@@ -107,11 +97,6 @@ impl EventHandler for Handler {
         // }
 
         currency::update_currencies(UpdateType::All).await;
-        // println!("{:?}" , currency);
-
-        // let fixerio = fixerio::api::Fixerio::new(env::var("FIXERIO_ACCESS_KEY").expect("No fixerio access key set."));
-        // let rates = fixerio.get_rates().await;
-        // println!("{:?}", rates);
 
         // let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
 
@@ -148,14 +133,8 @@ struct General;
 
 #[tokio::main]
 async fn main() {
-    // This will load the environment variables located at `./.env`, relative to
-    // the CWD. See `./.env.example` for an example on how to structure this.
     dotenv::dotenv().expect("Failed to load .env file");
 
-    // Initialize the logger to use environment variables.
-    //
-    // In this case, a good default is setting the environment variable
-    // `RUST_LOG` to debug`.
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
         .finish();
@@ -166,7 +145,6 @@ async fn main() {
 
     let http = Http::new_with_token(&token);
 
-    // We will fetch your bot's owners and id
     let (owners, _bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
