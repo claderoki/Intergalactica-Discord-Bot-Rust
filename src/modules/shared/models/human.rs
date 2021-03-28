@@ -1,18 +1,19 @@
 use mysql::{from_row, Row};
 
+#[derive(Debug)]
 pub struct Human {
     pub id: i32,
-    pub user_id: i64,
+    pub user_id: u64,
     pub gold: i32,
-    pub timezone: String,
-    pub date_of_birth: String,
-    pub city: String,
-    pub country_code: String,
+    pub timezone: Option<String>,
+    pub date_of_birth: Option<String>,
+    pub city: Option<String>,
+    pub country_code: Option<String>,
     pub tester: bool,
-    pub currencies: String,
+    pub currencies: Option<String>,
 }
 
-type HumanType = (i32, i64, i32, String, String, String, String, bool, String);
+type HumanType = (i32, u64, i32, Option<String>, Option<String>, Option<String>, Option<String>, bool, Option<String>);
 
 impl Human {
     pub fn from_row(row: Row) -> Human {

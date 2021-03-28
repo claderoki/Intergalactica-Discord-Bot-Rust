@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod client;
 mod commands;
 mod database;
@@ -7,6 +9,7 @@ mod wrappers;
 
 use client::get_client;
 use tracing::error;
+
 
 #[tokio::main]
 async fn main() {
