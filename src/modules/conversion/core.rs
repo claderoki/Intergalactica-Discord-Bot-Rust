@@ -1,34 +1,12 @@
 extern crate measurements;
 
-use std::collections::HashMap;
-
-use measurements::{Length, Measurement, Temperature};
-
-use super::{currency::currency::get_all_currencies, models::{Conversion, ConversionResult, Unit, UnitType}};
+use super::{currency::currency::get_all_currencies, models};
 use super::{measurement::measurement::{get_units, to_unit}};
 
-impl Conversion {
-    fn convert(&self) -> Result<ConversionResult, &'static str> {
-        let units = get_units();
-        let (_, to_base, _) = units
-            .get(self.unit.code.as_str())
-            .ok_or("Unit not found.")?;
-        let base = to_base(self.value);
-
-        let conversions =
-            units
-                .iter()
-                .filter(|(&k, _)| &k != &self.unit.code)
-                .map(|(_, (u, _, from_base))| Conversion {
-                    unit: u.clone(),
-                    value: from_base(base),
-                });
-
-        Ok(ConversionResult {
-            base: self.clone(),
-            to: conversions.collect(),
-        })
-    }
+trait ConversionModule {
+    fn to_unit();
+    fn get_units();
+    fn convert();
 }
 
 pub fn get_all_codes_and_symbols() -> Vec<String> {

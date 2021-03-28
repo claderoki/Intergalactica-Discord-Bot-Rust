@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use measurements::{Length, Measurement, Temperature};
 
-use crate::modules::conversion::models::{Unit, UnitType};
-
+use crate::modules::conversion::models::{ConversionResult, Unit, UnitType};
 
 type Units = HashMap<&'static str, (Unit, fn(f64) -> f64, fn(f64) -> f64)>;
 pub fn get_units() -> Units {
@@ -84,3 +83,26 @@ pub fn to_unit(text: String) -> Result<Unit, &'static str> {
     };
     result
 }
+
+// fn convert(&self) -> Result<ConversionResult, &'static str> {
+
+//     let units = get_units();
+//     let (_, to_base, _) = units
+//         .get(self.unit.code.as_str())
+//         .ok_or("Unit not found.")?;
+//     let base = to_base(self.value);
+
+//     let conversions =
+//         units
+//             .iter()
+//             .filter(|(&k, _)| &k != &self.unit.code)
+//             .map(|(_, (u, _, from_base))| Conversion {
+//                 unit: u.clone(),
+//                 value: from_base(base),
+//             });
+
+//     Ok(ConversionResult {
+//         base: self.clone(),
+//         to: conversions.collect(),
+//     })
+// }

@@ -6,8 +6,9 @@ use once_cell::sync::Lazy;
 
 use crate::SYMBOLS;
 
-use super::{super::super::super::wrappers::fixerio::api::Fixerio, super::models::{Unit, UnitType, ConversionResult, Conversion}};
+use super::{super::models::{Unit, UnitType, ConversionResult, Conversion}};
 use super::models::currency::{Currency};
+use crate::wrappers::fixerio::api::Fixerio;
 
 /*TODO: cache*/
 pub async fn get_rates() -> Result<HashMap<String, f64>, &'static str> {
