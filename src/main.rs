@@ -1,7 +1,7 @@
 use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
-    framework::{standard::macros::group, StandardFramework},
+    framework::{StandardFramework},
     http::Http,
     model::{channel::Message, event::ResumedEvent, gateway::Ready},
     prelude::*,
@@ -19,17 +19,10 @@ pub static SYMBOLS: Lazy<std::sync::Mutex<HashMap<String, String>>> =
 use tracing::{error, info};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-use commands::{math::*, meta::*, owner::*};
-use modules::pigeon::commands::{buy};
-
-
-use regex::Regex;
+use modules::pigeon::commands::{base::*};
 
 mod commands;
 mod modules;
-use modules::conversion::currency::currency;
-use modules::conversion::models;
-use modules::conversion::{core, currency::currency::UpdateType};
 mod wrappers;
 
 pub struct ShardManagerContainer;
@@ -39,41 +32,17 @@ impl TypeMapKey for ShardManagerContainer {
 }
 struct Handler;
 
-pub fn clean_value(value: f64) -> String {
-    if value % 1.0 == 0.0 {
-        return format!("{}", (value as i64));
-    }
-
-    return format!("{0:.2}", value);
-}
-
-fn convert_conversion_to_str(conversion: &models::Conversion) -> String {
-    let mut value: String = String::from("").to_owned();
-    value.push_str(clean_value(conversion.value).as_str());
-    value.push_str(conversion.unit.symbol.as_str());
-    value
-}
-
-pub fn get_conversion_result_field(result: &models::ConversionResult) -> (String, String, bool) {
-    let mut value_field: String = String::from("").to_owned();
-
-    let mut i = 0;
-    for conversion in result.to.iter() {
-        if i != 0 {
-            value_field.push_str("\n");
-        }
-        value_field.push_str(convert_conversion_to_str(conversion).as_str());
-        i += 1;
-    }
-    (convert_conversion_to_str(&result.base), value_field, false)
-}
 trait Utils {
     fn get_color(&self) -> serenity::utils::Color;
+    fn translate(&self, key: &'static str) -> String;
 }
 
 impl Utils for Context {
     fn get_color(&self) -> serenity::utils::Color {
         serenity::utils::Color::from_rgb(242, 181, 37)
+    }
+    fn translate(&self, key: &'static str) -> String {
+        String::from(key)
     }
 }
 
@@ -81,45 +50,11 @@ impl Utils for Context {
 impl EventHandler for Handler {
     async fn ready(&self, _: Context, ready: Ready) {
         info!("Connected as {}", ready.user.name);
+
     }
 
     async fn message(&self, ctx: Context, message: Message) {
-        // match currency::convert("EUR", 5.0, vec!["PHP", "USD"]).await {
-        //     Ok(data) => {
-        //         println!("{}", data.base.to_string());
-        //         for conversion in data.to {
-        //             println!("{}", conversion.to_string());
-        //         }
 
-        //     },
-        //     Err(e) => {
-        //     }
-        // }
-
-        currency::update_currencies(UpdateType::All).await;
-
-        // let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
-
-        // let mut vec = Vec::new();
-        // for cap in re.captures_iter(&message.content) {
-        //     let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();
-        //     let unit = cap[3].to_lowercase();
-        //     let r = core::convert_measurement(value, unit);
-
-        //     match r {
-        //         Ok(result) => {
-        //             vec.push(get_conversion_result_field(&result));
-        //         }
-        //         Err(_) => {}
-        //     };
-        // }
-        // if !vec.is_empty() {
-        //     message
-        //         .channel_id
-        //         .send_message(&ctx, |m| m.embed(|e| e.color(ctx.get_color()).fields(vec)))
-        //         .await
-        //         .unwrap();
-        // }
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
@@ -127,12 +62,24 @@ impl EventHandler for Handler {
     }
 }
 
-#[group]
-#[commands(multiply, ping, quit)]
-struct General;
-
 #[tokio::main]
 async fn main() {
+    let mut client = get_client().await;
+    let shard_manager = client.shard_manager.clone();
+
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Could not register ctrl+c handler");
+        shard_manager.lock().await.shutdown_all().await;
+    });
+
+    if let Err(why) = client.start().await {
+        error!("Client error: {:?}", why);
+    }
+}
+
+async fn get_client() -> Client {
     dotenv::dotenv().expect("Failed to load .env file");
 
     let subscriber = FmtSubscriber::builder()
@@ -158,7 +105,7 @@ async fn main() {
     // Create the framework
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("~"))
-        .group(&GENERAL_GROUP);
+        .group(&PIGEON_GROUP);
 
     let mut client = Client::builder(&token)
         .framework(framework)
@@ -171,16 +118,5 @@ async fn main() {
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
     }
 
-    let shard_manager = client.shard_manager.clone();
-
-    tokio::spawn(async move {
-        tokio::signal::ctrl_c()
-            .await
-            .expect("Could not register ctrl+c handler");
-        shard_manager.lock().await.shutdown_all().await;
-    });
-
-    if let Err(why) = client.start().await {
-        error!("Client error: {:?}", why);
-    }
+    client
 }

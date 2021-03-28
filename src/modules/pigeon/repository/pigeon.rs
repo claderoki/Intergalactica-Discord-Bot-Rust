@@ -1,3 +1,3 @@
-get_active_pigeon(user_id : i32) {
+fn get_active_pigeon(user_id : i32) {
 
 }

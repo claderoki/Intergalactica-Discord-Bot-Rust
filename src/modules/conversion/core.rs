@@ -5,86 +5,7 @@ use std::collections::HashMap;
 use measurements::{Length, Measurement, Temperature};
 
 use super::{currency::currency::get_all_currencies, models::{Conversion, ConversionResult, Unit, UnitType}};
-
-fn to_unit(text: String) -> Result<Unit, &'static str> {
-    let result = match text.to_lowercase().as_str() {
-        "c" | "celsius" => Ok(Unit {
-            name: "celsius".to_string(),
-            code: "c".to_string(),
-            symbol: "°C".to_string(),
-            unit_type: UnitType::MEASUREMENT,
-        }),
-
-        "f" | "fahrenheit" => Ok(Unit {
-            name: "fahrenheit".to_string(),
-            code: "f".to_string(),
-            symbol: "°F".to_string(),
-            unit_type: UnitType::MEASUREMENT,
-        }),
-        _ => Err("No units found"),
-    };
-    result
-}
-
-type Units = HashMap<&'static str, (Unit, fn(f64) -> f64, fn(f64) -> f64)>;
-fn get_units() -> Units {
-    let mut hm: Units = HashMap::new();
-
-    hm.insert(
-        "c",
-        (
-            Unit::new(
-                "celsius".to_string(),
-                "c".to_string(),
-                "°C".to_string(),
-                UnitType::MEASUREMENT,
-            ),
-            |x: f64| Temperature::from_celsius(x).as_base_units(),
-            |x: f64| Temperature::from_base_units(x).as_celsius(),
-        ),
-    );
-    hm.insert(
-        "f",
-        (
-            Unit::new(
-                "fahrenheit".to_string(),
-                "f".to_string(),
-                "°F".to_string(),
-                UnitType::MEASUREMENT,
-            ),
-            |x: f64| Temperature::from_fahrenheit(x).as_base_units(),
-            |x: f64| Temperature::from_base_units(x).as_fahrenheit(),
-        ),
-    );
-    hm.insert(
-        "m",
-        (
-            Unit::new(
-                "meters".to_string(),
-                "m".to_string(),
-                "m".to_string(),
-                UnitType::MEASUREMENT,
-            ),
-            |x: f64| Length::from_meters(x).as_base_units(),
-            |x: f64| Length::from_base_units(x).as_meters(),
-        ),
-    );
-    hm.insert(
-        "ft",
-        (
-            Unit::new(
-                "feet".to_string(),
-                "ft".to_string(),
-                "\"".to_string(),
-                UnitType::MEASUREMENT,
-            ),
-            |x: f64| Length::from_feet(x).as_base_units(),
-            |x: f64| Length::from_base_units(x).as_feet(),
-        ),
-    );
-
-    hm
-}
+use super::{measurement::measurement::{get_units, to_unit}};
 
 impl Conversion {
     fn convert(&self) -> Result<ConversionResult, &'static str> {
@@ -126,8 +47,61 @@ pub fn get_all_codes_and_symbols() -> Vec<String> {
     return values;
 }
 
-pub fn convert_measurement(value: f64, from: String) -> Result<ConversionResult, &'static str> {
-    let unit = to_unit(from)?;
-    let conv = Conversion { unit, value };
-    conv.convert()
+pub fn clean_value(value: f64) -> String {
+    if value % 1.0 == 0.0 {
+        return format!("{}", (value as i64));
+    }
+    return format!("{0:.2}", value);
 }
+
+fn convert_conversion_to_str(conversion: &models::Conversion) -> String {
+    let mut value: String = String::from("").to_owned();
+    value.push_str(clean_value(conversion.value).as_str());
+    value.push_str(conversion.unit.symbol.as_str());
+    value
+}
+
+pub fn get_conversion_result_field(result: &models::ConversionResult) -> (String, String, bool) {
+    let mut value_field: String = String::from("").to_owned();
+
+    let mut i = 0;
+    for conversion in result.to.iter() {
+        if i != 0 {
+            value_field.push_str("\n");
+        }
+        value_field.push_str(convert_conversion_to_str(conversion).as_str());
+        i += 1;
+    }
+    (convert_conversion_to_str(&result.base), value_field, false)
+}
+
+
+pub fn match_conversion() {
+        // let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
+
+    // for cap in re.captures_iter(&message.content) {
+        //     let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();
+        //     let unit = cap[3].to_lowercase();
+        //     let r = core::convert_measurement(value, unit);
+
+        //     match r {
+        //         Ok(result) => {
+        //             vec.push(get_conversion_result_field(&result));
+        //         }
+        //         Err(_) => {}
+        //     };
+        // }
+
+}
+
+pub fn get_embed() {
+        // let mut vec = Vec::new();
+        // if !vec.is_empty() {
+        //     message
+        //         .channel_id
+        //         .send_message(&ctx, |m| m.embed(|e| e.color(ctx.get_color()).fields(vec)))
+        //         .await
+        //         .unwrap();
+        // }
+}
+
