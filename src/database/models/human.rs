@@ -6,6 +6,6 @@ pub struct Human {
     pub date_of_birth: String,
     pub city: String,
     pub country_code: String,
-    pub tester: Bool,
+    pub tester: bool,
     pub currencies: String,
 }

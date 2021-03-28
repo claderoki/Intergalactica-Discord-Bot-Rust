@@ -1,3 +1,7 @@
+use std::env;
+
+use mysql::{Conn, OptsBuilder};
+
 
 fn get_db_opts() -> OptsBuilder {
     OptsBuilder::new()
@@ -7,6 +11,6 @@ fn get_db_opts() -> OptsBuilder {
     .pass(Some(env::var("DB_PASSWORD").expect("Expected DB_PASSWORD in the environment")))
 }
 
-fn get_connection() -> Conn {
+pub fn get_connection() -> Result<Conn, mysql::Error> {
     Conn::new(get_db_opts())
 }

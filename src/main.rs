@@ -3,13 +3,10 @@ mod modules;
 mod wrappers;
 mod client;
 mod handler;
+mod database;
 
 use client::get_client;
 use tracing::{error};
-
-use std::collections::HashMap;
-use once_cell::sync::Lazy;
-pub static SYMBOLS: Lazy<std::sync::Mutex<HashMap<String, String>>> = Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
 
 #[tokio::main]
 async fn main() {

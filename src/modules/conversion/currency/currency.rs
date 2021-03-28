@@ -1,15 +1,15 @@
 extern crate mysql;
 
 use std::{collections::{HashMap}, fs::File, io::{BufReader}, env};
-use mysql::{Conn, OptsBuilder, params, Row, prelude::Queryable, };
+use mysql::{params, prelude::Queryable};
 use once_cell::sync::Lazy;
 
-use crate::SYMBOLS;
+pub static SYMBOLS: Lazy<std::sync::Mutex<HashMap<String, String>>> = Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
 
 use super::{super::models::{Unit, UnitType, ConversionResult, Conversion}};
 use super::models::currency::{Currency};
 use crate::wrappers::fixerio::api::Fixerio;
-
+use crate::database::{connection::get_connection, helpers::general::get_select_rows};
 /*TODO: cache*/
 pub async fn get_rates() -> Result<HashMap<String, f64>, &'static str> {
     let fixerio = Fixerio::new(env::var("FIXERIO_ACCESS_KEY").expect("No fixerio access key set."));
@@ -66,37 +66,6 @@ pub async fn get_currency_symbol(code : &str) -> Option<String> {
 
 pub async fn get_currency_name(code : &str) -> Option<String> {
     get_symbols().await.lock().ok()?.get(code).cloned()
-}
-
-fn get_db_opts() -> OptsBuilder {
-    OptsBuilder::new()
-    .user(Some(env::var("DB_USER").expect("Expected DB_USER in the environment")))
-    .db_name(Some(env::var("DB_NAME").expect("Expected DB_NAME in the environment")))
-    .ip_or_hostname(Some(env::var("DB_HOST").expect("Expected DB_HOST in the environment")))
-    .pass(Some(env::var("DB_PASSWORD").expect("Expected DB_PASSWORD in the environment")))
-}
-
-pub fn get_select_rows(query : &'static str) -> Vec<Row> {
-    let mut rows : Vec<Row> = Vec::new();
-
-    match Conn::new(get_db_opts()) {
-        Ok(mut conn) => {
-            if let Ok(mut result) = conn.query_iter(query) {
-                while let Some(result_set) = result.next_set() {
-                    if let Ok(set) = result_set {
-                        for r in set {
-                            if let Ok(row) = r {
-                                rows.push(row);
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        Err(_) => {}
-    }
-
-    rows
 }
 
 pub fn get_all_currencies() -> Vec<Currency> {
@@ -184,7 +153,7 @@ pub fn save_currency(currency : Currency) {
         println!("UPDATE: {:?}", currency);
     }
 
-    match Conn::new(get_db_opts()) {
+    match get_connection() {
         Ok(mut conn) => {
             let result = conn.exec::<i64,_,_>(
                 query,
