@@ -183,6 +183,10 @@ pub fn currency_to_unit(currency : &Currency) -> Unit {
     }
 }
 
+pub async fn get_context_currency_codes() -> Vec<String> {
+    vec![String::from("USD"), String::from("EUR"), String::from("PHP")]
+}
+
 pub async fn convert(from : &'static str, value : f64, to : Vec<&'static str>) -> Result<ConversionResult, &'static str> {
     let mut currencies = HashMap::new();
 
