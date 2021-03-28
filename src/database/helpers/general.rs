@@ -1,4 +1,4 @@
-use mysql::{prelude::Queryable, Row};
+use mysql::{prelude::Queryable, Params, Row};
 
 use crate::database::connection::get_connection;
 

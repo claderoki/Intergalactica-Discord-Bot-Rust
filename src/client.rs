@@ -53,7 +53,6 @@ pub async fn get_client() -> Client {
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
-    // Create the framework
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("~"))
         .group(&PIGEON_GROUP);
