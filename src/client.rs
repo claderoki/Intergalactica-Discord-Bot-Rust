@@ -15,7 +15,7 @@ use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use crate::modules::pigeon::commands::{base::*};
 
-use crate::Handler;
+use crate::handler::Handler;
 
 pub struct ShardManagerContainer;
 

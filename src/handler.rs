@@ -5,7 +5,7 @@ use serenity::{
 };
 
 use tracing::{info};
-struct Handler;
+pub struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
