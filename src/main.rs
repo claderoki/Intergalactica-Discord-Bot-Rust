@@ -4,16 +4,12 @@ mod wrappers;
 mod client;
 mod handler;
 
-use std::collections::HashMap;
-
 use client::get_client;
-
 use tracing::{error};
 
+use std::collections::HashMap;
 use once_cell::sync::Lazy;
-
-pub static SYMBOLS: Lazy<std::sync::Mutex<HashMap<String, String>>> =
-    Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
+pub static SYMBOLS: Lazy<std::sync::Mutex<HashMap<String, String>>> = Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
 
 #[tokio::main]
 async fn main() {
@@ -27,7 +23,7 @@ async fn main() {
         shard_manager.lock().await.shutdown_all().await;
     });
 
-    if let Err(why) = client.start().await {
-        error!("Client error: {:?}", why);
+    if let Err(e) = client.start().await {
+        error!("Client error: {:?}", e);
     }
 }

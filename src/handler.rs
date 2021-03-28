@@ -1,4 +1,3 @@
-
 use serenity::{
     async_trait,
     model::{channel::Message, event::ResumedEvent, gateway::Ready},
