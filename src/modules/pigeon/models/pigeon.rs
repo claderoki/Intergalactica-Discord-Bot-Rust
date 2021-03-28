@@ -1,4 +1,3 @@
-
 enum PigeonStatus {
     IDLE,
     MAILING,

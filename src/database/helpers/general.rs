@@ -1,10 +1,9 @@
-
-use mysql::{Row, prelude::Queryable};
+use mysql::{prelude::Queryable, Row};
 
 use crate::database::connection::get_connection;
 
-pub fn get_select_rows(query : &'static str) -> Vec<Row> {
-    let mut rows : Vec<Row> = Vec::new();
+pub fn get_select_rows(query: &'static str) -> Vec<Row> {
+    let mut rows: Vec<Row> = Vec::new();
     match get_connection() {
         Ok(mut conn) => {
             if let Ok(mut result) = conn.query_iter(query) {
@@ -18,7 +17,7 @@ pub fn get_select_rows(query : &'static str) -> Vec<Row> {
                     }
                 }
             }
-        },
+        }
         Err(_) => {}
     }
     rows

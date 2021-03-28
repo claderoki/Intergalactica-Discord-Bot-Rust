@@ -1,5 +1,5 @@
-use serenity::framework::standard::macros::group;
 use super::buy::*;
+use serenity::framework::standard::macros::group;
 
 #[group]
 #[prefix("pigeon")]

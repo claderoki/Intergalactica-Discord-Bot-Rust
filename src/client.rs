@@ -1,19 +1,12 @@
 use serenity::{
-    client::bridge::gateway::ShardManager,
-    framework::{StandardFramework},
-    http::Http,
-    prelude::*,
+    client::bridge::gateway::ShardManager, framework::StandardFramework, http::Http, prelude::*,
 };
 
-use std::{
-    collections::{HashSet},
-    env,
-    sync::Arc,
-};
+use std::{collections::HashSet, env, sync::Arc};
 
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-use crate::modules::pigeon::commands::{base::*};
+use crate::modules::pigeon::commands::base::*;
 
 use crate::handler::Handler;
 

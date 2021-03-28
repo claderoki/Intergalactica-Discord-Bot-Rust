@@ -1,12 +1,12 @@
+mod client;
 mod commands;
+mod database;
+mod handler;
 mod modules;
 mod wrappers;
-mod client;
-mod handler;
-mod database;
 
 use client::get_client;
-use tracing::{error};
+use tracing::error;
 
 #[tokio::main]
 async fn main() {

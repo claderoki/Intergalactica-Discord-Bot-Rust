@@ -1,15 +1,17 @@
 extern crate mysql;
 
-use std::{collections::{HashMap}, fs::File, io::{BufReader}, env};
 use mysql::{params, prelude::Queryable};
 use once_cell::sync::Lazy;
+use std::{collections::HashMap, env, fs::File, io::BufReader};
 
-pub static SYMBOLS: Lazy<std::sync::Mutex<HashMap<String, String>>> = Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
+pub static SYMBOLS: Lazy<std::sync::Mutex<HashMap<String, String>>> =
+    Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
 
-use super::{super::models::{Unit, UnitType, ConversionResult, Conversion}};
-use super::models::currency::{Currency};
-use crate::wrappers::fixerio::api::Fixerio;
+use super::super::models::{Conversion, ConversionResult, Unit, UnitType};
+use super::models::currency::Currency;
 use crate::database::{connection::get_connection, helpers::general::get_select_rows};
+use crate::wrappers::fixerio::api::Fixerio;
+
 /*TODO: cache*/
 pub async fn get_rates() -> Result<HashMap<String, f64>, &'static str> {
     let fixerio = Fixerio::new(env::var("FIXERIO_ACCESS_KEY").expect("No fixerio access key set."));
@@ -19,18 +21,16 @@ pub async fn get_rates() -> Result<HashMap<String, f64>, &'static str> {
         Ok(data) => {
             return Ok(data.rates);
         }
-        Err(e) => {
-            return Err(e)
-        }
+        Err(e) => return Err(e),
     }
 }
 
 /*TODO: cache*/
-pub async fn get_symbols() -> &'static Lazy<std::sync::Mutex<HashMap<String, String>>>  {
+pub async fn get_symbols() -> &'static Lazy<std::sync::Mutex<HashMap<String, String>>> {
     let fixerio = Fixerio::new(env::var("FIXERIO_ACCESS_KEY").expect("No fixerio access key set."));
     let symbols = fixerio.get_symbols().await;
 
-    if let Ok(sym) = symbols{
+    if let Ok(sym) = symbols {
         SYMBOLS.lock().unwrap().clear();
         for (k, v) in sym.symbols {
             SYMBOLS.lock().unwrap().insert(k, v);
@@ -49,27 +49,28 @@ pub fn get_currencies() -> Result<HashMap<String, String>, &'static str> {
         Ok(f) => f,
     };
     let reader = BufReader::new(file);
-    let currencies : Result<HashMap<String, String>, serde_json::Error> = serde_json::from_reader(reader);
+    let currencies: Result<HashMap<String, String>, serde_json::Error> =
+        serde_json::from_reader(reader);
     match currencies {
         Err(e) => {
             return Err("Error converting JSON to struct");
-        },
+        }
         Ok(d) => {
             return Ok(d);
         }
     }
 }
 
-pub async fn get_currency_symbol(code : &str) -> Option<String> {
+pub async fn get_currency_symbol(code: &str) -> Option<String> {
     get_currencies().ok()?.get(code).cloned()
 }
 
-pub async fn get_currency_name(code : &str) -> Option<String> {
+pub async fn get_currency_name(code: &str) -> Option<String> {
     get_symbols().await.lock().ok()?.get(code).cloned()
 }
 
 pub fn get_all_currencies() -> Vec<Currency> {
-    let mut currencies : Vec<Currency> = Vec::new();
+    let mut currencies: Vec<Currency> = Vec::new();
     for row in get_select_rows("SELECT * FROM currency") {
         let currency = Currency::from_row(row);
         currencies.push(currency);
@@ -82,11 +83,11 @@ pub enum UpdateType {
     Rate,
 }
 
-pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static str> {
+pub async fn update_currencies(update_type: UpdateType) -> Result<(), &'static str> {
     let db_currencies = get_all_currencies();
-    let api_rates     = get_rates().await?;
+    let api_rates = get_rates().await?;
 
-    let mut missing : Vec<String> = Vec::new();
+    let mut missing: Vec<String> = Vec::new();
     let mut currencies: Vec<Currency> = Vec::new();
 
     for (code, _) in &api_rates {
@@ -117,7 +118,7 @@ pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static 
                         is_base: code.as_str() == "EUR",
                         name: String::from(name.as_str()),
                         code: String::from(code.as_str()),
-                        symbol: String::from(symbol.as_str())
+                        symbol: String::from(symbol.as_str()),
                     });
                 }
             }
@@ -138,7 +139,7 @@ pub async fn update_currencies(update_type : UpdateType) -> Result<(), &'static 
     return Ok(());
 }
 
-pub fn save_currency(currency : Currency) {
+pub fn save_currency(currency: Currency) {
     let mut query = String::from("");
     if currency.id == 0 {
         query.push_str("INSERT INTO currency ");
@@ -155,7 +156,7 @@ pub fn save_currency(currency : Currency) {
 
     match get_connection() {
         Ok(mut conn) => {
-            let result = conn.exec::<i64,_,_>(
+            let result = conn.exec::<i64, _, _>(
                 query,
                 params! {
                     "id" => currency.id,
@@ -164,30 +165,38 @@ pub fn save_currency(currency : Currency) {
                     "name" => currency.name,
                     "code" => currency.code,
                     "symbol" => currency.symbol
-                }
+                },
             );
             println!("result: {:?}", result);
-        },
+        }
         Err(e) => {
             println!("Error : {:?}", e);
         }
     }
 }
 
-pub fn currency_to_unit(currency : &Currency) -> Unit {
+pub fn currency_to_unit(currency: &Currency) -> Unit {
     Unit {
         name: String::from(currency.name.as_str()),
         code: String::from(currency.code.as_str()),
         symbol: String::from(currency.symbol.as_str()),
-        unit_type: UnitType::CURRENCY
+        unit_type: UnitType::CURRENCY,
     }
 }
 
 pub async fn get_context_currency_codes() -> Vec<String> {
-    vec![String::from("USD"), String::from("EUR"), String::from("PHP")]
+    vec![
+        String::from("USD"),
+        String::from("EUR"),
+        String::from("PHP"),
+    ]
 }
 
-pub async fn convert(from : &'static str, value : f64, to : Vec<&'static str>) -> Result<ConversionResult, &'static str> {
+pub async fn convert(
+    from: &'static str,
+    value: f64,
+    to: Vec<&'static str>,
+) -> Result<ConversionResult, &'static str> {
     let mut currencies = HashMap::new();
 
     // TODO: Add a parameter to get_all_currencies so we can only get the currencies we need.
@@ -198,15 +207,15 @@ pub async fn convert(from : &'static str, value : f64, to : Vec<&'static str>) -
     let base_currency = currencies.get(from).ok_or("Base not found.")?;
 
     let mut result = ConversionResult::new(Conversion {
-        unit  : currency_to_unit(base_currency),
-        value
+        unit: currency_to_unit(base_currency),
+        value,
     });
 
     for code in to {
         if let Some(currency) = currencies.get(code) {
             result.to.push(Conversion {
-                unit  : currency_to_unit(currency),
-                value : (currency.rate * value) / base_currency.rate
+                unit: currency_to_unit(currency),
+                value: (currency.rate * value) / base_currency.rate,
             });
         }
     }

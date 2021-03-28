@@ -1,8 +1,8 @@
 extern crate reqwest;
 extern crate serde;
 
+use super::models::{RatesResponse, SymbolsResponse};
 use serde::de::DeserializeOwned;
-use super::models::{SymbolsResponse, RatesResponse};
 
 enum FixerioEndpoint {
     SYMBOLS,
@@ -19,19 +19,19 @@ impl FixerioEndpoint {
 }
 
 pub struct Fixerio {
-    access_key : String,
-    base_url   : String
+    access_key: String,
+    base_url: String,
 }
 
 impl Fixerio {
-    pub fn new(access_key : String) -> Self {
+    pub fn new(access_key: String) -> Self {
         Self {
             access_key: access_key,
             base_url: String::from("http://data.fixer.io/api"),
         }
     }
 
-    fn get_base_uri(&self, endpoint : FixerioEndpoint) -> String {
+    fn get_base_uri(&self, endpoint: FixerioEndpoint) -> String {
         let mut uri = String::from(self.base_url.as_str());
         uri.push_str("/");
         uri.push_str(endpoint.get_name().as_str());
@@ -41,13 +41,12 @@ impl Fixerio {
         uri
     }
 
-    async fn call<T>(&self, uri : String) -> Result<T, &'static str>
+    async fn call<T>(&self, uri: String) -> Result<T, &'static str>
     where
-    T: DeserializeOwned {
+        T: DeserializeOwned,
+    {
         let response = match reqwest::get(uri.as_str()).await {
-            Ok(response) => {
-                response
-            },
+            Ok(response) => response,
             Err(e) => {
                 println!("{:?}", e);
                 return Err("something went wrong");
@@ -55,9 +54,7 @@ impl Fixerio {
         };
 
         match response.json::<T>().await {
-            Ok(data) => {
-                return Ok(data)
-            },
+            Ok(data) => return Ok(data),
             Err(e) => {
                 println!("{:?}", e);
                 return Err("something went wrong");
@@ -76,5 +73,4 @@ impl Fixerio {
         let data = self.call::<RatesResponse>(uri).await?;
         Ok(data)
     }
-
 }

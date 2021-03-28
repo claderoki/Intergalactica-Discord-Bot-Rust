@@ -1,9 +1,9 @@
 extern crate serde;
-use std::{collections::HashMap};
+use std::collections::HashMap;
 #[derive(serde::Deserialize, Debug)]
 pub struct SymbolsResponse {
-    pub success : bool,
-    pub symbols : HashMap<String, String>
+    pub success: bool,
+    pub symbols: HashMap<String, String>,
 }
 
 #[derive(serde::Deserialize, Debug)]

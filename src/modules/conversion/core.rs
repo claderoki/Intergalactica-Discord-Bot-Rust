@@ -1,7 +1,7 @@
 extern crate measurements;
 
+use super::measurement::measurement::{get_units, to_unit};
 use super::{currency::currency::get_all_currencies, models};
-use super::{measurement::measurement::{get_units, to_unit}};
 
 trait ConversionModule {
     fn to_unit();
@@ -53,33 +53,30 @@ pub fn get_conversion_result_field(result: &models::ConversionResult) -> (String
     (convert_conversion_to_str(&result.base), value_field, false)
 }
 
-
 pub fn match_conversion() {
-        // let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
+    // let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
 
     // for cap in re.captures_iter(&message.content) {
-        //     let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();
-        //     let unit = cap[3].to_lowercase();
-        //     let r = core::convert_measurement(value, unit);
+    //     let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();
+    //     let unit = cap[3].to_lowercase();
+    //     let r = core::convert_measurement(value, unit);
 
-        //     match r {
-        //         Ok(result) => {
-        //             vec.push(get_conversion_result_field(&result));
-        //         }
-        //         Err(_) => {}
-        //     };
-        // }
-
+    //     match r {
+    //         Ok(result) => {
+    //             vec.push(get_conversion_result_field(&result));
+    //         }
+    //         Err(_) => {}
+    //     };
+    // }
 }
 
 pub fn get_embed() {
-        // let mut vec = Vec::new();
-        // if !vec.is_empty() {
-        //     message
-        //         .channel_id
-        //         .send_message(&ctx, |m| m.embed(|e| e.color(ctx.get_color()).fields(vec)))
-        //         .await
-        //         .unwrap();
-        // }
+    // let mut vec = Vec::new();
+    // if !vec.is_empty() {
+    //     message
+    //         .channel_id
+    //         .send_message(&ctx, |m| m.embed(|e| e.color(ctx.get_color()).fields(vec)))
+    //         .await
+    //         .unwrap();
+    // }
 }
-
