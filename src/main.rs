@@ -10,7 +10,6 @@ mod wrappers;
 use client::get_client;
 use tracing::error;
 
-
 #[tokio::main]
 async fn main() {
     let mut client = get_client().await;

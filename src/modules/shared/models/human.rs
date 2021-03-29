@@ -13,7 +13,17 @@ pub struct Human {
     pub currencies: Option<String>,
 }
 
-type HumanType = (i32, u64, i32, Option<String>, Option<String>, Option<String>, Option<String>, bool, Option<String>);
+type HumanType = (
+    i32,
+    u64,
+    i32,
+    Option<String>,
+    Option<String>,
+    Option<String>,
+    Option<String>,
+    bool,
+    Option<String>,
+);
 
 impl Human {
     pub fn from_row(row: Row) -> Human {

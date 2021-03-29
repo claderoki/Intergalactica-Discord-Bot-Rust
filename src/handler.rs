@@ -16,15 +16,11 @@ impl EventHandler for Handler {
     }
 
     async fn message(&self, ctx: Context, message: Message) {
-        let result = get_or_create_human(*message.author.id.as_u64());
-        match result {
-            Ok(human) => {
-                println!("{:?}", human);
-            },
-            Err(e) => {
-                println!("{:?}", e);
-            }
-        };
+        if message.author.bot {
+            return ();
+        }
+
+        get_or_create_human(*message.author.id.as_u64());
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
