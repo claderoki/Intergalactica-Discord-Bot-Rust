@@ -9,9 +9,14 @@ use crate::modules::{
 
 #[command]
 #[description("This is a description.")]
-pub async fn buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn buy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let cost = 50;
-    let name = args.single::<String>()?;
+    let name = args.rest();
+
+    if name == "" {
+        msg.reply(&ctx.http, "No name given.").await?;
+        return Ok(());
+    }
 
     if let Ok(mut human) = get_or_create_human(*msg.author.id.as_u64()) {
         if human.gold < cost {
@@ -34,7 +39,7 @@ pub async fn buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult 
                 )
                 .await?;
             }
-            Err(_) => match create_pigeon(human.id, name.as_str()) {
+            Err(_) => match create_pigeon(human.id, name) {
                 Ok(_) => {
                     human.gold -= cost;
                     save_human(human);
