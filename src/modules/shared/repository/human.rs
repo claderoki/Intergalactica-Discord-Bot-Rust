@@ -39,7 +39,7 @@ pub fn create_human(user_id: u64) -> Result<Human, &'static str> {
     }
 }
 
-pub fn save_human(human: Human) {
+pub fn save_human(human: &Human) {
     let mut query = String::from("");
     if human.id == 0 {
         query.push_str("INSERT INTO human ");
@@ -60,12 +60,12 @@ pub fn save_human(human: Human) {
                     "id" => human.id,
                     "user_id" => human.user_id,
                     "gold" => human.gold,
-                    "timezone" => human.timezone,
-                    "date_of_birth" => human.date_of_birth,
-                    "city" => human.city,
-                    "country_code" => human.country_code,
+                    "timezone" => &human.timezone,
+                    "date_of_birth" => &human.date_of_birth,
+                    "city" => &human.city,
+                    "country_code" => &human.country_code,
                     "tester" => human.tester,
-                    "currencies" => human.currencies,
+                    "currencies" => &human.currencies,
                 },
             );
         }

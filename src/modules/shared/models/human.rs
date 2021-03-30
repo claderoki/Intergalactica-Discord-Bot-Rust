@@ -1,5 +1,13 @@
 use mysql::{from_row, Row};
 
+use crate::modules::{
+    pigeon::{
+        models::pigeon::Pigeon,
+        repository::pigeon::{create_pigeon, get_active_pigeon},
+    },
+    shared::repository::human::save_human,
+};
+
 #[derive(Debug)]
 pub struct Human {
     pub id: i32,
@@ -39,5 +47,36 @@ impl Human {
             tester: values.7,
             currencies: values.8,
         }
+    }
+
+    pub fn buy_pigeon(&mut self, name: &str) -> String {
+        let cost = 50;
+
+        if name == "" {
+            return "No name given.".into();
+        }
+
+        if self.gold < cost {
+            let s = format!("You need **{}** gold to purchase a pigeon.", cost);
+            return s;
+        }
+
+        if let Ok(pigeon) = get_active_pigeon(self.id) {
+            let s = format!(
+                "You already have a lovely pigeon named **{}**.",
+                pigeon.name
+            );
+            return s;
+        }
+
+        if let Err(e) = create_pigeon(self.id, name) {
+            println!("ERROR, {}", e);
+            return "Try again later!".into();
+        }
+
+        self.gold -= cost;
+        save_human(self);
+
+        format!("You just bought yourself a new pigeon (**-{}**)", cost)
     }
 }
