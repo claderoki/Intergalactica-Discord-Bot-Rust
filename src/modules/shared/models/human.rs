@@ -40,4 +40,12 @@ impl Human {
             currencies: values.8,
         }
     }
+
+    pub fn assert_gold(&self, cost: i32) -> Result<(), &'static str> {
+        if self.gold > cost {
+            Ok(())
+        } else {
+            Err("You need {} gold to perform this action.")
+        }
+    }
 }

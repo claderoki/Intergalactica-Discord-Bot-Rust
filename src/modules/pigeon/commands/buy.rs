@@ -1,48 +1,59 @@
-use serenity::framework::standard::{macros::command, Args, CommandError, CommandResult};
+use std::{io::Error, io::ErrorKind, time::Duration};
+
+use serenity::framework::standard::{
+    macros::{check, command},
+    Args, CommandError, CommandOptions, CommandResult,
+};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 use crate::modules::{
     pigeon::repository::pigeon::{create_pigeon, get_active_pigeon},
-    shared::repository::human::{get_or_create_human, save_human},
+    shared::{
+        models::human::Human,
+        repository::human::{get_or_create_human, save_human},
+    },
 };
 
 #[command]
 #[description("This is a description.")]
-pub async fn buy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
     let cost = 50;
-    let name = args.rest();
+    let mut human = get_or_create_human(*msg.author.id.as_u64())?;
+    human.assert_gold(cost)?;
 
-    if name == "" {
-        msg.reply(&ctx.http, "No name given.").await?;
-        return Ok(());
-    }
-
-    if let Ok(mut human) = get_or_create_human(*msg.author.id.as_u64()) {
-        if human.gold < cost {
+    match get_active_pigeon(human.id) {
+        Ok(pigeon) => {
             msg.reply(
                 &ctx.http,
-                format!("You need **{}** gold to purchase a pigeon.", cost),
+                format!(
+                    "You already have a lovely pigeon named **{}**.",
+                    pigeon.name
+                ),
             )
             .await?;
-            return Ok(());
         }
+        Err(_) => {
+            let _ = msg.reply(ctx, "What will you name your pigeon?").await;
+            let reply = &msg
+                .author
+                .await_reply(&ctx)
+                .timeout(Duration::from_secs(10))
+                .await;
 
-        match get_active_pigeon(human.id) {
-            Ok(pigeon) => {
-                msg.reply(
-                    &ctx.http,
-                    format!(
-                        "You already have a lovely pigeon named **{}**.",
-                        pigeon.name
-                    ),
-                )
-                .await?;
-            }
-            Err(_) => match create_pigeon(human.id, name) {
+            let name = match reply {
+                Some(name) => &name.content,
+                None => {
+                    msg.reply(&ctx.http, "No name given.").await?;
+                    return Err("No name given.".into());
+                }
+            };
+
+            match create_pigeon(human.id, name.as_str()) {
                 Ok(_) => {
                     human.gold -= cost;
                     save_human(human);
+
                     msg.reply(
                         &ctx.http,
                         format!("You just bought yourself a new pigeon (**-{}**)", cost),
@@ -52,7 +63,7 @@ pub async fn buy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 Err(e) => {
                     println!("ERROR, {}", e);
                 }
-            },
+            }
         }
     }
 
