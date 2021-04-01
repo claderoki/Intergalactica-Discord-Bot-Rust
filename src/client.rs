@@ -45,28 +45,39 @@ async fn before_hook(ctx: &Context, msg: &Message, cmd_name: &str) -> bool {
     true
 }
 
-// #[hook]
-// async fn after_hook(_: &Context, _: &Message, cmd_name: &str, error: Result<(), CommandError>) {
-//     if let Err(why) = error {
-//         println!("Error in {}: {:?}", cmd_name, why);
-//     }
-// }
+#[hook]
+async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Result<(), CommandError>) {
+    if let Err(why) = error {
+        let _ = msg.channel_id.send_message(&ctx, |m|m.embed(|e|e.color(serenity::utils::Color::from_rgb(255, 0, 0)).description(why))).await;
+    }
+}
 
 #[hook]
 async fn dispatch_error_hook(context: &Context, msg: &Message, error: DispatchError) {
-    match error {
-        DispatchError::NotEnoughArguments { min, given } => {
-            let s = format!("Need {} arguments, but only got {}.", min, given);
 
-            let _ = msg.channel_id.say(&context, &s).await;
+    println!("STINKY ERROR");
+    match msg.channel_id.say(&context, format!("{:?}", error).as_str() ).await {
+        Err(e) => {
+            println!("{:?}", e);
+        },
+        Ok(data) => {
+            println!("{:?}", data)
         }
-        DispatchError::TooManyArguments { max, given } => {
-            let s = format!("Max arguments allowed is {}, but got {}.", max, given);
-
-            let _ = msg.channel_id.say(&context, &s).await;
-        }
-        _ => println!("Unhandled dispatch error."),
     }
+
+    // match error {
+    //     DispatchError::NotEnoughArguments { min, given } => {
+    //         let s = format!("Need {} arguments, but only got {}.", min, given);
+
+    //         let _ = msg.channel_id.say(&context, &s).await;
+    //     }
+    //     DispatchError::TooManyArguments { max, given } => {
+    //         let s = format!("Max arguments allowed is {}, but got {}.", max, given);
+
+    //         let _ = msg.channel_id.say(&context, &s).await;
+    //     }
+    //     _ => println!("Unhandled dispatch error."),
+    // }
 }
 
 pub async fn get_client() -> Client {
@@ -95,7 +106,7 @@ pub async fn get_client() -> Client {
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("~"))
         .before(before_hook)
-        // .after(after_hook)
+        .after(after_hook)
         .on_dispatch_error(dispatch_error_hook)
         .group(&PIGEON_GROUP);
 
