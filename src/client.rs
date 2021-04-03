@@ -41,29 +41,39 @@ use serenity::framework::standard::macros::hook;
 
 #[hook]
 async fn before_hook(ctx: &Context, msg: &Message, cmd_name: &str) -> bool {
-    println!("Running command {}", cmd_name);
+    // println!("Running command {}", cmd_name);
     true
 }
 
 #[hook]
 async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Result<(), CommandError>) {
     if let Err(why) = error {
-        let _ = msg.channel_id.send_message(&ctx, |m|m.embed(|e|e.color(serenity::utils::Color::from_rgb(255, 0, 0)).description(why))).await;
+        let _ = msg
+            .channel_id
+            .send_message(&ctx, |m| {
+                m.embed(|e| {
+                    e.color(serenity::utils::Color::from_rgb(255, 0, 0))
+                        .description(why)
+                })
+            })
+            .await;
     }
 }
 
 #[hook]
 async fn dispatch_error_hook(context: &Context, msg: &Message, error: DispatchError) {
-
-    println!("STINKY ERROR");
-    match msg.channel_id.say(&context, format!("{:?}", error).as_str() ).await {
-        Err(e) => {
-            println!("{:?}", e);
-        },
-        Ok(data) => {
-            println!("{:?}", data)
-        }
-    }
+    // match msg
+    //     .channel_id
+    //     .say(&context, format!("{:?}", error).as_str())
+    //     .await
+    // {
+    //     Err(e) => {
+    //         println!("{:?}", e);
+    //     }
+    //     Ok(data) => {
+    //         println!("{:?}", data)
+    //     }
+    // }
 
     // match error {
     //     DispatchError::NotEnoughArguments { min, given } => {
@@ -107,7 +117,7 @@ pub async fn get_client() -> Client {
         .configure(|c| c.owners(owners).prefix("~"))
         .before(before_hook)
         .after(after_hook)
-        .on_dispatch_error(dispatch_error_hook)
+        // .on_dispatch_error(dispatch_error_hook)
         .group(&PIGEON_GROUP);
 
     let client = Client::builder(&token)
