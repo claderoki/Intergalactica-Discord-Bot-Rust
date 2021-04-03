@@ -32,27 +32,11 @@ impl MeasurementUtils for Temperature {
     }
 
     fn get_all_units() -> Vec<Unit> {
-        let mut units = Vec::new();
-        units.push(Unit::new(
-            "celsius".to_string(),
-            "c".to_string(),
-            "°C".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-        units.push(Unit::new(
-            "fahrenheit".to_string(),
-            "f".to_string(),
-            "°F".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-        units.push(Unit::new(
-            "kelvin".to_string(),
-            "k".to_string(),
-            "K".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-
-        units
+        vec![
+            Unit::new_measurement("celsius", "c", "°C"),
+            Unit::new_measurement("fahrenheit", "f", "°F"),
+            Unit::new_measurement("kelvin", "k", "K"),
+        ]
     }
 }
 
@@ -62,7 +46,6 @@ impl MeasurementUtils for Length {
             "m" => Length::from_meters(value),
             "mm" => Length::from_millimeters(value),
             "cm" => Length::from_centimeters(value),
-            "hm" => Length::from_hectometers(value),
             "km" => Length::from_kilometers(value),
             "inch" => Length::from_inches(value),
             "ft" => Length::from_feet(value),
@@ -77,7 +60,6 @@ impl MeasurementUtils for Length {
             "m" => self.as_meters(),
             "mm" => self.as_millimeters(),
             "cm" => self.as_centimeters(),
-            "hm" => self.as_hectometers(),
             "km" => self.as_kilometers(),
             "inch" => self.as_inches(),
             "ft" => self.as_feet(),
@@ -88,58 +70,16 @@ impl MeasurementUtils for Length {
     }
 
     fn get_all_units() -> Vec<Unit> {
-        let mut units = Vec::new();
-
-        units.push(Unit::new(
-            "meters".to_string(),
-            "m".to_string(),
-            "m".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-        units.push(Unit::new(
-            "millimeters".to_string(),
-            "mm".to_string(),
-            "mm".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-        units.push(Unit::new(
-            "centimeters".to_string(),
-            "cm".to_string(),
-            "cm".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-        units.push(Unit::new(
-            "kilometers".to_string(),
-            "km".to_string(),
-            "km".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-        units.push(Unit::new(
-            "inches".to_string(),
-            "inch".to_string(),
-            "\"".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-        units.push(Unit::new(
-            "feet".to_string(),
-            "ft".to_string(),
-            "'".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-        units.push(Unit::new(
-            "yards".to_string(),
-            "yd".to_string(),
-            "".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-        units.push(Unit::new(
-            "miles".to_string(),
-            "mi".to_string(),
-            "mi".to_string(),
-            UnitType::MEASUREMENT,
-        ));
-
-        units
+        vec![
+            Unit::new_measurement("meters", "m", "m"),
+            Unit::new_measurement("millimeters", "mm", "mm"),
+            Unit::new_measurement("centimeters", "cm", "cm"),
+            Unit::new_measurement("kilometers", "km", "km"),
+            Unit::new_measurement("inches", "inch", "\""),
+            Unit::new_measurement("feet", "ft", "'"),
+            Unit::new_measurement("yards", "yd", ""),
+            Unit::new_measurement("miles", "mi", "mi"),
+        ]
     }
 }
 

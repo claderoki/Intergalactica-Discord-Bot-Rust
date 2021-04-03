@@ -13,13 +13,17 @@ pub struct Unit {
 }
 
 impl Unit {
-    pub fn new(name: String, code: String, symbol: String, unit_type: UnitType) -> Self {
+    pub fn new(name: &'static str, code: &'static str, symbol: &'static str, unit_type: UnitType) -> Self {
         Self {
-            name,
-            code,
-            symbol,
+            name: name.to_string(),
+            code: code.to_string(),
+            symbol: symbol.to_string(),
             unit_type,
         }
+    }
+
+    pub fn new_measurement(name: &'static str, code: &'static str, symbol: &'static str) -> Self {
+        Self::new(name, code, symbol, UnitType::MEASUREMENT)
     }
 
     pub fn new_currency(code: String, name: Option<String>, symbol: Option<String>) -> Self {
