@@ -12,8 +12,8 @@ trait ConversionModule {
 pub fn get_all_codes_and_symbols() -> Vec<String> {
     let mut values = Vec::new();
 
-    for (code, (unit, _, _)) in get_units() {
-        values.push(String::from(code).to_lowercase());
+    for unit in get_units() {
+        values.push(String::from(unit.code).to_lowercase());
         values.push(unit.symbol.to_lowercase());
     }
 
