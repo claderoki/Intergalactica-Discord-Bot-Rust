@@ -1,5 +1,7 @@
 extern crate measurements;
 
+use regex::Regex;
+
 use super::measurement::measurement::{get_units, to_unit};
 use super::{currency::currency::get_all_currencies, models};
 
@@ -53,8 +55,24 @@ pub fn get_conversion_result_field(result: &models::ConversionResult) -> (String
     (convert_conversion_to_str(&result.base), value_field, false)
 }
 
+pub fn get_regex() -> String {
+    let mut regex = String::from(r"([+-]?\d+(\.\d+)*)(");
+
+    let mut i = 0;
+    for value in get_all_codes_and_symbols() {
+        regex.push_str(value.as_str());
+        if i != 0 {
+            regex.push_str("|");
+        }
+        i += 1;
+    }
+    regex.push_str(r")(?:$|\n| )?");
+
+    regex
+}
+
 pub fn match_conversion() {
-    // let re = Regex::new(r"([+-]?\d+(\.\d+)*)(c|f)(?:$|\n| )?").unwrap();
+    let re = Regex::new(get_regex().as_str()).unwrap();
 
     // for cap in re.captures_iter(&message.content) {
     //     let value = cap[1].parse::<f64>().unwrap_or(0.0).to_owned();

@@ -106,6 +106,7 @@ pub fn to_unit(text: &'static str) -> Result<Unit, &'static str> {
 
     Err("Unit not found.")
 }
+
 pub async fn convert(
     from: &'static str,
     value: f64,
@@ -113,7 +114,7 @@ pub async fn convert(
 ) -> Result<ConversionResult, &'static str> {
     let base_unit = to_unit(from)?;
     // Add a way to find out what kind of unit a code is from?
-    let base = Temperature::from_code(from, 50.0)?;
+    let base = Temperature::from_code(from, value)?;
 
     let mut result = ConversionResult::new(Conversion {
         unit: base_unit,
