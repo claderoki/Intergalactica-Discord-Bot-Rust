@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+#[macro_use]
+extern crate diesel;
 
 mod client;
 mod commands;

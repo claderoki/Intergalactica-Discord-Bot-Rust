@@ -1,6 +1,8 @@
+use crate::database::schema::human;
 use mysql::{from_row, Row};
 
-#[derive(Debug)]
+#[derive(Debug, Queryable, AsChangeset, Identifiable)]
+#[table_name = "human"]
 pub struct Human {
     pub id: i32,
     pub user_id: u64,
