@@ -1,6 +1,6 @@
 use measurements::{Length, Temperature};
 
-use crate::modules::conversion::models::{Conversion, ConversionResult, Unit, UnitType};
+use crate::modules::conversion::models::{Conversion, ConversionResult, Unit};
 
 trait MeasurementUtils {
     fn from_code(code: &'static str, value: f64) -> Result<Self, &'static str>
