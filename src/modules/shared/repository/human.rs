@@ -24,7 +24,6 @@ pub fn get_or_create_human(user_id: u64) -> Result<Human, &'static str> {
 }
 
 pub fn get_human(uid: u64) -> Result<Human, &'static str> {
-    //TODO: get rid of sql injection point.
     use crate::database::schema::human::dsl::*;
     use diesel::prelude::*;
 
@@ -40,7 +39,7 @@ pub fn create_human(user_id: u64) -> Result<Human, &'static str> {
 
     let new_human = NewHuman {
         user_id,
-        gold: 0, // The Initial gold amount
+        gold: 250, // The Initial gold amount
         ..Default::default()
     };
     let conn = get_connection_diesel();
