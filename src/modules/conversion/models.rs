@@ -5,25 +5,33 @@ pub enum UnitType {
 }
 
 #[derive(Debug, Clone)]
+pub enum UnitSubType {
+    TEMPERATURE,
+    LENGTH,
+}
+
+#[derive(Debug, Clone)]
 pub struct Unit {
     pub name: String,
     pub code: String,
     pub symbol: String,
     pub unit_type: UnitType,
+    pub subtype: Option<UnitSubType>,
 }
 
 impl Unit {
-    pub fn new(name: &'static str, code: &'static str, symbol: &'static str, unit_type: UnitType) -> Self {
+    pub fn new(name: &'static str, code: &'static str, symbol: &'static str, unit_type: UnitType, subtype: Option<UnitSubType>) -> Self {
         Self {
             name: name.to_string(),
             code: code.to_string(),
             symbol: symbol.to_string(),
             unit_type,
+            subtype: subtype
         }
     }
 
-    pub fn new_measurement(name: &'static str, code: &'static str, symbol: &'static str) -> Self {
-        Self::new(name, code, symbol, UnitType::MEASUREMENT)
+    pub fn new_measurement(name: &'static str, code: &'static str, symbol: &'static str, subtype: UnitSubType) -> Self {
+        Self::new(name, code, symbol, UnitType::MEASUREMENT, subtype)
     }
 
     pub fn new_currency(code: String, name: Option<String>, symbol: Option<String>) -> Self {
@@ -32,6 +40,7 @@ impl Unit {
             symbol: symbol.unwrap_or(code.clone()),
             code,
             unit_type: UnitType::CURRENCY,
+            subtype: None
         }
     }
 }
