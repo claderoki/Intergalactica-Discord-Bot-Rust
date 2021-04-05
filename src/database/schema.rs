@@ -11,3 +11,19 @@ table! {
         currencies -> Nullable<Varchar>,
     }
 }
+
+table! {
+    pigeon (id) {
+        id -> Integer,
+        name -> Varchar,
+        human_id -> Integer,
+        condition -> Varchar,
+        experience -> Integer,
+        cleanliness -> Integer,
+        happiness -> Integer,
+        food -> Integer,
+        health -> Integer,
+        status -> Varchar,
+        gender -> Varchar,
+    }
+}

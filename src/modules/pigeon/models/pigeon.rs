@@ -1,5 +1,6 @@
 use mysql::{from_row, Row};
 
+#[derive(Debug, Clone, Copy, FromSqlRow)]
 pub enum PigeonStatus {
     Idle,
     Mailing,
@@ -20,6 +21,7 @@ impl PigeonStatus {
         }
     }
 }
+#[derive(Debug, Clone, Copy, FromSqlRow)]
 pub enum PigeonCondition {
     Active,
     RanAway,
@@ -37,6 +39,7 @@ impl PigeonCondition {
     }
 }
 
+#[derive(Debug, Clone, Copy, FromSqlRow)]
 pub enum Gender {
     Male,
     Female,
@@ -53,6 +56,7 @@ impl Gender {
         }
     }
 }
+#[derive(Queryable)]
 pub struct Pigeon {
     pub id: i32,
     pub name: String,

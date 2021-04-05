@@ -29,7 +29,7 @@ impl CommandContext {
 
     pub fn finish(mut self) {
         self.human.gold -= self.cost;
-        save_human(self.human);
+        save_human(self.human).ok();
     }
 }
 

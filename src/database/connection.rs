@@ -23,7 +23,6 @@ pub fn get_connection() -> Result<Conn, mysql::Error> {
 }
 
 use diesel::prelude::*;
-use dotenv::dotenv;
 
 pub fn get_connection_diesel() -> MysqlConnection {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
