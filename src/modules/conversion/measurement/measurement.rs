@@ -55,16 +55,13 @@ pub async fn convert(
     value: f64,
     to: Vec<&'static str>,
 ) -> Result<ConversionResult, &'static str> {
-    let mut base_unit = to_unit(from)?;
-
-    let subtype = base_unit.subtype.ok_or("No subtype set.")?;
+    let base_unit = to_unit(from)?;
+    let subtype = base_unit.subtype.as_ref().ok_or("No subtype set.")?;
 
     let conversions = match subtype {
         UnitSubType::LENGTH => get_conversions::<Length>(from, value, to)?,
         UnitSubType::TEMPERATURE => get_conversions::<Temperature>(from, value, to)?,
     };
-
-    base_unit.subtype = Some(subtype);
 
     let mut result = ConversionResult::new(Conversion {
         unit: base_unit,
