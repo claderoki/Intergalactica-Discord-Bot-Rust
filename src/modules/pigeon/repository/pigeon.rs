@@ -12,7 +12,6 @@ use diesel::{
 };
 
 pub fn get_active_pigeon(hid: i32) -> Result<Pigeon, &'static str> {
-    //TODO: get rid of sql injection point.
     use crate::database::schema::pigeon::dsl::*;
     use diesel::prelude::*;
 
