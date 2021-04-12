@@ -181,6 +181,7 @@ pub fn currency_to_unit(currency: &Currency) -> Unit {
         code: String::from(currency.code.as_str()),
         symbol: String::from(currency.symbol.as_str()),
         unit_type: UnitType::CURRENCY,
+        subtype: None
     }
 }
 

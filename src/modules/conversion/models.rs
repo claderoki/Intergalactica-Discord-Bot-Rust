@@ -31,7 +31,7 @@ impl Unit {
     }
 
     pub fn new_measurement(name: &'static str, code: &'static str, symbol: &'static str, subtype: UnitSubType) -> Self {
-        Self::new(name, code, symbol, UnitType::MEASUREMENT, subtype)
+        Self::new(name, code, symbol, UnitType::MEASUREMENT, Some(subtype))
     }
 
     pub fn new_currency(code: String, name: Option<String>, symbol: Option<String>) -> Self {
@@ -76,4 +76,11 @@ impl ConversionResult {
             to: Vec::new(),
         }
     }
+    pub fn new_with_to(base: Conversion, to: Vec<Conversion>) -> ConversionResult {
+        ConversionResult {
+            base: base,
+            to: to,
+        }
+    }
+
 }

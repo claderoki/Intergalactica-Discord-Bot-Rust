@@ -31,11 +31,10 @@ impl MeasurementUtils for Temperature {
     }
 
     fn get_all_units() -> Vec<Unit> {
-        let subtype = UnitSubType::TEMPERATURE;
         vec![
-            Unit::new_measurement("celsius", "c", "°C", subtype),
-            Unit::new_measurement("fahrenheit", "f", "°F", subtype),
-            Unit::new_measurement("kelvin", "k", "K", subtype),
+            Unit::new_measurement("celsius", "c", "°C", UnitSubType::TEMPERATURE),
+            Unit::new_measurement("fahrenheit", "f", "°F", UnitSubType::TEMPERATURE),
+            Unit::new_measurement("kelvin", "k", "K", UnitSubType::TEMPERATURE),
         ]
     }
 }
@@ -70,17 +69,15 @@ impl MeasurementUtils for Length {
     }
 
     fn get_all_units() -> Vec<Unit> {
-        let subtype = UnitSubType::LENGTH;
-
         vec![
-            Unit::new_measurement("meters", "m", "m", subtype),
-            Unit::new_measurement("millimeters", "mm", "mm", subtype),
-            Unit::new_measurement("centimeters", "cm", "cm", subtype),
-            Unit::new_measurement("kilometers", "km", "km", subtype),
-            Unit::new_measurement("inches", "inch", "\"", subtype),
-            Unit::new_measurement("feet", "ft", "'", subtype),
-            Unit::new_measurement("yards", "yd", "", subtype),
-            Unit::new_measurement("miles", "mi", "mi", subtype),
+            Unit::new_measurement("meters", "m", "m", UnitSubType::LENGTH),
+            Unit::new_measurement("millimeters", "mm", "mm", UnitSubType::LENGTH),
+            Unit::new_measurement("centimeters", "cm", "cm", UnitSubType::LENGTH),
+            Unit::new_measurement("kilometers", "km", "km", UnitSubType::LENGTH),
+            Unit::new_measurement("inches", "inch", "\"", UnitSubType::LENGTH),
+            Unit::new_measurement("feet", "ft", "'", UnitSubType::LENGTH),
+            Unit::new_measurement("yards", "yd", "", UnitSubType::LENGTH),
+            Unit::new_measurement("miles", "mi", "mi", UnitSubType::LENGTH),
         ]
     }
 }
