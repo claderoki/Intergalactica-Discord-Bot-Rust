@@ -6,7 +6,7 @@ use serenity::{
 
 use tracing::info;
 
-use crate::modules::shared::repository::human::get_or_create_human;
+use crate::modules::{conversion::core::match_conversion, shared::repository::human::get_or_create_human};
 pub struct Handler;
 
 #[async_trait]
@@ -19,6 +19,8 @@ impl EventHandler for Handler {
         if message.author.bot {
             return ();
         }
+
+        match_conversion(message.content.as_str());
 
         get_or_create_human(*message.author.id.as_u64());
     }
