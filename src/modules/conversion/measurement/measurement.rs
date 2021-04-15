@@ -1,4 +1,4 @@
-use crate::modules::conversion::models::{Conversion, ConversionResult, Unit, UnitSubType};
+use crate::modules::conversion::models::core::{Conversion, ConversionResult, Unit, UnitSubType};
 use measurements::{Length, Temperature};
 
 use super::utils::MeasurementUtils;
@@ -16,7 +16,7 @@ pub fn get_units() -> Vec<Unit> {
     units
 }
 
-pub fn to_unit(text: &'static str) -> Result<Unit, &'static str> {
+pub fn to_unit(text: &str) -> Result<Unit, &'static str> {
     // Pretty inefficient. Maybe cache the get_units somewhere?
     for unit in get_units() {
         if unit.code == text || unit.name == text || unit.symbol == text {
@@ -63,10 +63,7 @@ pub async fn convert(
         UnitSubType::TEMPERATURE => get_conversions::<Temperature>(from, value, to)?,
     };
 
-    let result = ConversionResult::new_with_to(
-        Conversion {unit, value},
-        conversions
-    );
+    let result = ConversionResult::new_with_to(Conversion { unit, value }, conversions);
 
     Ok(result)
 }

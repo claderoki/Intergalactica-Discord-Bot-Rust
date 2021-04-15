@@ -1,31 +1,28 @@
 use std::env;
 
-use mysql::{Conn, OptsBuilder};
+fn get_db_url() -> String {
+    let user = env::var("DB_USER").expect("Expected DB_USER in the environment");
+    let name = env::var("DB_NAME").expect("Expected DB_NAME in the environment");
+    let host = env::var("DB_HOST").expect("Expected DB_HOST in the environment");
+    let pass = env::var("DB_PASSWORD").expect("Expected DB_PASSWORD in the environment");
 
-fn get_db_opts() -> OptsBuilder {
-    OptsBuilder::new()
-        .user(Some(
-            env::var("DB_USER").expect("Expected DB_USER in the environment"),
-        ))
-        .db_name(Some(
-            env::var("DB_NAME").expect("Expected DB_NAME in the environment"),
-        ))
-        .ip_or_hostname(Some(
-            env::var("DB_HOST").expect("Expected DB_HOST in the environment"),
-        ))
-        .pass(Some(
-            env::var("DB_PASSWORD").expect("Expected DB_PASSWORD in the environment"),
-        ))
-}
+    let mut url = String::from("mysql://");
+    url.push_str(user.as_str());
+    url.push_str(":");
+    url.push_str(pass.as_str());
+    url.push_str("@");
+    url.push_str(host.as_str());
+    url.push_str("/");
+    url.push_str(name.as_str());
+    // url.push_str("%");
 
-pub fn get_connection() -> Result<Conn, mysql::Error> {
-    Conn::new(get_db_opts())
+    url
 }
 
 use diesel::prelude::*;
 
 pub fn get_connection_diesel() -> MysqlConnection {
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let database_url = get_db_url();
     MysqlConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+        .unwrap_or_else(|e| panic!("Error connecting to {}: {}", database_url, e))
 }

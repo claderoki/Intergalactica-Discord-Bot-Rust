@@ -27,3 +27,26 @@ table! {
         gender -> Varchar,
     }
 }
+
+table! {
+    currency (id) {
+        id -> Integer,
+        rate -> Double,
+        is_base -> Bool,
+        name -> Varchar,
+        code -> Varchar,
+        symbol -> Varchar,
+    }
+}
+
+table! {
+    measurement (id) {
+        id -> Integer,
+        rate -> Double,
+        is_base -> Bool,
+        name -> Varchar,
+        code -> Varchar,
+        symbol -> Varchar,
+        subtype -> Varchar,
+    }
+}

@@ -1,5 +1,4 @@
 use crate::database::schema::human;
-use mysql::{from_row, Row};
 
 #[derive(Debug, Queryable, AsChangeset, Identifiable)]
 #[table_name = "human"]
@@ -15,34 +14,7 @@ pub struct Human {
     pub currencies: Option<String>,
 }
 
-type HumanType = (
-    i32,
-    u64,
-    i32,
-    Option<String>,
-    Option<String>,
-    Option<String>,
-    Option<String>,
-    bool,
-    Option<String>,
-);
-
 impl Human {
-    pub fn from_row(row: Row) -> Human {
-        let values = from_row::<HumanType>(row);
-        Human {
-            id: values.0,
-            user_id: values.1,
-            gold: values.2,
-            timezone: values.3,
-            date_of_birth: values.4,
-            city: values.5,
-            country_code: values.6,
-            tester: values.7,
-            currencies: values.8,
-        }
-    }
-
     pub fn assert_gold(&self, cost: i32) -> Result<(), &'static str> {
         if self.gold > cost {
             Ok(())

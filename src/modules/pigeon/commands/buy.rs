@@ -1,10 +1,16 @@
-use std::{time::Duration};
+use std::time::Duration;
 
-use serenity::framework::standard::{macros::{command},CommandResult};
+use serenity::framework::standard::{macros::command, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
-use crate::modules::{pigeon::repository::pigeon::{create_pigeon, get_active_pigeon}, shared::{models::human::Human, repository::human::{get_or_create_human, save_human}}};
+use crate::modules::{
+    pigeon::repository::pigeon::{create_pigeon, get_active_pigeon},
+    shared::{
+        models::human::Human,
+        repository::human::{get_or_create_human, save_human},
+    },
+};
 
 struct CommandContext {
     pub human: Human,
@@ -17,7 +23,11 @@ struct CommandContext {
 impl CommandContext {
     pub fn new(msg: &Message, name: &'static str, cost: i32) -> Result<Self, &'static str> {
         let human = get_or_create_human(*msg.author.id.as_u64())?;
-        Ok(Self {human, name: String::from(name), cost})
+        Ok(Self {
+            human,
+            name: String::from(name),
+            cost,
+        })
     }
 
     pub fn validate(&self) -> Result<(), &'static str> {
@@ -41,7 +51,11 @@ pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
 
     match get_active_pigeon(cmd_ctx.human.id) {
         Ok(pigeon) => {
-            return Err(format!("You already have a lovely pigeon named **{}**.",pigeon.name).into());
+            return Err(format!(
+                "You already have a lovely pigeon named **{}**.",
+                pigeon.name
+            )
+            .into());
         }
         Err(_) => {
             let _ = msg.reply(ctx, "What will you name your pigeon?").await;
@@ -53,14 +67,19 @@ pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
 
             let name = match reply {
                 Some(name) => &name.content,
-                None => {return Err("No name given.".into());}
+                None => {
+                    return Err("No name given.".into());
+                }
             };
 
             match create_pigeon(cmd_ctx.human.id, name.as_str()) {
                 Ok(_) => {
                     msg.reply(
                         &ctx.http,
-                        format!("You just bought yourself a new pigeon (**-{}**)", cmd_ctx.cost),
+                        format!(
+                            "You just bought yourself a new pigeon (**-{}**)",
+                            cmd_ctx.cost
+                        ),
                     )
                     .await?;
                 }

@@ -10,6 +10,15 @@ pub enum UnitSubType {
     LENGTH,
 }
 
+impl UnitSubType {
+    pub fn to_string(&self) -> String {
+        String::from(match self {
+            UnitSubType::LENGTH => "length",
+            UnitSubType::TEMPERATURE => "temperature",
+        })
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Unit {
     pub name: String,
@@ -20,17 +29,28 @@ pub struct Unit {
 }
 
 impl Unit {
-    pub fn new(name: &'static str, code: &'static str, symbol: &'static str, unit_type: UnitType, subtype: Option<UnitSubType>) -> Self {
+    pub fn new(
+        name: &'static str,
+        code: &'static str,
+        symbol: &'static str,
+        unit_type: UnitType,
+        subtype: Option<UnitSubType>,
+    ) -> Self {
         Self {
             name: name.to_string(),
             code: code.to_string(),
             symbol: symbol.to_string(),
             unit_type,
-            subtype: subtype
+            subtype: subtype,
         }
     }
 
-    pub fn new_measurement(name: &'static str, code: &'static str, symbol: &'static str, subtype: UnitSubType) -> Self {
+    pub fn new_measurement(
+        name: &'static str,
+        code: &'static str,
+        symbol: &'static str,
+        subtype: UnitSubType,
+    ) -> Self {
         Self::new(name, code, symbol, UnitType::MEASUREMENT, Some(subtype))
     }
 
@@ -40,7 +60,7 @@ impl Unit {
             symbol: symbol.unwrap_or(code.clone()),
             code,
             unit_type: UnitType::CURRENCY,
-            subtype: None
+            subtype: None,
         }
     }
 }
@@ -77,10 +97,6 @@ impl ConversionResult {
         }
     }
     pub fn new_with_to(base: Conversion, to: Vec<Conversion>) -> ConversionResult {
-        ConversionResult {
-            base: base,
-            to: to,
-        }
+        ConversionResult { base: base, to: to }
     }
-
 }

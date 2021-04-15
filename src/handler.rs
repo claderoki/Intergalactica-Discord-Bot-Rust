@@ -6,7 +6,9 @@ use serenity::{
 
 use tracing::info;
 
-use crate::modules::{conversion::core::match_conversion, shared::repository::human::get_or_create_human};
+use crate::modules::{
+    conversion::core::match_conversion, shared::repository::human::get_or_create_human,
+};
 pub struct Handler;
 
 #[async_trait]

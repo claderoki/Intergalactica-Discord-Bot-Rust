@@ -1,16 +1,17 @@
-use crate::modules::conversion::models::{Unit, UnitSubType};
+use crate::modules::conversion::models::core::{Unit, UnitSubType};
 use measurements::{Length, Temperature};
 
 pub trait MeasurementUtils {
-    fn from_code(code: &'static str, value: f64) -> Result<Self, &'static str>
+    fn from_code(code: &str, value: f64) -> Result<Self, &'static str>
     where
         Self: Sized;
-    fn to(&self, code: &'static str) -> Result<f64, &'static str>;
+    fn to(&self, code: &str) -> Result<f64, &'static str>;
     fn get_all_units() -> Vec<Unit>;
+    fn get_base_code() -> String;
 }
 
 impl MeasurementUtils for Temperature {
-    fn from_code(code: &'static str, value: f64) -> Result<Self, &'static str> {
+    fn from_code(code: &str, value: f64) -> Result<Self, &'static str> {
         Ok(match code {
             "c" => Temperature::from_celsius(value),
             "f" => Temperature::from_fahrenheit(value),
@@ -21,7 +22,11 @@ impl MeasurementUtils for Temperature {
         })
     }
 
-    fn to(&self, code: &'static str) -> Result<f64, &'static str> {
+    fn get_base_code() -> String {
+        String::from("k")
+    }
+
+    fn to(&self, code: &str) -> Result<f64, &'static str> {
         Ok(match code {
             "c" => self.as_celsius(),
             "f" => self.as_fahrenheit(),
@@ -40,7 +45,7 @@ impl MeasurementUtils for Temperature {
 }
 
 impl MeasurementUtils for Length {
-    fn from_code(code: &'static str, value: f64) -> Result<Self, &'static str> {
+    fn from_code(code: &str, value: f64) -> Result<Self, &'static str> {
         Ok(match code {
             "m" => Length::from_meters(value),
             "mm" => Length::from_millimeters(value),
@@ -54,7 +59,7 @@ impl MeasurementUtils for Length {
         })
     }
 
-    fn to(&self, code: &'static str) -> Result<f64, &'static str> {
+    fn to(&self, code: &str) -> Result<f64, &'static str> {
         Ok(match code {
             "m" => self.as_meters(),
             "mm" => self.as_millimeters(),
@@ -68,6 +73,10 @@ impl MeasurementUtils for Length {
         })
     }
 
+    fn get_base_code() -> String {
+        String::from("m")
+    }
+
     fn get_all_units() -> Vec<Unit> {
         vec![
             Unit::new_measurement("meters", "m", "m", UnitSubType::LENGTH),
@@ -76,7 +85,7 @@ impl MeasurementUtils for Length {
             Unit::new_measurement("kilometers", "km", "km", UnitSubType::LENGTH),
             Unit::new_measurement("inches", "inch", "\"", UnitSubType::LENGTH),
             Unit::new_measurement("feet", "ft", "'", UnitSubType::LENGTH),
-            Unit::new_measurement("yards", "yd", "", UnitSubType::LENGTH),
+            Unit::new_measurement("yards", "yd", "yd", UnitSubType::LENGTH),
             Unit::new_measurement("miles", "mi", "mi", UnitSubType::LENGTH),
         ]
     }
