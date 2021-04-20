@@ -1,4 +1,7 @@
-use mysql::{from_row, Row};
+// trait StringableEnum {
+//     fn to_str(&self);
+//     fn from_str(name: &'static str);
+// }
 
 #[derive(Debug, Clone, Copy, FromSqlRow)]
 pub enum PigeonStatus {
@@ -20,6 +23,16 @@ impl PigeonStatus {
             _ => Self::Idle,
         }
     }
+
+    pub fn to_string(&self) -> String {
+        String::from(match *self {
+            PigeonStatus::Idle => "idle",
+            PigeonStatus::Mailing => "mailing",
+            PigeonStatus::Exploring => "exploring",
+            PigeonStatus::Fighting => "fighting",
+            PigeonStatus::Dating => "dating",
+        })
+    }
 }
 #[derive(Debug, Clone, Copy, FromSqlRow)]
 pub enum PigeonCondition {
@@ -36,6 +49,14 @@ impl PigeonCondition {
             "dead" => Self::Dead,
             _ => Self::Active,
         }
+    }
+
+    pub fn to_string(&self) -> String {
+        String::from(match *self {
+            PigeonCondition::Active => "active",
+            PigeonCondition::RanAway => "ran_away",
+            PigeonCondition::Dead => "dead",
+        })
     }
 }
 
@@ -55,6 +76,14 @@ impl Gender {
             _ => Self::Other,
         }
     }
+
+    pub fn to_string(&self) -> String {
+        String::from(match *self {
+            Gender::Male => "male",
+            Gender::Female => "female",
+            Gender::Other => "other,"
+        })
+    }
 }
 #[derive(Queryable)]
 pub struct Pigeon {
@@ -69,37 +98,4 @@ pub struct Pigeon {
     pub health: i32,
     pub status: PigeonStatus,
     pub gender: Gender,
-}
-
-type PigeonType = (
-    i32,
-    String,
-    i32,
-    String,
-    i32,
-    i32,
-    i32,
-    i32,
-    i32,
-    String,
-    String,
-);
-
-impl Pigeon {
-    pub fn from_row(row: Row) -> Pigeon {
-        let values = from_row::<PigeonType>(row);
-        Pigeon {
-            id: values.0,
-            name: values.1,
-            human_id: values.2,
-            condition: PigeonCondition::from_str(values.3.as_str()),
-            experience: values.4,
-            cleanliness: values.5,
-            happiness: values.6,
-            food: values.7,
-            health: values.8,
-            status: PigeonStatus::from_str(values.9.as_str()),
-            gender: Gender::from_str(values.10.as_str()),
-        }
-    }
 }

@@ -82,15 +82,14 @@ impl CurrencyRepository {
             .map_err(|_| "No currencies found.")
     }
 
-    // fn get_multiple(currency_codes: Vec<&'static str>) -> CurrencyResult {
-    //     use crate::database::schema::currency::dsl::*;
+    pub fn get_multiple(currency_codes: Vec<&str>) -> Result<Vec<Currency>, &'static str> {
+        use crate::database::schema::currency::dsl::*;
 
-    //     let connection = get_connection_diesel();
-    //     currency
-    //         .filter(code.)
-    //         .first::<Currency>(&connection)
-    //         .map_err(|_| "Currency not found.")
-    // }
+        let connection = get_connection_diesel();
+        currency
+            .load::<Currency>(&connection)
+            .map_err(|_| "No currencies found.")
+    }
 
     // fn update_rate(code: &'static str, rate: i64) -> CurrencyResult {
     //     let connection = get_connection_diesel();

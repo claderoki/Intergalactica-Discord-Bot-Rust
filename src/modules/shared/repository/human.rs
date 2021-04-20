@@ -15,46 +15,47 @@ pub struct NewHuman {
     pub currencies: Option<String>,
 }
 
-pub fn get_or_create_human(user_id: u64) -> Result<Human, &'static str> {
-    if let Ok(human) = get_human(user_id) {
-        return Ok(human);
-    } else {
-        return create_human(user_id);
+type HumanResult = Result<Human, &'static str>;
+pub struct HumanRepository;
+
+impl HumanRepository {
+    pub fn get_or_create(user_id: u64) -> HumanResult {
+        if let Ok(human) = HumanRepository::get(user_id) {
+            return Ok(human);
+        } else {
+            return HumanRepository::create(user_id);
+        }
     }
-}
 
-pub fn get_human(uid: u64) -> Result<Human, &'static str> {
-    use crate::database::schema::human::dsl::*;
-    use diesel::prelude::*;
+    pub fn get(uid: u64) -> HumanResult {
+        use crate::database::schema::human::dsl::*;
+        use diesel::prelude::*;
 
-    let connection = get_connection_diesel();
-    human
-        .filter(user_id.eq(uid))
-        .first::<Human>(&connection)
-        .map_err(|_| "Human not found.")
-}
+        let connection = get_connection_diesel();
+        human
+            .filter(user_id.eq(uid))
+            .first::<Human>(&connection)
+            .map_err(|_| "Human not found.")
+    }
 
-pub fn create_human(user_id: u64) -> Result<Human, &'static str> {
-    use diesel::prelude::*;
+    pub fn create(user_id: u64) -> HumanResult {
+        use diesel::prelude::*;
+        let new_human = NewHuman {
+            user_id,
+            gold: 250,
+            ..Default::default()
+        };
+        let conn = get_connection_diesel();
+        diesel::insert_into(human::table)
+            .values(&new_human)
+            .execute(&conn)
+            .map_or(Err("Not able to create human."), |_| HumanRepository::get(user_id))
+    }
 
-    let new_human = NewHuman {
-        user_id,
-        gold: 250, // The Initial gold amount
-        ..Default::default()
-    };
-    let conn = get_connection_diesel();
-    diesel::insert_into(human::table)
-        .values(&new_human)
-        .execute(&conn)
-        .map_or(Err("Not able to create human."), |_| get_human(user_id))
-}
+    pub fn create_new(h: Human) -> HumanResult{
+        use diesel::prelude::*;
+        let conn = get_connection_diesel();
 
-pub fn save_human(h: Human) -> Result<Human, &'static str> {
-    use diesel::prelude::*;
-    let conn = get_connection_diesel();
-
-    return if h.id == 0 {
-        // TODO do this in a cleaner way
         let new_human = NewHuman {
             user_id: h.user_id,
             gold: h.gold,
@@ -69,12 +70,28 @@ pub fn save_human(h: Human) -> Result<Human, &'static str> {
             .values(&new_human)
             .execute(&conn)
             .map_or(Err("Not able to create human."), |_| {
-                get_human(new_human.user_id)
+                HumanRepository::get(new_human.user_id)
             })
-    } else {
+    }
+
+    pub fn update(h: Human) -> HumanResult {
+        use diesel::prelude::*;
+        let conn = get_connection_diesel();
+
         diesel::update(&h)
-            .set(&h)
-            .execute(&conn)
-            .map_or(Err("Not able to update human."), |_| get_human(h.user_id))
-    };
+        .set(&h)
+        .execute(&conn)
+        .map_or(Err("Not able to update human."), |_| HumanRepository::get(h.user_id))
+    }
+
+    pub fn save(h: Human) -> HumanResult {
+        return if h.id == 0 {
+            HumanRepository::create_new(h)
+        } else {
+            HumanRepository::update(h)
+        };
+    }
+
 }
+
+

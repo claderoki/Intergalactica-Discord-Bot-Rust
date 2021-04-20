@@ -10,6 +10,8 @@ pub trait MeasurementUtils {
     fn get_base_code() -> String;
 }
 
+// DISTANCE!!
+
 impl MeasurementUtils for Temperature {
     fn from_code(code: &str, value: f64) -> Result<Self, &'static str> {
         Ok(match code {

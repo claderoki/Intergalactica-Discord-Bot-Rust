@@ -1,10 +1,11 @@
-use crate::database::schema::measurement;
+use crate::{database::schema::measurement, modules::conversion::models::core::{Unit, UnitSubType, UnitType}};
 use crate::{
-    database::connection::get_connection_diesel, modules::conversion::models::measurement::Measurement,
+    database::connection::get_connection_diesel,
+    modules::conversion::models::measurement::Measurement,
 };
 use diesel::prelude::*;
 
-#[derive(Insertable, Default)]
+#[derive(Insertable, Default, serde::Deserialize)]
 #[table_name = "measurement"]
 pub struct NewMeasurement {
     pub rate: f64,
@@ -14,6 +15,18 @@ pub struct NewMeasurement {
     pub symbol: String,
     pub subtype: String,
 }
+impl NewMeasurement {
+    pub fn to_unit(&self) -> Unit {
+        Unit {
+            name: String::from(self.name.as_str()),
+            code: String::from(self.code.as_str()),
+            symbol: String::from(self.symbol.as_str()),
+            unit_type: UnitType::MEASUREMENT,
+            subtype: None, // FIX THIS!
+        }
+    }
+}
+
 
 type MeasurementResult = Result<Measurement, &'static str>;
 pub struct MeasurementRepository;
@@ -29,7 +42,7 @@ impl MeasurementRepository {
             is_base: m.is_base,
             symbol: m.symbol,
             code: m.code,
-            subtype: m.subtype
+            subtype: m.subtype,
         };
 
         diesel::insert_into(measurement::table)
@@ -76,5 +89,4 @@ impl MeasurementRepository {
             .load::<Measurement>(&connection)
             .map_err(|_| "No currencies found.")
     }
-
 }

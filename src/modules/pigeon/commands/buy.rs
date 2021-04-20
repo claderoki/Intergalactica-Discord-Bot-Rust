@@ -4,13 +4,10 @@ use serenity::framework::standard::{macros::command, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
-use crate::modules::{
-    pigeon::repository::pigeon::{create_pigeon, get_active_pigeon},
-    shared::{
+use crate::modules::{pigeon::repository::pigeon::PigeonRepository, shared::{
         models::human::Human,
-        repository::human::{get_or_create_human, save_human},
-    },
-};
+        repository::human::HumanRepository,
+    }};
 
 struct CommandContext {
     pub human: Human,
@@ -22,7 +19,7 @@ struct CommandContext {
 
 impl CommandContext {
     pub fn new(msg: &Message, name: &'static str, cost: i32) -> Result<Self, &'static str> {
-        let human = get_or_create_human(*msg.author.id.as_u64())?;
+        let human = HumanRepository::get_or_create(*msg.author.id.as_u64())?;
         Ok(Self {
             human,
             name: String::from(name),
@@ -39,7 +36,7 @@ impl CommandContext {
 
     pub fn finish(mut self) {
         self.human.gold -= self.cost;
-        save_human(self.human).ok();
+        HumanRepository::save(self.human).ok();
     }
 }
 
@@ -49,7 +46,7 @@ pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
     let cmd_ctx = CommandContext::new(msg, "pigeon_buy", 50)?;
     cmd_ctx.validate()?;
 
-    match get_active_pigeon(cmd_ctx.human.id) {
+    match PigeonRepository::get_active(cmd_ctx.human.id) {
         Ok(pigeon) => {
             return Err(format!(
                 "You already have a lovely pigeon named **{}**.",
@@ -72,7 +69,7 @@ pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
                 }
             };
 
-            match create_pigeon(cmd_ctx.human.id, name.as_str()) {
+            match PigeonRepository::create(cmd_ctx.human.id, name.as_str()) {
                 Ok(_) => {
                     msg.reply(
                         &ctx.http,
@@ -83,7 +80,7 @@ pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
                     )
                     .await?;
                 }
-                Err(e) => {}
+                Err(_) => {}
             }
         }
     }

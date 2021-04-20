@@ -1,0 +1,51 @@
+[
+	{
+		"rate" : 1.00000000,
+		"name" : "meters",
+		"code" : "m",
+		"symbol" : "m",
+		"subtype" : "length"
+	},
+	{
+		"rate" : 1000.00000000,
+		"name" : "millimeters",
+		"code" : "mm",
+		"symbol" : "mm",
+		"subtype" : "length"
+	},
+	{
+		"rate" : 100.00000000,
+		"name" : "centimeters",
+		"code" : "cm",
+		"symbol" : "cm",
+		"subtype" : "length"
+	},
+	{
+		"rate" : 0.00100000,
+		"name" : "kilometers",
+		"code" : "km",
+		"symbol" : "km",
+		"subtype" : "length"
+	},
+	{
+		"rate" : 39.37007874,
+		"name" : "inches",
+		"code" : "inch",
+		"symbol" : "\"",
+		"subtype" : "length"
+	},
+	{
+		"rate" : 3.28083990,
+		"name" : "feet",
+		"code" : "ft",
+		"symbol" : "'",
+		"subtype" : "length"
+	},
+	{
+		"rate" : 1.09361330,
+		"name" : "yards",
+		"code" : "yd",
+		"symbol" : "yd",
+		"subtype" : "length"
+	}
+]

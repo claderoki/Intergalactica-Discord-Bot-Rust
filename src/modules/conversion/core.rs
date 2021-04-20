@@ -1,18 +1,8 @@
 extern crate measurements;
 
-use measurements::{Length, Measurement, Temperature};
 use regex::Regex;
 
-use super::{
-    measurement::{
-        measurement::{get_units, to_unit},
-        utils::MeasurementUtils,
-    },
-    models::core::{Conversion, ConversionResult, UnitSubType},
-    models::measurement,
-    repository::currency_repository::CurrencyRepository,
-    repository::measurement_repository::MeasurementRepository,
-};
+use super::{models::core::{Conversion, ConversionResult}, repository::currency_repository::CurrencyRepository};
 
 trait ConversionModule {
     fn to_unit();
@@ -23,12 +13,12 @@ trait ConversionModule {
 pub fn get_all_codes_and_symbols() -> Vec<String> {
     let mut values = Vec::new();
 
-    for unit in get_units() {
-        if !values.contains(&unit.code.to_lowercase()) {
-            values.push(String::from(unit.code).to_lowercase());
-            values.push(unit.symbol.to_lowercase());
-        }
-    }
+    // for unit in get_units() {
+    //     if !values.contains(&unit.code.to_lowercase()) {
+    //         values.push(String::from(unit.code).to_lowercase());
+    //         values.push(unit.symbol.to_lowercase());
+    //     }
+    // }
 
     if let Ok(currencies) = CurrencyRepository::get_all() {
         for currency in currencies {
@@ -92,45 +82,9 @@ pub fn get_regex() -> String {
     regex
 }
 
-fn save_units<T>()
-where
-    T: MeasurementUtils,
-    T: Measurement,
-{
-    if let Ok(base_unit) = to_unit(T::get_base_code().as_str()) {
-        let base_value = 1.0;
-        if let Ok(base) = T::from_code(base_unit.code.as_str(), base_value) {
-            for unit in T::get_all_units() {
-                if let Ok(converted) = base.to(unit.code.as_str()) {
-                    let value = converted;
-
-                    if let Some(subtype) = unit.subtype {
-                        let m = measurement::Measurement {
-                            id: 0,
-                            rate: value,
-                            is_base: base_unit.code == unit.code,
-                            name: unit.name,
-                            code: unit.code,
-                            symbol: unit.symbol,
-                            subtype: subtype.to_string(),
-                        };
-                        println!("{:?}", m);
-                        // MeasurementRepository::save(m);
-                    }
-                }
-            }
-        }
-    };
-}
-
-pub fn save_all_units() {
-    // save_units::<Length>();
-    save_units::<Temperature>();
-}
-
 pub fn match_conversion(content: &str) {
-    save_all_units();
-    return ();
+    //save_all_units();
+    //return ();
 
     // println!("{}", get_regex().as_str());
     let re = Regex::new(get_regex().as_str()).unwrap();

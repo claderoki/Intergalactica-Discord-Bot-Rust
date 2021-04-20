@@ -11,31 +11,35 @@ use diesel::{
     types::{ToSql, Varchar},
 };
 
-pub fn get_active_pigeon(hid: i32) -> Result<Pigeon, &'static str> {
-    use crate::database::schema::pigeon::dsl::*;
-    use diesel::prelude::*;
+type SinglePigeonResult = Result<Pigeon, &'static str>;
+pub struct PigeonRepository;
 
-    let connection = get_connection_diesel();
-    pigeon
-        .filter(human_id.eq(hid))
-        .filter(condition.eq("active"))
-        .first::<Pigeon>(&connection)
-        .map_err(|_| "No active pigeon found.")
-}
+impl PigeonRepository {
+    pub fn get_active(h_id: i32) -> SinglePigeonResult {
+        use crate::database::schema::pigeon::dsl::*;
+        use diesel::prelude::*;
 
-pub fn create_pigeon(human_id: i32, name: &str) -> Result<Pigeon, &'static str> {
-    let new_pigeon = NewPigeon {
-        name: name.into(),
-        human_id,
-    };
-    let conn = get_connection_diesel();
-    diesel::insert_into(pigeon::table)
-        .values(&new_pigeon)
-        .execute(&conn)
-        .or(Err("Sorry, we were not able to get you a pigeon."))?;
+        let connection = get_connection_diesel();
+        pigeon
+            .filter(human_id.eq(h_id))
+            .filter(condition.eq("active"))
+            .first::<Pigeon>(&connection)
+            .map_err(|_| "No active pigeon found.")
+    }
 
-    let pigeon = get_active_pigeon(human_id)?;
-    Ok(pigeon)
+    pub fn create(human_id: i32, name: &str) -> SinglePigeonResult {
+        let new_pigeon = NewPigeon {
+            name: name.into(),
+            human_id,
+        };
+        let conn = get_connection_diesel();
+        diesel::insert_into(pigeon::table)
+            .values(&new_pigeon)
+            .execute(&conn)
+            .or(Err("Sorry, we were not able to get you a pigeon."))?;
+
+        PigeonRepository::get_active(human_id)
+    }
 }
 
 #[derive(Insertable)]
@@ -54,14 +58,7 @@ where
     where
         W: std::io::Write,
     {
-        let v = match *self {
-            Self::Idle => "idle",
-            Self::Mailing => "mailing",
-            Self::Exploring => "exploring",
-            Self::Fighting => "fighting",
-            Self::Dating => "dating",
-        };
-        v.to_sql(out)
+        self.to_string().as_str().to_sql(out)
     }
 }
 
@@ -70,15 +67,8 @@ where
     String: FromSql<Varchar, DB>,
 {
     fn from_sql(bytes: Option<&DB::RawValue>) -> deserialize::Result<Self> {
-        let v = String::from_sql(bytes)?;
-        Ok(match v.as_str() {
-            "idle" => Self::Idle,
-            "mailing" => Self::Mailing,
-            "exploring" => Self::Exploring,
-            "fighting" => Self::Fighting,
-            "dating" => Self::Dating,
-            &_ => Self::Idle,
-        })
+        let value = String::from_sql(bytes)?;
+        Ok(Self::from_str(&value))
     }
 }
 impl<DB> ToSql<Varchar, DB> for Gender
@@ -90,12 +80,7 @@ where
     where
         W: std::io::Write,
     {
-        let v = match *self {
-            Self::Male => "male",
-            Self::Female => "female",
-            Self::Other => "other",
-        };
-        v.to_sql(out)
+        self.to_string().as_str().to_sql(out)
     }
 }
 
@@ -104,13 +89,8 @@ where
     String: FromSql<Varchar, DB>,
 {
     fn from_sql(bytes: Option<&DB::RawValue>) -> deserialize::Result<Self> {
-        let v = String::from_sql(bytes)?;
-        Ok(match v.as_str() {
-            "male" => Self::Male,
-            "female" => Self::Female,
-            "other" => Self::Other,
-            &_ => Self::Other,
-        })
+        let value = String::from_sql(bytes)?;
+        Ok(Self::from_str(&value))
     }
 }
 
@@ -123,12 +103,7 @@ where
     where
         W: std::io::Write,
     {
-        let v = match *self {
-            Self::Active => "active",
-            Self::RanAway => "ran_away",
-            Self::Dead => "dead",
-        };
-        v.to_sql(out)
+        self.to_string().as_str().to_sql(out)
     }
 }
 
@@ -137,12 +112,7 @@ where
     String: FromSql<Varchar, DB>,
 {
     fn from_sql(bytes: Option<&DB::RawValue>) -> deserialize::Result<Self> {
-        let v = String::from_sql(bytes)?;
-        Ok(match v.as_str() {
-            "active" => Self::Active,
-            "ran_away" => Self::RanAway,
-            "dead" => Self::Dead,
-            &_ => Self::Active,
-        })
+        let value = String::from_sql(bytes)?;
+        Ok(Self::from_str(&value))
     }
 }

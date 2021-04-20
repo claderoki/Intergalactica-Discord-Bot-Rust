@@ -67,8 +67,7 @@ pub async fn convert(
 ) -> Result<ConversionResult, &'static str> {
     let mut currencies = HashMap::new();
 
-    // TODO: Add a parameter to get_all_currencies so we can only get the currencies we need.
-    for currency in CurrencyRepository::get_all()? {
+    for currency in CurrencyRepository::get_multiple(vec![""])? {
         currencies.insert(String::from(currency.code.as_str()), currency);
     }
 
