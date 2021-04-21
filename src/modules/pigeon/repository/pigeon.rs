@@ -12,6 +12,7 @@ use diesel::{
 };
 
 type SinglePigeonResult = Result<Pigeon, &'static str>;
+type MultiplePigeonResult = Result<Vec<Pigeon>, &'static str>;
 pub struct PigeonRepository;
 
 impl PigeonRepository {

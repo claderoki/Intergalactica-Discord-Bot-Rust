@@ -1,9 +1,8 @@
-#![allow(dead_code)]
+// #![allow(dead_code)]
 #[macro_use]
 extern crate diesel;
 
 mod client;
-mod commands;
 mod database;
 mod handler;
 mod modules;

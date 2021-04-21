@@ -1,3 +1,4 @@
+use diesel::prelude::{Connection, MysqlConnection};
 use std::env;
 
 fn get_db_url() -> String {
@@ -14,12 +15,8 @@ fn get_db_url() -> String {
     url.push_str(host.as_str());
     url.push_str("/");
     url.push_str(name.as_str());
-    // url.push_str("%");
-
     url
 }
-
-use diesel::prelude::*;
 
 pub fn get_connection_diesel() -> MysqlConnection {
     let database_url = get_db_url();

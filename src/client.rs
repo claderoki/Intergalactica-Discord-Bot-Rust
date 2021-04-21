@@ -52,7 +52,7 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Result<
             .channel_id
             .send_message(&ctx, |m| {
                 m.embed(|e| {
-                    e.color(serenity::utils::Color::from_rgb(255, 0, 0))
+                    e.color(serenity::utils::Color::RED)
                         .description(why)
                 })
             })
