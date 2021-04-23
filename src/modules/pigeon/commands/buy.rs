@@ -1,65 +1,50 @@
 use std::time::Duration;
 
-use serenity::framework::standard::{macros::command, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
+use serenity::{
+    builder::{CreateEmbed, CreateMessage},
+    framework::standard::{macros::command, CommandResult},
+};
 
-use crate::modules::{pigeon::{models::pigeon::Pigeon, repository::pigeon::PigeonRepository}, shared::{models::human::Human, repository::human::HumanRepository}};
+use crate::modules::{
+    pigeon::helpers::utils::PigeonUtils,
+    shared::{
+        helpers::utils::{Economy, HumanUtils},
+        repository::human::HumanRepository,
+    },
+};
 
-trait Economy {
-    fn pay(&mut self, cost: i32);
-    fn has_enough_gold(&self, cost: i32) -> bool;
+trait EmbedExtension {
+    fn priced_embed(&mut self, text: &str, cost: i32) -> &mut Self;
+    fn normal_embed(&mut self, text: &str) -> &mut Self;
+    fn error_embed(&mut self, text: &str) -> &mut Self;
 }
 
-impl Economy for Human {
-    fn pay(&mut self, cost: i32) {
-        self.gold -= cost
+impl EmbedExtension for CreateEmbed {
+    fn priced_embed(&mut self, text: &str, cost: i32) -> &mut Self {
+        self.normal_embed(text)
     }
 
-    fn has_enough_gold(&self, cost: i32) -> bool {
-        self.gold >= cost
-    }
-}
-
-trait PigeonUtils {
-    fn get_pigeon(&self) -> Option<Pigeon>;
-    fn has_pigeon(&self) -> bool;
-    fn create_pigeon(&self, name: &str) -> Result<Pigeon, &'static str>;
-}
-
-impl PigeonUtils for Human {
-    fn get_pigeon(&self) -> Option<Pigeon> {
-        PigeonRepository::get_active(self.id).ok()
+    fn normal_embed(&mut self, text: &str) -> &mut Self {
+        self.color(serenity::utils::Color::from_rgb(242, 181, 37))
+            .description(text)
     }
 
-    fn has_pigeon(&self) -> bool {
-        //TODO: create a PigeonRepository method for this (to avoid needlessly selecting the entire pigeon.)
-        self.get_pigeon().is_some()
-    }
-
-    fn create_pigeon(&self, name: &str) -> Result<Pigeon, &'static str> {
-        PigeonRepository::create(self.id, name)
-    }
-}
-
-trait HumanUtils {
-    fn get_human(&self) -> Option<Human>;
-}
-
-impl HumanUtils for User {
-    fn get_human(&self) -> Option<Human> {
-        HumanRepository::get_or_create(*self.id.as_u64()).ok()
-    }
-}
-
-impl HumanUtils for UserId {
-    fn get_human(&self) -> Option<Human> {
-        HumanRepository::get_or_create(*self.as_u64()).ok()
+    fn error_embed(&mut self, text: &str) -> &mut Self {
+        self.color(serenity::utils::Color::from_rgb(242, 181, 37))
+            .description(text)
     }
 }
 
 async fn ask_pigeon_name(msg: &Message, ctx: &Context) -> Result<String, &'static str> {
-    let _ = msg.reply(ctx, "What will you name your pigeon?").await;
+    let _ = msg
+        .channel_id
+        .send_message(&ctx, |m| {
+            m.embed(|e| e.normal_embed("What will you name your pigeon?"))
+        })
+        .await;
+
     let reply = &msg
         .author
         .await_reply(&ctx)
@@ -75,7 +60,8 @@ async fn ask_pigeon_name(msg: &Message, ctx: &Context) -> Result<String, &'stati
 pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
     let cost = 50;
 
-    let mut human = msg.author.id.get_human().ok_or("Could not create a human")?;
+    let mut human = msg.author.get_human().ok_or("Could not create a human")?;
+
     if !human.has_enough_gold(cost) {
         return Err(format!("You do not have enough gold to perform this action.").into());
     }
@@ -88,5 +74,13 @@ pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
     human.create_pigeon(name.as_str())?;
     human.pay(cost);
     HumanRepository::save(human)?;
+
+    let _ = msg
+        .channel_id
+        .send_message(&ctx, |m| {
+            m.embed(|e| e.priced_embed("You just purchased a pigeon!", cost))
+        })
+        .await;
+
     Ok(())
 }

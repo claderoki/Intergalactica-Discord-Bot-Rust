@@ -60,36 +60,6 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Result<
     }
 }
 
-#[hook]
-async fn dispatch_error_hook(context: &Context, msg: &Message, error: DispatchError) {
-    // match msg
-    //     .channel_id
-    //     .say(&context, format!("{:?}", error).as_str())
-    //     .await
-    // {
-    //     Err(e) => {
-    //         println!("{:?}", e);
-    //     }
-    //     Ok(data) => {
-    //         println!("{:?}", data)
-    //     }
-    // }
-
-    // match error {
-    //     DispatchError::NotEnoughArguments { min, given } => {
-    //         let s = format!("Need {} arguments, but only got {}.", min, given);
-
-    //         let _ = msg.channel_id.say(&context, &s).await;
-    //     }
-    //     DispatchError::TooManyArguments { max, given } => {
-    //         let s = format!("Max arguments allowed is {}, but got {}.", max, given);
-
-    //         let _ = msg.channel_id.say(&context, &s).await;
-    //     }
-    //     _ => println!("Unhandled dispatch error."),
-    // }
-}
-
 pub async fn get_client() -> Client {
     dotenv::dotenv().expect("Failed to load .env file");
 
@@ -117,7 +87,6 @@ pub async fn get_client() -> Client {
         .configure(|c| c.owners(owners).prefix("~"))
         .before(before_hook)
         .after(after_hook)
-        // .on_dispatch_error(dispatch_error_hook)
         .group(&PIGEON_GROUP);
 
     let client = Client::builder(&token)
