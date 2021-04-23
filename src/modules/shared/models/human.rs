@@ -1,4 +1,4 @@
-use crate::database::schema::human;
+use crate::{database::schema::human, modules::shared::repository::human::HumanRepository};
 
 #[derive(Debug, Queryable, AsChangeset, Identifiable)]
 #[table_name = "human"]
@@ -15,11 +15,7 @@ pub struct Human {
 }
 
 impl Human {
-    pub fn assert_gold(&self, cost: i32) -> Result<(), &'static str> {
-        if self.gold > cost {
-            Ok(())
-        } else {
-            Err("You need {} gold to perform this action.")
-        }
-    }
+    // pub fn save(&self) {
+    //     HumanRepository::save(*self);
+    // }
 }

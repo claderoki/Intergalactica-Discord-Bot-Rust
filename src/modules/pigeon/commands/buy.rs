@@ -1,132 +1,92 @@
-use std::{convert::TryFrom, convert::TryInto, time::Duration};
+use std::time::Duration;
 
 use serenity::framework::standard::{macros::command, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
-use crate::modules::{
-    pigeon::repository::pigeon::PigeonRepository,
-    shared::{models::human::Human, repository::human::HumanRepository},
-};
+use crate::modules::{pigeon::{models::pigeon::Pigeon, repository::pigeon::PigeonRepository}, shared::{models::human::Human, repository::human::HumanRepository}};
 
-struct CommandContext {
-    pub human: Human,
-    // pub ctx: &'fut Context,
-    // pub msg: &'fut Message,
-    pub name: String,
-    pub cost: i32,
+trait Economy {
+    fn pay(&mut self, cost: i32);
+    fn has_enough_gold(&self, cost: i32) -> bool;
 }
 
-impl CommandContext {
-    pub fn new(msg: &Message, name: &'static str, cost: i32) -> Result<Self, &'static str> {
-        let human = HumanRepository::get_or_create(*msg.author.id.as_u64())?;
-        Ok(Self {
-            human,
-            name: String::from(name),
-            cost,
-        })
+impl Economy for Human {
+    fn pay(&mut self, cost: i32) {
+        self.gold -= cost
     }
 
-    pub fn validate(&self) -> Result<(), &'static str> {
-        if self.human.gold < self.cost {
-            return Err("Not enough gold.");
-        }
-        Ok(())
-    }
-
-    pub fn finish(mut self) {
-        self.human.gold -= self.cost;
-        HumanRepository::save(self.human).ok();
+    fn has_enough_gold(&self, cost: i32) -> bool {
+        self.gold >= cost
     }
 }
 
-struct MessageWaiter<'fut> {
-    pub ctx: &'fut Context,
-    pub msg: &'fut Message,
-    // pub start_prompt: Option<String>,
-    // pub end_prompt: Option<String>
+trait PigeonUtils {
+    fn get_pigeon(&self) -> Option<Pigeon>;
+    fn has_pigeon(&self) -> bool;
+    fn create_pigeon(&self, name: &str) -> Result<Pigeon, &'static str>;
 }
 
-impl MessageWaiter<'_> {
-
-    pub async fn wait<T: TryFrom<String>>(&self, timeout: u64, prompt: &str) -> Result<T, &'static str> {
-        let reply = &self
-            .msg
-            .author
-            .await_reply(&self.ctx)
-            .timeout(Duration::from_secs(timeout))
-            .await;
-
-        match reply {
-            Some(message) => {
-                let converted: std::result::Result<T, _> =
-                    String::from(message.content.as_str()).try_into();
-                return match converted {
-                    Ok(value) => Ok(value),
-                    Err(_) => Err("Failed to convert"),
-                };
-            }
-            None => {
-                return Err("Timed out".into());
-            }
-        };
+impl PigeonUtils for Human {
+    fn get_pigeon(&self) -> Option<Pigeon> {
+        PigeonRepository::get_active(self.id).ok()
     }
+
+    fn has_pigeon(&self) -> bool {
+        //TODO: create a PigeonRepository method for this (to avoid needlessly selecting the entire pigeon.)
+        self.get_pigeon().is_some()
+    }
+
+    fn create_pigeon(&self, name: &str) -> Result<Pigeon, &'static str> {
+        PigeonRepository::create(self.id, name)
+    }
+}
+
+trait HumanUtils {
+    fn get_human(&self) -> Option<Human>;
+}
+
+impl HumanUtils for User {
+    fn get_human(&self) -> Option<Human> {
+        HumanRepository::get_or_create(*self.id.as_u64()).ok()
+    }
+}
+
+impl HumanUtils for UserId {
+    fn get_human(&self) -> Option<Human> {
+        HumanRepository::get_or_create(*self.as_u64()).ok()
+    }
+}
+
+async fn ask_pigeon_name(msg: &Message, ctx: &Context) -> Result<String, &'static str> {
+    let _ = msg.reply(ctx, "What will you name your pigeon?").await;
+    let reply = &msg
+        .author
+        .await_reply(&ctx)
+        .timeout(Duration::from_secs(60))
+        .await
+        .ok_or("No name given")?;
+
+    Ok(String::from(reply.content.as_str()))
 }
 
 #[command("buy")]
-#[description("This is a description.")]
+#[description("Buy a pigeon.")]
 pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
-    let waiter = MessageWaiter{ctx, msg};
-    let name = waiter.wait::<String>(60, "What would you like?").await;
+    let cost = 50;
 
+    let mut human = msg.author.id.get_human().ok_or("Could not create a human")?;
+    if !human.has_enough_gold(cost) {
+        return Err(format!("You do not have enough gold to perform this action.").into());
+    }
+
+    if human.has_pigeon() {
+        return Err(format!("You already have a pigeon!").into());
+    }
+
+    let name = ask_pigeon_name(&msg, &ctx).await?;
+    human.create_pigeon(name.as_str())?;
+    human.pay(cost);
+    HumanRepository::save(human)?;
     Ok(())
 }
-
-// #[command("buy")]
-// #[description("This is a description.")]
-// pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
-//     let cmd_ctx = CommandContext::new(msg, "pigeon_buy", 50)?;
-//     cmd_ctx.validate()?;
-
-//     match PigeonRepository::get_active(cmd_ctx.human.id) {
-//         Ok(pigeon) => {
-//             return Err(format!(
-//                 "You already have a lovely pigeon named **{}**.",
-//                 pigeon.name
-//             )
-//             .into());
-//         }
-//         Err(_) => {
-//             let _ = msg.reply(ctx, "What will you name your pigeon?").await;
-//             let reply = &msg
-//                 .author
-//                 .await_reply(&ctx)
-//                 .timeout(Duration::from_secs(60))
-//                 .await;
-
-//             let name = match reply {
-//                 Some(name) => &name.content,
-//                 None => {
-//                     return Err("No name given.".into());
-//                 }
-//             };
-
-//             match PigeonRepository::create(cmd_ctx.human.id, name.as_str()) {
-//                 Ok(_) => {
-//                     msg.reply(
-//                         &ctx.http,
-//                         format!(
-//                             "You just bought yourself a new pigeon (**-{}**)",
-//                             cmd_ctx.cost
-//                         ),
-//                     )
-//                     .await?;
-//                 }
-//                 Err(_) => {}
-//             }
-//         }
-//     }
-
-//     cmd_ctx.finish();
-//     Ok(())
-// }

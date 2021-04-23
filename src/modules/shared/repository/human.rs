@@ -23,7 +23,7 @@ impl HumanRepository {
         if let Ok(human) = HumanRepository::get(user_id) {
             return Ok(human);
         } else {
-            return HumanRepository::create(user_id);
+            return HumanRepository::create_for(user_id);
         }
     }
 
@@ -38,7 +38,7 @@ impl HumanRepository {
             .map_err(|_| "Human not found.")
     }
 
-    pub fn create(user_id: u64) -> HumanResult {
+    pub fn create_for(user_id: u64) -> HumanResult {
         use diesel::prelude::*;
         let new_human = NewHuman {
             user_id,
@@ -52,7 +52,7 @@ impl HumanRepository {
             .map_or(Err("Not able to create human."), |_| HumanRepository::get(user_id))
     }
 
-    pub fn create_new(h: Human) -> HumanResult{
+    pub fn create(h: Human) -> HumanResult{
         use diesel::prelude::*;
         let conn = get_connection_diesel();
 
@@ -86,7 +86,7 @@ impl HumanRepository {
 
     pub fn save(h: Human) -> HumanResult {
         return if h.id == 0 {
-            HumanRepository::create_new(h)
+            HumanRepository::create(h)
         } else {
             HumanRepository::update(h)
         };
