@@ -3,17 +3,11 @@ use std::time::Duration;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 use serenity::{
-    builder::{CreateEmbed, CreateMessage},
+    builder::{CreateEmbed},
     framework::standard::{macros::command, CommandResult},
 };
 
-use crate::modules::{
-    pigeon::helpers::utils::PigeonUtils,
-    shared::{
-        helpers::utils::{Economy, HumanUtils},
-        repository::human::HumanRepository,
-    },
-};
+use crate::modules::{pigeon::helpers::utils::PigeonUtils, shared::{helpers::utils::{Economy, HumanUtils}, repository::human::HumanRepository}};
 
 trait EmbedExtension {
     fn priced_embed(&mut self, text: &str, cost: i32) -> &mut Self;
@@ -32,7 +26,7 @@ impl EmbedExtension for CreateEmbed {
     }
 
     fn error_embed(&mut self, text: &str) -> &mut Self {
-        self.color(serenity::utils::Color::from_rgb(242, 181, 37))
+        self.color(serenity::utils::Color::RED)
             .description(text)
     }
 }

@@ -1,4 +1,4 @@
-use crate::{database::schema::human, modules::shared::repository::human::HumanRepository};
+use crate::{database::schema::{human, item, human_item, item_category}};
 
 #[derive(Debug, Queryable, AsChangeset, Identifiable)]
 #[table_name = "human"]
@@ -14,8 +14,36 @@ pub struct Human {
     pub currencies: Option<String>,
 }
 
-impl Human {
-    // pub fn save(&self) {
-    //     HumanRepository::save(*self);
-    // }
+#[derive(Debug, Queryable, AsChangeset, Identifiable)]
+#[table_name = "item"]
+pub struct Item {
+    pub id: i32,
+    pub name: String,
+    pub code: String,
+    pub description: String,
+    pub image_url: String,
+    pub rarity: String,
+    pub explorable: bool,
+    pub usable: bool,
+    pub category_id: i32,
+    pub chance: i32,
+}
+
+#[derive(Debug, Queryable, AsChangeset, Identifiable)]
+#[table_name = "human_item"]
+pub struct HumanItem {
+    pub id: i32,
+    pub human_id: i32,
+    pub item_id: i32,
+    pub amount: i32,
+    pub found: bool,
+}
+
+#[derive(Debug, Queryable, AsChangeset, Identifiable)]
+#[table_name = "item_category"]
+pub struct ItemCategory {
+    pub id: i32,
+    pub name: String,
+    pub code: String,
+    pub parent_id: i32,
 }

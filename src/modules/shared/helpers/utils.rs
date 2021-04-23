@@ -2,7 +2,6 @@ use serenity::model::prelude::{User, UserId};
 
 use crate::modules::shared::{models::human::Human, repository::human::HumanRepository};
 
-
 pub trait Economy {
     fn pay(&mut self, cost: i32);
     fn has_enough_gold(&self, cost: i32) -> bool;

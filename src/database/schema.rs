@@ -29,6 +29,40 @@ table! {
 }
 
 table! {
+    item (id) {
+        id -> Integer,
+        name -> Varchar,
+        code -> Varchar,
+        description -> Varchar,
+        image_url -> Varchar,
+        rarity -> Varchar,
+        explorable -> Bool,
+        usable -> Bool,
+        category_id -> Integer,
+        chance -> Integer,
+    }
+}
+
+table! {
+    human_item (id) {
+        id -> Integer,
+        human_id -> Integer,
+        item_id -> Integer,
+        amount -> Integer,
+        found -> Bool,
+    }
+}
+
+table! {
+    item_category (id) {
+        id -> Integer,
+        name -> Varchar,
+        code -> Varchar,
+        parent_id -> Integer,
+    }
+}
+
+table! {
     currency (id) {
         id -> Integer,
         rate -> Double,
