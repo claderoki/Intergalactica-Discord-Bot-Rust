@@ -7,7 +7,7 @@ use serenity::{
     framework::standard::{macros::command, CommandResult},
 };
 
-use crate::modules::{pigeon::helpers::utils::PigeonUtils, shared::{helpers::utils::{Economy, HumanUtils}, repository::human::HumanRepository}};
+use crate::modules::{pigeon::helpers::utils::PigeonUtils, shared::{helpers::utils::{Economy, HumanUtils}, repository::{human::HumanRepository, item::HumanItemRepository}}};
 
 trait EmbedExtension {
     fn priced_embed(&mut self, text: &str, cost: i32) -> &mut Self;
@@ -55,6 +55,9 @@ pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
     let cost = 50;
 
     let mut human = msg.author.get_human().ok_or("Could not create a human")?;
+
+    let has = HumanItemRepository::has_item("milky_way", human.id, 1);
+    println!("{:?}", has);
 
     if !human.has_enough_gold(cost) {
         return Err(format!("You do not have enough gold to perform this action.").into());

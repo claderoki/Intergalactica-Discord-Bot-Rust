@@ -61,6 +61,9 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Result<
 }
 
 pub async fn get_client() -> Client {
+    // dotenv::from_filename("dev.env")
+    // dotenv::from_filename("prod.env")
+
     dotenv::dotenv().expect("Failed to load .env file");
 
     let subscriber = FmtSubscriber::builder()
