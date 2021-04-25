@@ -7,12 +7,12 @@ use crate::modules::shared::models::human::Human;
 pub struct NewHuman {
     pub user_id: u64,
     pub gold: i32,
-    pub timezone: Option<String>,
-    pub date_of_birth: Option<String>,
-    pub city: Option<String>,
-    pub country_code: Option<String>,
-    pub tester: bool,
-    pub currencies: Option<String>,
+    // pub timezone: Option<String>,
+    // pub date_of_birth: Option<String>,
+    // pub city: Option<String>,
+    // pub country_code: Option<String>,
+    // pub tester: bool,
+    // pub currencies: Option<String>,
 }
 
 type HumanResult = Result<Human, &'static str>;
@@ -59,12 +59,12 @@ impl HumanRepository {
         let new_human = NewHuman {
             user_id: h.user_id,
             gold: h.gold,
-            timezone: h.timezone,
-            date_of_birth: h.date_of_birth,
-            city: h.city,
-            country_code: h.country_code,
-            tester: h.tester,
-            currencies: h.currencies,
+            // timezone: h.timezone,
+            // date_of_birth: h.date_of_birth,
+            // city: h.city,
+            // country_code: h.country_code,
+            // tester: h.tester,
+            // currencies: h.currencies,
         };
         diesel::insert_into(human::table)
             .values(&new_human)
