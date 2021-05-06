@@ -18,12 +18,19 @@ pub async fn spacexplore(ctx: &Context, msg: &Message) -> CommandResult {
 enum Planet {
     Mars = 1,
 }
+/*
+RETRIEVAL STEPS
+1. Check if there is a retrieval and if it is ready to be retrieved
+2. 
+
+
+
+*/
+
 
 struct SpaceRetrieval {
 
 }
-
-
 
 #[command("retrieve")]
 #[description("")]

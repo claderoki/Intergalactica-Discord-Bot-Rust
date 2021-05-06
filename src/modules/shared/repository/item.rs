@@ -1,10 +1,9 @@
 use diesel::{
     sql_query,
-    sql_types::{BigInt, Integer, VarChar},
-    Connection, RunQueryDsl,
+    sql_types::{Integer, VarChar},RunQueryDsl,
 };
 
-use crate::database::connection::get_connection_diesel;
+use crate::database::{connection::get_connection_diesel, utils::Countable};
 use crate::modules::shared::models::human::Item;
 
 type SingleItemResult = Result<Item, &'static str>;
@@ -22,19 +21,13 @@ impl ItemRepository {
     }
 }
 
-#[derive(QueryableByName)]
-struct Count {
-    #[sql_type = "BigInt"]
-    count: i64,
-}
-
 pub struct HumanItemRepository;
 
 impl HumanItemRepository {
     pub fn has_item(item_code: &str, human_id: i32, min_amount: i32) -> Result<bool, &'static str> {
         let connection = get_connection_diesel();
 
-        let results: Result<Count, _> = sql_query(
+        let results: Result<Countable, _> = sql_query(
             "
             SELECT
             COUNT(*) AS count
@@ -43,6 +36,7 @@ impl HumanItemRepository {
             WHERE amount >= ?
             AND human_id = ?
             AND item_id IN (SELECT id FROM item WHERE code = ?)
+            LIMIT 1
             ",
         )
         .bind::<Integer, _>(min_amount)
@@ -56,28 +50,34 @@ impl HumanItemRepository {
         }
     }
 
-    pub fn add_item(item_code: &str, human_id: i32, amount: i32) -> Result<bool, &'static str> {
+    pub fn add_item(item_code: &str, human_id: i32, amount: i32) -> Result<(), &'static str> {
+        /*
+            The human select is problematic because it assumes the human exists.
+            So we need to either pass the human_id, or ensure it exists somewhere.
+            Maybe use redis to map user_id to human_id?
+         */
         let connection = get_connection_diesel();
-
-        let results: Result<Count, _> = sql_query(
+        let result = sql_query(
             "
-            SELECT
-            COUNT(*) AS count
-            FROM
-            human_item
-            WHERE amount >= ?
-            AND human_id = ?
-            AND item_id IN (SELECT id FROM item WHERE code = ?)
+            INSERT INTO human_item (item_id, human_id, amount)
+            VALUES (
+                (SELECT id FROM item WHERE `code` = ? LIMIT 1),
+                ?,
+                ?
+            )
+            ON DUPLICATE KEY UPDATE
+               amount = amount + ?
             ",
         )
-        .bind::<Integer, _>(amount)
-        .bind::<Integer, _>(human_id)
         .bind::<VarChar, _>(item_code)
-        .get_result(&connection);
+        .bind::<Integer, _>(human_id)
+        .bind::<Integer, _>(amount)
+        .bind::<Integer, _>(amount)
+        .execute(&connection);
 
-        match results {
-            Ok(data) => Ok(data.count > 0),
-            Err(_) => Err("Item not found"),
+        match result {
+            Ok(_) => Ok(()),
+            Err(_) => Err("Could not update item"),
         }
     }
 

@@ -1,6 +1,12 @@
-use crate::database::connection::get_connection_diesel;
 use crate::database::schema::human;
 use crate::modules::shared::models::human::Human;
+use diesel::{
+    sql_query,
+    sql_types::{BigInt, Integer, VarChar},
+    Connection, RunQueryDsl,
+};
+
+use crate::database::{connection::get_connection_diesel, utils::Countable};
 
 #[derive(Insertable, Default)]
 #[table_name = "human"]
@@ -15,6 +21,12 @@ pub struct NewHuman {
     // pub currencies: Option<String>,
 }
 
+#[derive(QueryableByName)]
+struct IdOnly {
+    #[sql_type = "BigInt"]
+    id: i64,
+}
+
 type HumanResult = Result<Human, &'static str>;
 pub struct HumanRepository;
 
@@ -24,6 +36,69 @@ impl HumanRepository {
             return Ok(human);
         } else {
             return HumanRepository::create_for(user_id);
+        }
+    }
+
+    pub fn has_gold(human_id: i32, min_amount: i32) -> Result<bool, &'static str> {
+        let connection = get_connection_diesel();
+
+        let results: Result<Countable, _> = sql_query(
+            "
+            SELECT
+            COUNT(*) AS count
+            FROM
+            human
+            WHERE gold >= ?
+            AND id = ?
+            LIMIT 1
+            ",
+        )
+        .bind::<Integer, _>(min_amount)
+        .bind::<Integer, _>(human_id)
+        .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data.count > 0),
+            Err(e) => {
+                println!("{:?}", e);
+                Err("idk wtf is wrong")
+            },
+        }
+    }
+
+    fn update_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
+        let connection = get_connection_diesel();
+        let result = sql_query("UPDATE human SET gold = gold + ? WHERE id = ?")
+        .bind::<Integer, _>(amount)
+        .bind::<Integer, _>(human_id)
+        .execute(&connection);
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(_) => Err("Could not update item"),
+        }
+    }
+    pub fn add_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
+        HumanRepository::update_gold(human_id, amount)
+    }
+    pub fn spend_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
+        HumanRepository::update_gold(human_id, -amount)
+    }
+
+    pub fn get_or_create_human_id(user_id: i64) -> Result<i64, &'static str> {
+        let connection = get_connection_diesel();
+
+        let results: Result<IdOnly, _> = sql_query(
+            "
+            SELECT id as id FROM human WHERE user_id = ?
+            ",
+        )
+        .bind::<BigInt, _>(user_id)
+        .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data.id),
+            Err(_) => Err("Human not found"),
         }
     }
 

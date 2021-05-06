@@ -10,9 +10,16 @@ use diesel::{
     serialize::{self, Output},
     types::{ToSql, Varchar},
 };
+use diesel::{
+    sql_query,
+    sql_types::{Integer},
+    Connection, RunQueryDsl,
+};
+
+use crate::database::{utils::Countable};
 
 type SinglePigeonResult = Result<Pigeon, &'static str>;
-type MultiplePigeonResult = Result<Vec<Pigeon>, &'static str>;
+// type MultiplePigeonResult = Result<Vec<Pigeon>, &'static str>;
 pub struct PigeonRepository;
 
 impl PigeonRepository {
@@ -28,7 +35,33 @@ impl PigeonRepository {
             .map_err(|_| "No active pigeon found.")
     }
 
-    pub fn create(human_id: i32, name: &str) -> SinglePigeonResult {
+    pub fn has_active(human_id: i32) -> Result<bool, &'static str> {
+        let connection = get_connection_diesel();
+
+        let results: Result<Countable, _> = sql_query(
+            "
+            SELECT
+            COUNT(*) AS count
+            FROM
+            pigeon
+            WHERE `human_id` = ?
+            AND `condition` = 'active'
+            LIMIT 1
+            ",
+        )
+        .bind::<Integer, _>(human_id)
+        .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data.count > 0),
+            Err(_) => {
+                Err("pigeon wtf")
+            },
+        }
+    }
+
+
+    pub fn create(human_id: i32, name: &str) -> Result<(), &'static str> {
         let new_pigeon = NewPigeon {
             name: name.into(),
             human_id,
@@ -36,10 +69,8 @@ impl PigeonRepository {
         let conn = get_connection_diesel();
         diesel::insert_into(pigeon::table)
             .values(&new_pigeon)
-            .execute(&conn)
-            .or(Err("Sorry, we were not able to get you a pigeon."))?;
-
-        PigeonRepository::get_active(human_id)
+            .execute(&conn).or(Err(""))?;
+        Ok(())
     }
 }
 
