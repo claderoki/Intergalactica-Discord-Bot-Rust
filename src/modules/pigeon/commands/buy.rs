@@ -4,7 +4,52 @@ use serenity::framework::standard::{macros::command, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
-use crate::modules::{pigeon::repository::pigeon::PigeonRepository, shared::{helpers::utils::{EmbedExtension, HumanUtils}, repository::{human::HumanRepository, item::HumanItemRepository}}};
+use crate::{
+    discord_helpers::embed_utils::EmbedExtension,
+    modules::{
+        pigeon::repository::pigeon::PigeonRepository,
+        shared::{
+            helpers::utils::HumanUtils,
+            repository::{human::HumanRepository},
+        },
+    },
+};
+
+// trait Validator {
+//     fn validate(&self, user_id: UserId) -> Result<(), &'static str>;
+// }
+
+// struct CommandValidation {
+//     goldNeeded: i32,
+// }
+
+// struct PigeonValidation {
+//     gold_needed: i32,
+//     needs_active_pigeon: bool,
+//     needs_pigeon_available: bool
+// }
+
+// impl Validator for PigeonValidation {
+//     fn validate(&self, user_id: UserId) -> Result<(), &'static str> {
+//         let human_id = user_id.get_human_id().ok_or("Could not get human id.")?;
+
+//         if self.gold_needed > 0 {
+//             let has_gold = HumanRepository::has_gold(human_id, self.gold_needed)?;
+//             if !has_gold {
+//                 return Err("You do not have enough gold to perform this action.");
+//             }
+//         }
+
+//         if self.needs_active_pigeon {
+//             let has_pigeon = PigeonRepository::has_active(human_id)?;
+//             if has_pigeon {
+//                 return Err("You already have a pigeon!");
+//             }
+//         }
+
+//         Ok(())
+//     }
+// }
 
 async fn ask_pigeon_name(msg: &Message, ctx: &Context) -> Result<String, &'static str> {
     let _ = msg
@@ -22,18 +67,6 @@ async fn ask_pigeon_name(msg: &Message, ctx: &Context) -> Result<String, &'stati
         .ok_or("No name given")?;
 
     Ok(String::from(reply.content.as_str()))
-}
-
-struct PigeonCheck;
-impl PigeonCheck {
-
-}
-
-enum CommandValidations {
-    HasEnoughGold
-}
-enum PigeonCommandValidations {
-    HasActivePigeon,
 }
 
 #[command("buy")]

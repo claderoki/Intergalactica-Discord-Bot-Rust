@@ -12,6 +12,7 @@ mod handler;
 mod modules;
 mod redis_utils;
 mod wrappers;
+mod discord_helpers;
 
 #[tokio::main]
 async fn main() {
