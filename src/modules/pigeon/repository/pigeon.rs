@@ -4,7 +4,7 @@ use crate::{
     database::schema::pigeon,
     modules::pigeon::models::pigeon::{Gender, PigeonCondition, PigeonStatus},
 };
-use diesel::prelude::*;
+use diesel::{prelude::*};
 use diesel::{backend::Backend, deserialize, types::FromSql};
 use diesel::{
     serialize::{self, Output},
@@ -41,7 +41,7 @@ impl PigeonRepository {
         let results: Result<Countable, _> = sql_query(
             "
             SELECT
-            COUNT(*) AS count
+            COUNT(id) AS count
             FROM
             pigeon
             WHERE `human_id` = ?
@@ -60,6 +60,21 @@ impl PigeonRepository {
         }
     }
 
+    pub fn update_status(human_id: i32, status: PigeonStatus) {
+        let connection = get_connection_diesel();
+
+        let _results = sql_query("
+            UPDATE
+            `pigeon`
+            SET
+            `status` = ?
+            WHERE `human_id` = ?
+            AND `condition` = 'active'"
+        )
+            .bind::<Varchar, _>(status.to_string())
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
+    }
 
     pub fn create(human_id: i32, name: &str) -> Result<(), &'static str> {
         let new_pigeon = NewPigeon {

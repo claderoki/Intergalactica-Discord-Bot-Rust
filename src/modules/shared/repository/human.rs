@@ -85,22 +85,22 @@ impl HumanRepository {
         HumanRepository::update_gold(human_id, -amount)
     }
 
-    pub fn get_or_create_human_id(user_id: i64) -> Result<i64, &'static str> {
-        let connection = get_connection_diesel();
+    // pub fn get_or_create_human_id(user_id: i64) -> Result<i64, &'static str> {
+    //     let connection = get_connection_diesel();
 
-        let results: Result<IdOnly, _> = sql_query(
-            "
-            SELECT id as id FROM human WHERE user_id = ?
-            ",
-        )
-        .bind::<BigInt, _>(user_id)
-        .get_result(&connection);
+    //     let results: Result<IdOnly, _> = sql_query(
+    //         "
+    //         SELECT id as id FROM human WHERE user_id = ?
+    //         ",
+    //     )
+    //     .bind::<BigInt, _>(user_id)
+    //     .get_result(&connection);
 
-        match results {
-            Ok(data) => Ok(data.id),
-            Err(_) => Err("Human not found"),
-        }
-    }
+    //     match results {
+    //         Ok(data) => Ok(data.id),
+    //         Err(_) => Err("Human not found"),
+    //     }
+    // }
 
     pub fn get(uid: u64) -> HumanResult {
         use crate::database::schema::human::dsl::*;
@@ -127,46 +127,45 @@ impl HumanRepository {
             .map_or(Err("Not able to create human."), |_| HumanRepository::get(user_id))
     }
 
-    pub fn create(h: Human) -> HumanResult{
-        use diesel::prelude::*;
-        let conn = get_connection_diesel();
+    // pub fn create(h: Human) -> HumanResult{
+    //     use diesel::prelude::*;
+    //     let conn = get_connection_diesel();
 
-        let new_human = NewHuman {
-            user_id: h.user_id,
-            gold: h.gold,
-            // timezone: h.timezone,
-            // date_of_birth: h.date_of_birth,
-            // city: h.city,
-            // country_code: h.country_code,
-            // tester: h.tester,
-            // currencies: h.currencies,
-        };
-        diesel::insert_into(human::table)
-            .values(&new_human)
-            .execute(&conn)
-            .map_or(Err("Not able to create human."), |_| {
-                HumanRepository::get(new_human.user_id)
-            })
-    }
+    //     let new_human = NewHuman {
+    //         user_id: h.user_id,
+    //         gold: h.gold,
+    //         // timezone: h.timezone,
+    //         // date_of_birth: h.date_of_birth,
+    //         // city: h.city,
+    //         // country_code: h.country_code,
+    //         // tester: h.tester,
+    //         // currencies: h.currencies,
+    //     };
+    //     diesel::insert_into(human::table)
+    //         .values(&new_human)
+    //         .execute(&conn)
+    //         .map_or(Err("Not able to create human."), |_| {
+    //             HumanRepository::get(new_human.user_id)
+    //         })
+    // }
 
-    pub fn update(h: Human) -> HumanResult {
-        use diesel::prelude::*;
-        let conn = get_connection_diesel();
+    // pub fn update(h: Human) -> HumanResult {
+    //     use diesel::prelude::*;
+    //     let conn = get_connection_diesel();
 
-        diesel::update(&h)
-        .set(&h)
-        .execute(&conn)
-        .map_or(Err("Not able to update human."), |_| HumanRepository::get(h.user_id))
-    }
+    //     diesel::update(&h)
+    //     .set(&h)
+    //     .execute(&conn)
+    //     .map_or(Err("Not able to update human."), |_| HumanRepository::get(h.user_id))
+    // }
 
-    pub fn save(h: Human) -> HumanResult {
-        return if h.id == 0 {
-            HumanRepository::create(h)
-        } else {
-            HumanRepository::update(h)
-        };
-    }
-
+    // pub fn save(h: Human) -> HumanResult {
+    //     return if h.id == 0 {
+    //         HumanRepository::create(h)
+    //     } else {
+    //         HumanRepository::update(h)
+    //     };
+    // }
 }
 
 

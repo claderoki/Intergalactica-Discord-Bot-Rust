@@ -1,8 +1,3 @@
-// trait StringableEnum {
-//     fn to_str(&self);
-//     fn from_str(name: &'static str);
-// }
-
 #[derive(Debug, Clone, Copy, FromSqlRow)]
 pub enum PigeonStatus {
     Idle,
@@ -10,6 +5,7 @@ pub enum PigeonStatus {
     Exploring,
     Fighting,
     Dating,
+    SpaceExploring,
 }
 
 impl PigeonStatus {
@@ -18,6 +14,7 @@ impl PigeonStatus {
             "idle" => Self::Idle,
             "mailing" => Self::Mailing,
             "exploring" => Self::Exploring,
+            "space_exploring" => Self::SpaceExploring,
             "fighting" => Self::Fighting,
             "dating" => Self::Dating,
             _ => Self::Idle,
@@ -30,6 +27,7 @@ impl PigeonStatus {
             PigeonStatus::Mailing => "mailing",
             PigeonStatus::Exploring => "exploring",
             PigeonStatus::Fighting => "fighting",
+            PigeonStatus::SpaceExploring => "space_exploring",
             PigeonStatus::Dating => "dating",
         })
     }

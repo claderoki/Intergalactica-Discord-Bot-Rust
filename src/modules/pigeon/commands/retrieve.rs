@@ -1,7 +1,5 @@
 use diesel::{RunQueryDsl, sql_query, sql_types::{BigInt, Nullable, VarChar, Bool, Integer}};
 
-use crate::database::connection::get_connection_diesel;
-
 #[derive(QueryableByName)]
 pub struct PigeonSimplifiedActivity {
     #[sql_type = "Nullable<BigInt>"]
@@ -52,85 +50,3 @@ impl PigeonActivityRepository {
         }
     }
 }
-enum Planet {
-    Mars = 1,
-}
-
-
-/*
-Every planet will be unique with its scenario's
-
-Space poop
-
-Scenario's
-- Meeting aliens
-    - Befriend them
-    - Be kidnapped by them (for a duration of time / until another pigeon saves them)
-    - Learn their language
-    - Date them?
-
-Mercury - metal factory
-
-Mars - waterpark
-Mars - rover, maybe a scenario where you drive it?
-Mars - 
-Mars - 
-Mars - 
-Mars - 
-Mars - 
-Mars - 
-Mars - 
-Mars - 
-Mars - 
-
-Moon - sentient / sapient
-Moon - moon cheese
-Moon - has a flag
-Moon - rollercoaster
-Moon - Moonstone factory
-Moon - 
-Moon - 
-Moon - 
-Moon - 
-Moon - 
-Moon - 
-Moon - 
-Moon - 
-
-Moon - secret hideout
-Moon - meteor shower (damage)
-Moon - 
-
-Spaceship
-3 parts
-- fuel
-- moon boots
-
-"Oh no, an alien grabbed **{pigeon.name}** from the sky on its way to the moon"
-"Your pigeon has found all parts for your space suit / spaceship and can now travel to space. Would you like to send **{pigeon.name}** into space?"
-
-*/
-
-/*
-RETRIEVAL STEPS
-1. Check if there is a retrieval and if it is ready to be retrieved
-2.
-
-
-
-
-planet
-id, name
-
-space_retrieval
-id, planet_id, start_time, end_time, finished
-
-space_bonus
-id, name, planet
-
-
-
-
-
-
-*/
