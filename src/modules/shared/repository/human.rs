@@ -2,11 +2,11 @@ use crate::database::schema::human;
 use crate::modules::shared::models::human::Human;
 use diesel::{
     sql_query,
-    sql_types::{BigInt, Integer, VarChar},
-    Connection, RunQueryDsl,
+    sql_types::{BigInt, Integer},
+    RunQueryDsl,
 };
 
-use crate::database::{connection::get_connection_diesel, utils::Countable};
+use crate::database::{connection::get_connection_diesel};
 
 #[derive(Insertable, Default)]
 #[table_name = "human"]
@@ -39,32 +39,32 @@ impl HumanRepository {
         }
     }
 
-    pub fn has_gold(human_id: i32, min_amount: i32) -> Result<bool, &'static str> {
-        let connection = get_connection_diesel();
+    // pub fn has_gold(human_id: i32, min_amount: i32) -> Result<bool, &'static str> {
+    //     let connection = get_connection_diesel();
 
-        let results: Result<Countable, _> = sql_query(
-            "
-            SELECT
-            COUNT(*) AS count
-            FROM
-            human
-            WHERE gold >= ?
-            AND id = ?
-            LIMIT 1
-            ",
-        )
-        .bind::<Integer, _>(min_amount)
-        .bind::<Integer, _>(human_id)
-        .get_result(&connection);
+    //     let results: Result<Countable, _> = sql_query(
+    //         "
+    //         SELECT
+    //         COUNT(*) AS count
+    //         FROM
+    //         human
+    //         WHERE gold >= ?
+    //         AND id = ?
+    //         LIMIT 1
+    //         ",
+    //     )
+    //     .bind::<Integer, _>(min_amount)
+    //     .bind::<Integer, _>(human_id)
+    //     .get_result(&connection);
 
-        match results {
-            Ok(data) => Ok(data.count > 0),
-            Err(e) => {
-                println!("{:?}", e);
-                Err("idk wtf is wrong")
-            },
-        }
-    }
+    //     match results {
+    //         Ok(data) => Ok(data.count > 0),
+    //         Err(e) => {
+    //             println!("{:?}", e);
+    //             Err("idk wtf is wrong")
+    //         },
+    //     }
+    // }
 
     fn update_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
         let connection = get_connection_diesel();
@@ -78,9 +78,9 @@ impl HumanRepository {
             Err(_) => Err("Could not update item"),
         }
     }
-    pub fn add_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
-        HumanRepository::update_gold(human_id, amount)
-    }
+    // pub fn add_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
+    //     HumanRepository::update_gold(human_id, amount)
+    // }
     pub fn spend_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
         HumanRepository::update_gold(human_id, -amount)
     }

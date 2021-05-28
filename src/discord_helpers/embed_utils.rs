@@ -8,7 +8,7 @@ pub trait EmbedExtension {
 }
 
 impl EmbedExtension for CreateEmbed {
-    fn priced_embed(&mut self, text: &str, cost: i32) -> &mut Self {
+    fn priced_embed(&mut self, text: &str, _cost: i32) -> &mut Self {
         self.normal_embed(text)
     }
 

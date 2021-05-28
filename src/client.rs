@@ -1,7 +1,7 @@
 use serenity::{
     client::bridge::gateway::ShardManager,
     framework::{
-        standard::{CommandError, DispatchError},
+        standard::{CommandError},
         StandardFramework,
     },
     http::Http,
@@ -39,14 +39,14 @@ impl Utils for Context {
 
 use serenity::framework::standard::macros::hook;
 
-#[hook]
-async fn before_hook(ctx: &Context, msg: &Message, cmd_name: &str) -> bool {
-    // println!("Running command {}", cmd_name);
-    true
-}
+// #[hook]
+// async fn before_hook(ctx: &Context, msg: &Message, cmd_name: &str) -> bool {
+//     // println!("Running command {}", cmd_name);
+//     true
+// }
 
 #[hook]
-async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Result<(), CommandError>) {
+async fn after_hook(ctx: &Context, msg: &Message, _cmd_name: &str, error: Result<(), CommandError>) {
     if let Err(why) = error {
         let _ = msg
             .channel_id
@@ -88,7 +88,6 @@ pub async fn get_client() -> Client {
 
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("~"))
-        .before(before_hook)
         .after(after_hook)
         .group(&PIGEON_GROUP);
 

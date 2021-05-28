@@ -4,7 +4,6 @@ use crate::{
     database::schema::pigeon,
     modules::pigeon::models::pigeon::{Gender, PigeonCondition, PigeonStatus},
 };
-use diesel::{prelude::*};
 use diesel::{backend::Backend, deserialize, types::FromSql};
 use diesel::{
     serialize::{self, Output},
@@ -13,7 +12,7 @@ use diesel::{
 use diesel::{
     sql_query,
     sql_types::{Integer},
-    Connection, RunQueryDsl,
+    RunQueryDsl,
 };
 
 use crate::database::{utils::Countable};

@@ -18,22 +18,32 @@ pub struct SimplePlanetLocation {
 pub struct PlanetExplorationRepository {}
 
 impl PlanetExplorationRepository {
-    pub fn create_exploration(location_id: i32) -> Result<(), &'static str> {
+    pub fn create_exploration(human_id: i32, location_id: i32) -> Result<(), &'static str> {
         let connection = get_connection_diesel();
 
         let results = sql_query(
-            "INSERT INTO planet_exploration
-            (planet_location_id, start_time, end_time, finished)
+            "INSERT INTO exploration
+            (planet_location_id, start_date, end_date, finished, pigeon_id)
             VALUES
-            (?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? HOUR), 0)",
+            (
+                ?,
+                UTC_TIMESTAMP(),
+                DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? HOUR),
+                0,
+                (SELECT id FROM pigeon WHERE human_id = ? AND `pigeon`.`condition` = 'active' LIMIT 1)
+            )",
         )
         .bind::<Integer, _>(location_id)
         .bind::<Integer, _>(10)
+        .bind::<Integer, _>(human_id)
         .execute(&connection);
 
         return match results {
             Ok(_) => Ok(()),
-            Err(_) => Err("Query in PlanetExplorationRepository.create_exploration failed."),
+            Err(e) => {
+                println!("{:?}", e);
+                Err("Query in PlanetExplorationRepository.create_exploration failed.")
+            }
         };
     }
 
@@ -42,11 +52,11 @@ impl PlanetExplorationRepository {
 
         let results: Result<SimplePlanetLocation, _> = sql_query(
             "SELECT
-            (`planet_location`.`id`) as id,
-            (IFNULL(`planet_location`.`image_url`, `planet`.`image_url`)) as image_url
+            (`exploration_planet_location`.`id`) as id,
+            (IFNULL(`exploration_planet_location`.`image_url`, `exploration_planet`.`image_url`)) as image_url
             FROM
-            `planet_location`
-            INNER JOIN `planet` ON `planet`.`id` = `planet_location`.`planet_id`
+            `exploration_planet_location`
+            INNER JOIN `exploration_planet` ON `exploration_planet`.`id` = `exploration_planet_location`.`planet_id`
             ORDER BY RAND()
             LIMIT 1",
         )

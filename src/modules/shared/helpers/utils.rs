@@ -1,7 +1,6 @@
-use redis::{Commands};
-use serenity::{builder::CreateEmbed, model::prelude::{User, UserId}};
+use serenity::{model::prelude::{User, UserId}};
 
-use crate::{modules::shared::{caching::human::HumanCache, models::human::Human, repository::human::HumanRepository}, redis_utils::connection::get_connection_redis};
+use crate::{modules::shared::{caching::human::HumanCache, models::human::Human, repository::human::HumanRepository}};
 
 pub trait HumanUtils {
     fn get_human(&self) -> Option<Human>;
