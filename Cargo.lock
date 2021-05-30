@@ -684,6 +684,7 @@ dependencies = [
  "measurements",
  "mysql",
  "once_cell",
+ "rand 0.7.3",
  "redis",
  "regex",
  "reqwest",
