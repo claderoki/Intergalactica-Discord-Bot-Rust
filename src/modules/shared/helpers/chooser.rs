@@ -1,8 +1,6 @@
-use std::{convert::TryInto, time::Duration};
+use std::{time::Duration};
 
 use serenity::{builder::CreateEmbed, client::Context, model::channel::{Message, ReactionType}};
-
-use crate::{discord_helpers::embed_utils::EmbedExtension};
 
 
 pub trait Choosable {
@@ -37,21 +35,21 @@ impl KeyCap {
         emoji
     }
 
-    pub fn to_number(keycap: String) -> i32 {
-        return match keycap.as_str() {
-            "0️⃣" => 0,
-            "1️⃣" => 1,
-            "2️⃣" => 2,
-            "3️⃣" => 3,
-            "4️⃣" => 4,
-            "5️⃣" => 5,
-            "6️⃣" => 6,
-            "7️⃣" => 7,
-            "8️⃣" => 8,
-            "9️⃣" => 9,
-            _ => -1
-        }
-    }
+    // pub fn to_number(keycap: String) -> i32 {
+    //     return match keycap.as_str() {
+    //         "0️⃣" => 0,
+    //         "1️⃣" => 1,
+    //         "2️⃣" => 2,
+    //         "3️⃣" => 3,
+    //         "4️⃣" => 4,
+    //         "5️⃣" => 5,
+    //         "6️⃣" => 6,
+    //         "7️⃣" => 7,
+    //         "8️⃣" => 8,
+    //         "9️⃣" => 9,
+    //         _ => -1
+    //     }
+    // }
 }
 
 pub async fn choose<T, F>(msg: &Message, ctx: &Context, choosables: &Vec<T>, f: F) -> Result<usize, &'static str>
@@ -104,7 +102,7 @@ where T: Choosable, F: FnOnce(&mut CreateEmbed, String) -> &mut CreateEmbed,
         .await_reaction(&ctx)
         .author_id(msg.author.id)
         .message_id(embed_message.id)
-        .filter(|r| true) // emojis.contains(&r.emoji)
+        .filter(|_r| true) // emojis.contains(&r.emoji)
         .timeout(Duration::from_secs(60))
         .await
         .ok_or("No emoji given")?;

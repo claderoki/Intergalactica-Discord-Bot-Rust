@@ -2,7 +2,7 @@ use crate::database::schema::human;
 use crate::modules::shared::models::human::Human;
 use diesel::{
     sql_query,
-    sql_types::{BigInt, Integer},
+    sql_types::{Integer},
     RunQueryDsl,
 };
 
@@ -19,12 +19,6 @@ pub struct NewHuman {
     // pub country_code: Option<String>,
     // pub tester: bool,
     // pub currencies: Option<String>,
-}
-
-#[derive(QueryableByName)]
-struct IdOnly {
-    #[sql_type = "BigInt"]
-    id: i64,
 }
 
 type HumanResult = Result<Human, &'static str>;

@@ -2,7 +2,6 @@ use client::get_client;
 use redis_utils::connection::get_connection_redis;
 use tracing::error;
 
-// #![allow(dead_code)]
 #[macro_use]
 extern crate diesel;
 

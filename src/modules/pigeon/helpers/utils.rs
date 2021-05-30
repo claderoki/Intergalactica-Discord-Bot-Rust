@@ -1,24 +1,22 @@
-use crate::modules::{pigeon::{models::pigeon::Pigeon, repository::pigeon::PigeonRepository}, shared::models::human::Human};
+// pub trait PigeonUtils {
+//     fn get_pigeon(&self) -> Option<Pigeon>;
+//     fn has_pigeon(&self) -> bool;
+//     fn create_pigeon(&self, name: &str) -> Result<(), &'static str>;
+// }
 
-pub trait PigeonUtils {
-    fn get_pigeon(&self) -> Option<Pigeon>;
-    fn has_pigeon(&self) -> bool;
-    fn create_pigeon(&self, name: &str) -> Result<(), &'static str>;
-}
+// impl PigeonUtils for Human {
+//     fn get_pigeon(&self) -> Option<Pigeon> {
+//         PigeonRepository::get_active(self.id).ok()
+//     }
 
-impl PigeonUtils for Human {
-    fn get_pigeon(&self) -> Option<Pigeon> {
-        PigeonRepository::get_active(self.id).ok()
-    }
+//     fn has_pigeon(&self) -> bool {
+//         PigeonRepository::has_active(self.id).is_ok()
+//     }
 
-    fn has_pigeon(&self) -> bool {
-        PigeonRepository::has_active(self.id).is_ok()
-    }
-
-    fn create_pigeon(&self, name: &str) -> Result<(), &'static str> {
-        PigeonRepository::create(self.id, name)
-    }
-}
+//     fn create_pigeon(&self, name: &str) -> Result<(), &'static str> {
+//         PigeonRepository::create(self.id, name)
+//     }
+// }
 
 pub struct PigeonWinnings {
     pub gold: i32,
@@ -26,53 +24,53 @@ pub struct PigeonWinnings {
     pub cleanliness: i32,
     pub happiness: i32,
     pub food: i32,
-    pub health: i32
+    pub health: i32,
 }
 impl PigeonWinnings {
-    pub fn new() -> Self {
-        PigeonWinnings {
-            gold: 0,
-            experience: 0,
-            cleanliness: 0,
-            happiness: 0,
-            food: 0,
-            health: 0,
-        }
-    }
+    // pub fn new() -> Self {
+    //     PigeonWinnings {
+    //         gold: 0,
+    //         experience: 0,
+    //         cleanliness: 0,
+    //         happiness: 0,
+    //         food: 0,
+    //         health: 0,
+    //     }
+    // }
 
-    pub fn gold(&mut self, value: i32) -> &mut Self {
-        self.gold = value;
-        self
-    }
+    // pub fn gold(&mut self, value: i32) -> &mut Self {
+    //     self.gold = value;
+    //     self
+    // }
 
-    pub fn experience(&mut self, value: i32) -> &mut Self {
-        self.experience = value;
-        self
-    }
+    // pub fn experience(&mut self, value: i32) -> &mut Self {
+    //     self.experience = value;
+    //     self
+    // }
 
-    pub fn cleanliness(&mut self, value: i32) -> &mut Self {
-        self.cleanliness = value;
-        self
-    }
+    // pub fn cleanliness(&mut self, value: i32) -> &mut Self {
+    //     self.cleanliness = value;
+    //     self
+    // }
 
-    pub fn happiness(&mut self, value: i32) -> &mut Self {
-        self.happiness = value;
-        self
-    }
+    // pub fn happiness(&mut self, value: i32) -> &mut Self {
+    //     self.happiness = value;
+    //     self
+    // }
 
-    pub fn food(&mut self, value: i32) -> &mut Self {
-        self.food = value;
-        self
-    }
+    // pub fn food(&mut self, value: i32) -> &mut Self {
+    //     self.food = value;
+    //     self
+    // }
 
-    pub fn health(&mut self, value: i32) -> &mut Self {
-        self.health = value;
-        self
-    }
+    // pub fn health(&mut self, value: i32) -> &mut Self {
+    //     self.health = value;
+    //     self
+    // }
 
-    pub fn build(&self) -> &Self {
-        self
-    }
+    // pub fn build(&self) -> &Self {
+    //     self
+    // }
 }
 
 impl PigeonWinnings {

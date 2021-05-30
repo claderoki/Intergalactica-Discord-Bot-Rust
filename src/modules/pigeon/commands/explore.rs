@@ -30,16 +30,16 @@ async fn success_scenario(msg: &Message, ctx: &Context, image_url: String) {
         .await;
 }
 
-#[command("spaceexplore")]
+#[command("explore")]
 #[description("Send your pigeon into space.")]
-pub async fn space_explore(ctx: &Context, msg: &Message) -> CommandResult {
+pub async fn explore(ctx: &Context, msg: &Message) -> CommandResult {
     let human_id = PigeonValidation::new()
-        .item_needed("space_shuttle")
+        // .item_needed("space_shuttle")
         .needs_active_pigeon(true)
         .required_pigeon_status(PigeonStatus::Idle)
         .validate(&msg.author)?;
 
-    let simple_location = PlanetExplorationRepository::get_location()?;
+    let simple_location = PlanetExplorationRepository::get_random_location()?;
     PlanetExplorationRepository::create_exploration(human_id, simple_location.id)?;
     PigeonRepository::update_status(human_id, PigeonStatus::SpaceExploring);
     success_scenario(msg, ctx, simple_location.image_url).await;

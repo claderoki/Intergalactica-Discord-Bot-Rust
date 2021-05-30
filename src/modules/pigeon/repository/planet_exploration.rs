@@ -15,6 +15,21 @@ pub struct SimplePlanetLocation {
     pub image_url: String,
 }
 
+#[derive(QueryableByName)]
+pub struct PlanetLocation {
+    #[sql_type = "Integer"]
+    pub id: i32,
+
+    #[sql_type = "VarChar"]
+    pub planet_name: String,
+
+    #[sql_type = "VarChar"]
+    pub location_name: String,
+
+    #[sql_type = "VarChar"]
+    pub image_url: String,
+}
+
 pub struct PlanetExplorationRepository {}
 
 impl PlanetExplorationRepository {
@@ -28,13 +43,13 @@ impl PlanetExplorationRepository {
             (
                 ?,
                 UTC_TIMESTAMP(),
-                DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? HOUR),
+                DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? MINUTE),
                 0,
                 (SELECT id FROM pigeon WHERE human_id = ? AND `pigeon`.`condition` = 'active' LIMIT 1)
             )",
         )
         .bind::<Integer, _>(location_id)
-        .bind::<Integer, _>(10)
+        .bind::<Integer, _>(30)
         .bind::<Integer, _>(human_id)
         .execute(&connection);
 
@@ -47,12 +62,12 @@ impl PlanetExplorationRepository {
         };
     }
 
-    pub fn get_location() -> Result<SimplePlanetLocation, &'static str> {
+    pub fn get_random_location() -> Result<SimplePlanetLocation, &'static str> {
         let connection = get_connection_diesel();
 
         let results: Result<SimplePlanetLocation, _> = sql_query(
             "SELECT
-            (`exploration_planet_location`.`id`) as id,
+            `exploration_planet_location`.`id` as id,
             (IFNULL(`exploration_planet_location`.`image_url`, `exploration_planet`.`image_url`)) as image_url
             FROM
             `exploration_planet_location`
@@ -65,6 +80,33 @@ impl PlanetExplorationRepository {
         match results {
             Ok(simple_location) => Ok(simple_location),
             Err(_) => Err("Couldn't find a location."),
+        }
+    }
+
+    pub fn get_location(location_id: i32) -> Result<PlanetLocation, &'static str> {
+        let connection = get_connection_diesel();
+
+        let results: Result<PlanetLocation, _> = sql_query(
+            "SELECT
+            `exploration_planet_location`.`id` as id,
+            `exploration_planet`.`name` as planet_name,
+            `exploration_planet_location`.`name` as location_name,
+            (IFNULL(`exploration_planet_location`.`image_url`, `exploration_planet`.`image_url`)) as image_url
+            FROM
+            `exploration_planet_location`
+            INNER JOIN `exploration_planet` ON `exploration_planet`.`id` = `exploration_planet_location`.`planet_id`
+            WHERE `exploration_planet_location`.`id` = ?
+            LIMIT 1",
+        )
+        .bind::<Integer, _>(location_id)
+        .get_result(&connection);
+
+        match results {
+            Ok(location) => Ok(location),
+            Err(e) => {
+                println!("{}", e);
+                Err("Couldn't find a location.")
+            },
         }
     }
 }

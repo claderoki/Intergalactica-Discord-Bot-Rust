@@ -7,6 +7,21 @@ use serenity::model::prelude::User;
 
 use crate::{database::connection::get_connection_diesel, modules::{pigeon::models::pigeon::PigeonStatus, shared::helpers::utils::HumanUtils}};
 
+#[derive(QueryableByName)]
+pub struct PigeonValidationResult {
+    #[sql_type = "Bool"]
+    has_gold_needed: bool,
+
+    #[sql_type = "Bool"]
+    has_active_pigeon: bool,
+
+    #[sql_type = "Bool"]
+    has_required_status: bool,
+
+    #[sql_type = "Bool"]
+    has_item_needed: bool,
+}
+
 pub struct PigeonValidation {
     gold_needed: i32,
     item_needed: Option<String>,
@@ -49,7 +64,7 @@ impl PigeonValidation {
         query.push_str("(`human`.`gold` >= ?) as has_gold_needed, ");
         query.push_str("(`pigeon`.`id` IS NOT NULL) as has_active_pigeon, ");
 
-        if self.needs_active_pigeon.is_some() {
+        if self.required_pigeon_status.is_some() {
             query.push_str("(`pigeon`.`status` IS NOT NULL AND `pigeon`.`status` = ?) as has_required_status, ");
         } else {
             query.push_str("(1 OR ? = 1) as has_required_status, ");
@@ -95,34 +110,34 @@ impl PigeonValidation {
         };
     }
 
-    pub fn validate(&self, user: &User) -> Result<i32, &'static str> {
+    pub fn validate(&self, user: &User) -> Result<i32, String> {
         let human_id = user.get_human_id().ok_or("Error creating human")?;
         let result = self.get_validation_result(human_id)?;
 
         if self.gold_needed > 0 && !result.has_gold_needed {
-            return Err("You do not have enough gold to perform this action.");
+            return Err(format!("You need {} gold to perform this action", self.gold_needed));
         }
 
         if self.needs_active_pigeon.is_some()
             && !self.needs_active_pigeon.eq(&Some(result.has_active_pigeon))
         {
             if result.has_active_pigeon {
-                return Err("You already have a pigeon!");
+                return Err("You already have a pigeon!".into());
             } else {
-                return Err("You do not have a pigeon!");
+                return Err("You do not have a pigeon!".into());
             }
         }
 
         if self.item_needed.is_some() {
             if !result.has_item_needed {
-                return Err("To perform this action you need the {} item ");
+                return Err(format!("To perform this action you need the `{}` item ", self.item_needed.as_ref().unwrap()));
             }
         }
 
         match self.required_pigeon_status {
             Some(_) => {
                 if !result.has_required_status {
-                    return Err("Your pigeon needs to be doing a different action to do this.");
+                    return Err(format!("Your pigeon isn't {}.", self.required_pigeon_status.unwrap().to_string()));
                 }
             }
             None => {}
@@ -130,19 +145,4 @@ impl PigeonValidation {
 
         Ok(human_id)
     }
-}
-
-#[derive(QueryableByName)]
-pub struct PigeonValidationResult {
-    #[sql_type = "Bool"]
-    has_gold_needed: bool,
-
-    #[sql_type = "Bool"]
-    has_active_pigeon: bool,
-
-    #[sql_type = "Bool"]
-    has_required_status: bool,
-
-    #[sql_type = "Bool"]
-    has_item_needed: bool,
 }
