@@ -142,6 +142,9 @@ async fn choose_action(
 }
 
 /*
+
+alien logbook, a way to contact aliens, npcs?
+
 Every planet will be unique with its scenario's
 
 Space poop
