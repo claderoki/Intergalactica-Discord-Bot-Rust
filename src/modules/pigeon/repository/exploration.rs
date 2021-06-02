@@ -227,8 +227,8 @@ impl ExplorationRepository {
             pigeon.status as pigeon_status,
             (a.end_date <= UTC_TIMESTAMP()) as arrived,
             actions_remaining,
-            @remaining := ABS(TIME_TO_SEC(TIMEDIFF(UTC_TIMESTAMP(), end_date))) AS remaining_seconds,
-            CAST(ABS(((@remaining / TIME_TO_SEC(TIMEDIFF(start_date, end_date)) * 100)-100)) AS INT) as percentage,
+            ABS(TIME_TO_SEC(TIMEDIFF(UTC_TIMESTAMP(), end_date))) AS remaining_seconds,
+            CAST(ABS(((TIME_TO_SEC(TIMEDIFF(UTC_TIMESTAMP(), end_date)) / TIME_TO_SEC(TIMEDIFF(start_date, end_date)) * 100)-100)) AS INT) as percentage,
             planet_location_id as location_id
             FROM
             pigeon
