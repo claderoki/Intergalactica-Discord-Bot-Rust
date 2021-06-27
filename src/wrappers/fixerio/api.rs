@@ -4,6 +4,19 @@ extern crate serde;
 use super::models::{RatesResponse, SymbolsResponse};
 use serde::de::DeserializeOwned;
 
+trait ParamBuilder {
+
+}
+
+struct RatesParamBuilder {
+
+}
+
+impl ParamBuilder for RatesParamBuilder {
+    
+}
+
+
 enum FixerioEndpoint {
     SYMBOLS,
     LATEST,

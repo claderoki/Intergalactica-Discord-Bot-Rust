@@ -87,7 +87,7 @@ impl PigeonValidation {
         query
     }
 
-    fn get_validation_result(&self, human_id: i32) -> Result<PigeonValidationResult, &'static str> {
+    fn get_validation_result(&self, human_id: i32) -> Result<PigeonValidationResult, String> {
         let connection = get_connection_diesel();
 
         let results: Result<PigeonValidationResult, _> = sql_query(self.get_query())
@@ -104,8 +104,7 @@ impl PigeonValidation {
         return match results {
             Ok(result) => Ok(result),
             Err(e) => {
-                println!("{:?}", e);
-                Err("Error in sql query: PigeonValidation.validate()")
+                Err(format!("{:?}", e))
             }
         };
     }

@@ -4,9 +4,9 @@ use std::env;
 fn get_db_url() -> String {
     format!("mysql://{}:{}@{}/{}",
         env::var("DB_USER").expect("Expected DB_USER in the environment"),
-        env::var("DB_NAME").expect("Expected DB_NAME in the environment"),
-        env::var("DB_HOST").expect("Expected DB_HOST in the environment"),
         env::var("DB_PASSWORD").expect("Expected DB_PASSWORD in the environment"),
+        env::var("DB_HOST").expect("Expected DB_HOST in the environment"),
+        env::var("DB_NAME").expect("Expected DB_NAME in the environment"),
     )
 }
 

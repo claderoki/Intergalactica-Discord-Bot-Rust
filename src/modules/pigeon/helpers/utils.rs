@@ -75,13 +75,32 @@ impl PigeonWinnings {
 
 impl PigeonWinnings {
     pub fn to_string(&self) -> String {
-        let mut description = String::from("");
-        description.push_str(&winning_to_string(self.gold, "gold"));
-        description.push_str(&winning_to_string(self.cleanliness, "cleanliness"));
-        description.push_str(&winning_to_string(self.health, "health"));
-        description.push_str(&winning_to_string(self.experience, "experience"));
-        description.push_str(&winning_to_string(self.food, "food"));
-        description
+        let mut messages: Vec<String> = Vec::new();
+
+        if self.gold != 0 {
+            messages.push(winning_to_string(self.gold, "gold"));
+        }
+
+        if self.cleanliness != 0 {
+            messages.push(winning_to_string(self.cleanliness, "cleanliness"));
+        }
+
+        if self.health != 0 {
+            messages.push(winning_to_string(self.health, "health"));
+        }
+
+        if self.experience != 0 {
+            messages.push(winning_to_string(self.experience, "experience"));
+        }
+
+        if self.happiness != 0 {
+            messages.push(winning_to_string(self.happiness, "happiness"));
+        }
+
+        if self.food != 0 {
+            messages.push(winning_to_string(self.food, "food"));
+        }
+        messages.join(", ")
     }
 }
 
@@ -98,16 +117,11 @@ fn winning_to_emoji(winning: &'static str) -> String {
 }
 
 fn winning_to_string(winning: i32, name: &'static str) -> String {
-    String::from(if winning != 0 {
-        let mut emoji = winning_to_emoji(name);
-        emoji.push_str(" ");
-        if winning > 0 {
-            emoji.push_str(" +");
-        }
-        emoji.push_str(winning.to_string().as_str());
-        emoji.push_str(", ");
-        return emoji;
-    } else {
-        ""
-    })
+    let mut emoji = winning_to_emoji(name);
+    emoji.push_str(" ");
+    if winning >= 0 {
+        emoji.push_str(" +");
+    }
+    emoji.push_str(winning.to_string().as_str());
+    emoji
 }

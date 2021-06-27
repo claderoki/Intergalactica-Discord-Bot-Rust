@@ -1,145 +1,80 @@
 use diesel::{
     sql_query,
-    sql_types::{BigInt, Bool, Integer, Nullable, VarChar},
+    sql_types::{Integer, Nullable},
     RunQueryDsl,
 };
 
-use crate::{database::connection::get_connection_diesel, modules::pigeon::helpers::utils::PigeonWinnings};
-
-pub fn seconds_to_text(seconds: i64) -> String {
-    let hours = seconds / 3600;
-    let minutes = (seconds % 3600) / 60;
-    let seconds = seconds % 60;
-
-    time_to_text(seconds, minutes, hours)
-}
-
-pub fn time_to_text(seconds: i64, minutes: i64, hours: i64) -> String {
-    let mut text = String::from("");
-
-    if hours > 0 {
-        text.push_str(&format!("{} hours", hours));
-    }
-    if minutes > 0 {
-        if hours > 0 {
-            text.push_str(" and ");
-        }
-        text.push_str(&format!("{} minutes", minutes));
-    }
-
-    if seconds > 0 && hours == 0 {
-
-        if minutes > 0 {
-            text.push_str(" and ");
-        }
-        text.push_str(&format!("{} seconds", seconds));
-    }
-
-    text
-
-}
-
-#[derive(QueryableByName)]
-pub struct Exploration {
-    #[sql_type = "Integer"]
-    pub id: i32,
-
-    #[sql_type = "VarChar"]
-    pub pigeon_status: String,
-
-    #[sql_type = "Integer"]
-    pub location_id: i32,
-
-    #[sql_type = "Bool"]
-    pub arrived: bool,
-
-    #[sql_type = "Integer"]
-    pub actions_remaining: i32,
-
-    #[sql_type = "BigInt"]
-    pub remaining_seconds: i64,
-
-    #[sql_type = "BigInt"]
-    pub percentage: i64,
-}
-
-#[derive(QueryableByName)]
-pub struct ExplorationActionScenario {
-    #[sql_type = "Integer"]
-    pub id: i32,
-
-    #[sql_type = "VarChar"]
-    pub text: String,
-}
-
-#[derive(QueryableByName)]
-pub struct ExplorationAction {
-    #[sql_type = "Integer"]
-    pub id: i32,
-
-    #[sql_type = "VarChar"]
-    pub name: String,
-
-    #[sql_type = "VarChar"]
-    pub symbol: String,
-}
-#[derive(QueryableByName)]
-pub struct ExplorationActionScenarioWinnings {
-    #[sql_type = "Integer"]
-    pub gold: i32,
-
-    #[sql_type = "Integer"]
-    pub health: i32,
-
-    #[sql_type = "Integer"]
-    pub happiness: i32,
-
-    #[sql_type = "Integer"]
-    pub cleanliness: i32,
-
-    #[sql_type = "Integer"]
-    pub experience: i32,
-
-    #[sql_type = "Integer"]
-    pub food: i32,
-
-    #[sql_type = "Nullable<Integer>"]
-    pub item_id: Option<i32>,
-
-    #[sql_type = "Nullable<Integer>"]
-    pub item_category_id: Option<i32>,
-}
-
-impl ExplorationActionScenarioWinnings {
-    pub fn to_pigeon_winnings(&self) -> PigeonWinnings {
-        PigeonWinnings {
-            gold: self.gold,
-            experience: self.happiness,
-            cleanliness: self.health,
-            happiness: self.cleanliness,
-            food: self.experience,
-            health: self.food,
-        }
-    }
-}
+use crate::{
+    database::connection::get_connection_diesel,
+    modules::pigeon::{
+        helpers::utils::PigeonWinnings,
+        models::exploration::{*},
+    },
+};
 
 pub struct ExplorationRepository;
 impl ExplorationRepository {
+    pub fn get_end_stats(exploration_id: i32) -> Result<ExplorationEndStats, String> {
+        let connection = get_connection_diesel();
+
+        let query = "
+            SELECT
+                CAST(SUM(gold) AS SIGNED) as gold,
+                CAST(SUM(health) AS SIGNED) as health,
+                CAST(SUM(happiness) AS SIGNED) as happiness,
+                CAST(SUM(cleanliness) AS SIGNED) as cleanliness,
+                CAST(SUM(experience) AS SIGNED) as experience,
+                CAST(SUM(food) AS SIGNED) as food,
+                TIME_TO_SEC(TIMEDIFF(UTC_TIMESTAMP(), `exploration`.`start_date`)) as total_seconds
+            FROM
+            exploration_winnings
+            INNER JOIN exploration ON exploration.id = exploration_winnings.exploration_id
+            WHERE exploration_id = ?
+        ";
+        let results: Result<ExplorationEndStats, _> = sql_query(query)
+            .bind::<Integer, _>(exploration_id)
+            .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data),
+            Err(e) => Err(format!("{:?}", e)),
+        }
+    }
 
     pub fn reduce_action_remaining(exploration_id: i32) {
         let connection = get_connection_diesel();
 
-        let _results = sql_query("
+        let _results = sql_query(
+            "
             UPDATE `exploration`
             SET
                 `exploration`.`actions_remaining` = `exploration`.`actions_remaining` - 1
-            WHERE `exploration`.`id` = ?"
+            WHERE `exploration`.`id` = ?",
         )
-            .bind::<Integer, _>(exploration_id)
-            .execute(&connection);
+        .bind::<Integer, _>(exploration_id)
+        .execute(&connection);
     }
 
-    pub fn add_exploration_winnings(exploration_id: i32, action_id: i32, winnings: &PigeonWinnings) {
+    pub fn finish_exploration(exploration_id: i32) {
+        let connection = get_connection_diesel();
+
+        let _results = sql_query(
+            "
+            UPDATE `exploration`
+            SET
+                `exploration`.`end_date` = UTC_TIMESTAMP(),
+                `exploration`.`finished` = 1
+            WHERE `exploration`.`id` = ?",
+        )
+        .bind::<Integer, _>(exploration_id)
+        .execute(&connection);
+    }
+
+    pub fn add_exploration_winnings(
+        exploration_id: i32,
+        action_id: i32,
+        winnings: &PigeonWinnings,
+    ) {
         let connection = get_connection_diesel();
         let item_id: Option<i32> = None;
 
@@ -161,14 +96,16 @@ impl ExplorationRepository {
         .execute(&connection);
 
         match results {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => {
                 println!("{:?}", e);
             }
         };
     }
 
-    pub fn get_scenario_winnings(scenario_id: i32) -> Result<ExplorationActionScenarioWinnings, &'static str> {
+    pub fn get_scenario_winnings(
+        winnings_id: i32,
+    ) -> Result<ExplorationActionScenarioWinnings, String> {
         let connection = get_connection_diesel();
 
         let query = "
@@ -176,30 +113,25 @@ impl ExplorationRepository {
             gold, health, happiness, cleanliness, experience, food, item_id, item_category_id
             FROM
             exploration_action_scenario_winnings
-            WHERE exploration_action_scenario_id = ?
+            WHERE id = ?
             LIMIT 1";
 
         let results: Result<ExplorationActionScenarioWinnings, _> = sql_query(query)
-            .bind::<Integer, _>(scenario_id)
+            .bind::<Integer, _>(winnings_id)
             .get_result(&connection);
 
         match results {
-            Ok(data) => {
-                Ok(data)
-            },
-            Err(e) => {
-                println!("{:?}", e);
-                Err("Something went wrong retrieving the winnings.")
-            }
+            Ok(data) => Ok(data),
+            Err(e) => Err(format!("{:?}", e)),
         }
     }
 
-    pub fn get_scenario(action_id: i32) -> Result<ExplorationActionScenario, &'static str> {
+    pub fn get_scenario(action_id: i32) -> Result<ExplorationActionScenario, String> {
         let connection = get_connection_diesel();
 
         let query = "
             SELECT
-            id, text
+            id, text, scenario_winnings_id as winnings_id
             FROM
             exploration_action_scenario
             WHERE action_id = ?
@@ -212,23 +144,21 @@ impl ExplorationRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => {
-                println!("{:?}", e);
-                Err("Something went wrong retrieving the activity.")
-            }
+            Err(e) => Err(format!("{:?}", e)),
         }
     }
 
-    pub fn get_exploration(human_id: i32) -> Result<Exploration, &'static str> {
+    pub fn get_exploration(human_id: i32) -> Result<Exploration, String> {
         let connection = get_connection_diesel();
 
-        let query = "SELECT
+        let query = "
+            SELECT
             a.id as id,
             pigeon.status as pigeon_status,
-            (a.end_date <= UTC_TIMESTAMP()) as arrived,
+            (a.arrival_date <= UTC_TIMESTAMP()) as arrived,
             actions_remaining,
-            ABS(TIME_TO_SEC(TIMEDIFF(UTC_TIMESTAMP(), end_date))) AS remaining_seconds,
-            CAST(ABS(((TIME_TO_SEC(TIMEDIFF(UTC_TIMESTAMP(), end_date)) / TIME_TO_SEC(TIMEDIFF(start_date, end_date)) * 100)-100)) AS INT) as percentage,
+            ABS(TIME_TO_SEC(TIMEDIFF(UTC_TIMESTAMP(), arrival_date))) AS remaining_seconds,
+            CAST(ABS(((TIME_TO_SEC(TIMEDIFF(UTC_TIMESTAMP(), arrival_date)) / TIME_TO_SEC(TIMEDIFF(start_date, arrival_date)) * 100)-100)) AS INT) as percentage,
             planet_location_id as location_id
             FROM
             pigeon
@@ -241,14 +171,11 @@ impl ExplorationRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => {
-                println!("{:?}", e);
-                Err("Something went wrong retrieving the exploration.")
-            }
+            Err(e) => Err(format!("{:?}", e)),
         }
     }
 
-    pub fn get_available_actions(location_id: i32) -> Result<Vec<ExplorationAction>, &'static str> {
+    pub fn get_available_actions(location_id: i32) -> Result<Vec<ExplorationAction>, String> {
         let connection = get_connection_diesel();
 
         let query = "
@@ -258,19 +185,16 @@ impl ExplorationRepository {
             symbol
             FROM
             exploration_action
-            WHERE exploration_planet_location_id = ?";
+            WHERE location_id = ?";
 
         let results: Result<Vec<ExplorationAction>, _> = sql_query(query)
             .bind::<Integer, _>(location_id)
             .get_results(&connection);
 
-        return match results {
+        match results {
             Ok(data) => Ok(data),
-            Err(e) => {
-                println!("{:?}", e);
-                Err("Something went wrong retrieving the actions.")
-            }
-        };
+            Err(e) => Err(format!("{:?}", e)),
+        }
     }
 
     // pub fn get_any_activity(human_id: i32) -> Result<Option<PigeonSimplifiedActivity>, &'static str> {

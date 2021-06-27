@@ -33,12 +33,12 @@ pub struct PlanetLocation {
 pub struct PlanetExplorationRepository {}
 
 impl PlanetExplorationRepository {
-    pub fn create_exploration(human_id: i32, location_id: i32) -> Result<(), &'static str> {
+    pub fn create_exploration(human_id: i32, location_id: i32) -> Result<(), String> {
         let connection = get_connection_diesel();
 
         let results = sql_query(
             "INSERT INTO exploration
-            (planet_location_id, start_date, end_date, finished, pigeon_id)
+            (planet_location_id, start_date, arrival_date, finished, pigeon_id)
             VALUES
             (
                 ?,
@@ -53,16 +53,15 @@ impl PlanetExplorationRepository {
         .bind::<Integer, _>(human_id)
         .execute(&connection);
 
-        return match results {
+        match results {
             Ok(_) => Ok(()),
             Err(e) => {
-                println!("{:?}", e);
-                Err("Query in PlanetExplorationRepository.create_exploration failed.")
+                Err(format!("{:?}", e))
             }
-        };
+        }
     }
 
-    pub fn get_random_location() -> Result<SimplePlanetLocation, &'static str> {
+    pub fn get_random_location() -> Result<SimplePlanetLocation, String> {
         let connection = get_connection_diesel();
 
         let results: Result<SimplePlanetLocation, _> = sql_query(
@@ -79,11 +78,11 @@ impl PlanetExplorationRepository {
 
         match results {
             Ok(simple_location) => Ok(simple_location),
-            Err(_) => Err("Couldn't find a location."),
+            Err(e) => Err(format!("{:?}", e)),
         }
     }
 
-    pub fn get_location(location_id: i32) -> Result<PlanetLocation, &'static str> {
+    pub fn get_location(location_id: i32) -> Result<PlanetLocation, String> {
         let connection = get_connection_diesel();
 
         let results: Result<PlanetLocation, _> = sql_query(
@@ -103,10 +102,7 @@ impl PlanetExplorationRepository {
 
         match results {
             Ok(location) => Ok(location),
-            Err(e) => {
-                println!("{}", e);
-                Err("Couldn't find a location.")
-            },
+            Err(e) => Err(format!("{:?}", e))
         }
     }
 }

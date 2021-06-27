@@ -1,6 +1,6 @@
 use super::buy::*;
 use super::explore::*;
-use super::space_action::*;
+use super::space::*;
 use serenity::framework::standard::macros::group;
 
 #[group]

@@ -4,24 +4,19 @@ use serenity::{
     model::channel::Message,
 };
 
-use crate::{
-    discord_helpers::embed_utils::EmbedExtension,
-    modules::{
-        pigeon::{
+use crate::{discord_helpers::embed_utils::EmbedExtension, modules::{pigeon::{
             helpers::{utils::PigeonWinnings, validation::PigeonValidation},
-            models::pigeon::PigeonStatus,
-            repository::{
+            models::{
                 exploration::{
-                    seconds_to_text, Exploration, ExplorationAction, ExplorationActionScenario,
-                    ExplorationRepository,
+                    Exploration, ExplorationAction, ExplorationActionScenario, ExplorationEndStats,
                 },
-                pigeon::PigeonRepository,
+                pigeon::PigeonStatus,
+            },
+            repository::{
+                exploration::ExplorationRepository, pigeon::PigeonRepository,
                 planet_exploration::PlanetExplorationRepository,
             },
-        },
-        shared::helpers::chooser::{choose, Choosable},
-    },
-};
+        }, shared::helpers::{chooser::{choose, Choosable}, utils::TimeDelta}}};
 
 impl Choosable for ExplorationAction {
     fn get_identifier(&self) -> i32 {
@@ -49,23 +44,20 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
 
     if exploration.arrived {
         if exploration.actions_remaining == 0 {
-            return Err("No further actions available...".into());
+            let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
+            PigeonRepository::update_status(human_id, PigeonStatus::Idle);
+            ExplorationRepository::finish_exploration(exploration.id);
+            exploration_done_message(&msg, &ctx, end_stats).await;
         } else {
             let action = choose_action(msg, ctx, &exploration).await?;
             let scenario = ExplorationRepository::get_scenario(action.id)?;
-            let scenario_winnings = ExplorationRepository::get_scenario_winnings(scenario.id)?;
+            let scenario_winnings = ExplorationRepository::get_scenario_winnings(scenario.winnings_id)?;
             let winnings = scenario_winnings.to_pigeon_winnings();
             PigeonRepository::update_winnings(human_id, &winnings);
             ExplorationRepository::reduce_action_remaining(exploration.id);
             ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings);
-            scenario_winnings_message(
-                msg,
-                ctx,
-                &scenario,
-                &winnings,
-                exploration.actions_remaining - 1,
-            )
-            .await;
+            let remaining = exploration.actions_remaining - 1;
+            scenario_winnings_message(msg, ctx, &scenario, &winnings, remaining).await;
         }
     } else {
         still_travelling_message(msg, ctx, &exploration).await;
@@ -97,13 +89,29 @@ async fn scenario_winnings_message(
         .or(Err("scenario_winnings_message failure"));
 }
 
+async fn exploration_done_message(msg: &Message, ctx: &Context, end_stats: ExplorationEndStats) {
+    let mut text = String::from(&format!(
+        "After {} of exploring Luna, your pigeon finally returns home.\n\n",
+        TimeDelta::from_seconds(end_stats.total_seconds).to_text()
+    ));
+    text.push_str(&end_stats.to_pigeon_winnings().to_string());
+
+    let _ = msg
+        .channel_id
+        .send_message(&ctx, |m| {
+            m.embed(|e| e.normal_embed(&text).footer(|f| f.text("")))
+        })
+        .await
+        .or(Err("exploration_done_message failure"));
+}
+
 async fn still_travelling_message(msg: &Message, ctx: &Context, exploration: &Exploration) {
     let location = PlanetExplorationRepository::get_location(exploration.location_id).unwrap();
 
     let text = format!(
         "Your pigeon is still travelling to {} and is set to arrive in {}\n",
         location.planet_name,
-        seconds_to_text(exploration.remaining_seconds)
+        TimeDelta::from_seconds(exploration.remaining_seconds).to_text()
     );
 
     let _ = msg
@@ -123,18 +131,22 @@ async fn choose_action(
     msg: &Message,
     ctx: &Context,
     exploration: &Exploration,
-) -> Result<ExplorationAction, &'static str> {
+) -> Result<ExplorationAction, String> {
     let mut actions = ExplorationRepository::get_available_actions(exploration.location_id)?;
     let location = PlanetExplorationRepository::get_location(exploration.location_id).unwrap();
 
     let index = choose::<ExplorationAction, _>(msg, ctx, &actions, |e, t| {
-        e.normal_embed(&format!("You arrive at {}.\n\nWhat action would you like to perform?\n{}", location.planet_name, &t))
-            .footer(|f| {
-                f.text(format!(
-                    "{} / 3 actions remaining",
-                    exploration.actions_remaining
-                ))
-            }).thumbnail(location.image_url)
+        e.normal_embed(&format!(
+            "You arrive at {}.\n\nWhat action would you like to perform?\n{}",
+            location.planet_name, &t
+        ))
+        .footer(|f| {
+            f.text(format!(
+                "{} / 3 actions remaining",
+                exploration.actions_remaining
+            ))
+        })
+        .thumbnail(location.image_url)
     })
     .await?;
     let action = actions.swap_remove(index);
