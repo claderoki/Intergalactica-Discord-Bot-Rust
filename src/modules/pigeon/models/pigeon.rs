@@ -1,3 +1,8 @@
+use diesel::{
+    sql_types::{BigInt, Bool, Integer, Nullable, VarChar}
+};
+
+
 #[derive(Debug, Clone, Copy, FromSqlRow)]
 pub enum PigeonStatus {
     Idle,
@@ -19,6 +24,17 @@ impl PigeonStatus {
             "dating" => Self::Dating,
             _ => Self::Idle,
         }
+    }
+
+    pub fn get_friendly_verb(self) -> String {
+        String::from(match self {
+            PigeonStatus::Idle => "being lazy",
+            PigeonStatus::Mailing => "sending a mail",
+            PigeonStatus::Exploring => "exploring",
+            PigeonStatus::Fighting => "in a fight",
+            PigeonStatus::SpaceExploring => "exploring space",
+            PigeonStatus::Dating => "on a date",
+        })
     }
 
     pub fn to_string(&self) -> String {
@@ -96,4 +112,28 @@ pub struct Pigeon {
     pub health: i32,
     pub status: PigeonStatus,
     pub gender: Gender,
+}
+
+#[derive(QueryableByName)]
+pub struct PigeonProfile {
+    #[sql_type = "VarChar"]
+    pub name: String,
+
+    #[sql_type = "Integer"]
+    pub health: i32,
+
+    #[sql_type = "Integer"]
+    pub happiness: i32,
+
+    #[sql_type = "Integer"]
+    pub cleanliness: i32,
+
+    #[sql_type = "Integer"]
+    pub experience: i32,
+
+    #[sql_type = "Integer"]
+    pub food: i32,
+
+    #[sql_type = "VarChar"]
+    pub status: PigeonStatus,
 }

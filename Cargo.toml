@@ -10,20 +10,21 @@ dotenv             = "0.15"
 once_cell          = "1.7.2"
 tracing            = "0.1.23"
 tracing-subscriber = "0.2"
-measurements       = "^0.9.0"
 regex              = "1"
 mysql              = "*"
 reqwest            = "0.11.1"
 serde              = "1.0.116"
 serde_json         = "1.0.59"
 rand               = "*"
+async-trait        = "0.1.50"
 
 [dependencies.tokio]
 version  = "1.0"
 features = ["macros", "signal", "rt-multi-thread"]
 
 [dependencies.serenity]
-features = ["cache", "framework", "standard_framework", "rustls_backend", "collector"]
+version = "0.10.8"
+features = ["cache", "framework", "standard_framework", "rustls_backend", "collector", "unstable_discord_api", "builder"]
 
 [dependencies.redis]
 version = "*"

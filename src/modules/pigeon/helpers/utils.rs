@@ -104,7 +104,7 @@ impl PigeonWinnings {
     }
 }
 
-fn winning_to_emoji(winning: &'static str) -> String {
+pub fn winning_to_emoji(winning: &'static str) -> String {
     String::from(match winning {
         "gold" => "💶",
         "experience" => "📊",

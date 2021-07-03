@@ -4,13 +4,15 @@ use diesel::{
 
 use crate::{modules::pigeon::helpers::utils::PigeonWinnings};
 
+use super::pigeon::PigeonStatus;
+
 #[derive(QueryableByName)]
 pub struct Exploration {
     #[sql_type = "Integer"]
     pub id: i32,
 
     #[sql_type = "VarChar"]
-    pub pigeon_status: String,
+    pub pigeon_status: PigeonStatus,
 
     #[sql_type = "Integer"]
     pub location_id: i32,

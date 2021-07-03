@@ -1,10 +1,14 @@
-use serenity::{
-    client::Context,
-    framework::standard::{macros::command, CommandResult},
-    model::channel::Message,
-};
+use std::convert::TryInto;
 
-use crate::{discord_helpers::embed_utils::EmbedExtension, modules::{pigeon::{
+use serenity::{builder::{CreateActionRow, CreateButton, CreateComponents}, client::Context, framework::standard::{macros::command, CommandResult}, model::{
+        channel::{Message, ReactionType},
+        interactions::ButtonStyle,
+    }};
+
+use crate::{
+    discord_helpers::embed_utils::EmbedExtension,
+    modules::{
+        pigeon::{
             helpers::{utils::PigeonWinnings, validation::PigeonValidation},
             models::{
                 exploration::{
@@ -16,7 +20,13 @@ use crate::{discord_helpers::embed_utils::EmbedExtension, modules::{pigeon::{
                 exploration::ExplorationRepository, pigeon::PigeonRepository,
                 planet_exploration::PlanetExplorationRepository,
             },
-        }, shared::helpers::{chooser::{choose, Choosable}, utils::TimeDelta}}};
+        },
+        shared::helpers::{
+            chooser::{choose, Choosable},
+            utils::TimeDelta,
+        },
+    },
+};
 
 impl Choosable for ExplorationAction {
     fn get_identifier(&self) -> i32 {
@@ -31,6 +41,7 @@ impl Choosable for ExplorationAction {
         Some(String::from(&self.symbol))
     }
 }
+
 
 #[command("space")]
 #[description("Retrieve a space exploration.")]
@@ -51,7 +62,8 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
         } else {
             let action = choose_action(msg, ctx, &exploration).await?;
             let scenario = ExplorationRepository::get_scenario(action.id)?;
-            let scenario_winnings = ExplorationRepository::get_scenario_winnings(scenario.winnings_id)?;
+            let scenario_winnings =
+                ExplorationRepository::get_scenario_winnings(scenario.winnings_id)?;
             let winnings = scenario_winnings.to_pigeon_winnings();
             PigeonRepository::update_winnings(human_id, &winnings);
             ExplorationRepository::reduce_action_remaining(exploration.id);
@@ -65,6 +77,23 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
+
+/*
+.create_select_menu(|s| {
+    s.min_values(1)
+        .placeholder("hmm")
+        .max_values(max)
+        .custom_id("abc")
+        .options(|m| {
+            m.create_option(|o| {
+                o.description("Option 1").label("1").value("option 1")
+            })
+            .create_option(|o| {
+                o.description("Option 2").label("2").value("otpion 2")
+            })
+        })
+})
+*/
 
 async fn scenario_winnings_message(
     msg: &Message,

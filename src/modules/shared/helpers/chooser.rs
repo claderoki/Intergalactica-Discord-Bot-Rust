@@ -1,14 +1,27 @@
-use std::{time::Duration};
+use std::{
+    convert::{TryFrom, TryInto},
+    str::FromStr,
+    time::Duration,
+};
 
-use serenity::{builder::CreateEmbed, client::Context, model::channel::{Message, ReactionType}};
-
+use async_trait::async_trait;
+use serenity::{
+    builder::{CreateEmbed, CreateInteractionResponse},
+    client::Context,
+    model::{
+        channel::{Message, ReactionType},
+        interactions::{
+            ButtonStyle, Interaction, InteractionApplicationCommandCallbackDataFlags,
+            InteractionData, InteractionResponseType,
+        },
+    },
+};
 
 pub trait Choosable {
     fn get_identifier(&self) -> i32;
     fn get_description(&self) -> String;
     fn get_emoji(&self) -> Option<String>;
 }
-
 
 pub struct KeyCap;
 
@@ -28,7 +41,7 @@ impl KeyCap {
                 '7' => "7️⃣",
                 '8' => "8️⃣",
                 '9' => "9️⃣",
-                _ => ""
+                _ => "",
             });
         }
 
@@ -52,8 +65,11 @@ impl KeyCap {
     // }
 }
 
-pub async fn choose<T, F>(msg: &Message, ctx: &Context, choosables: &Vec<T>, f: F) -> Result<usize, &'static str>
-where T: Choosable, F: FnOnce(&mut CreateEmbed, String) -> &mut CreateEmbed,
+pub fn flatten_choosables<T>(
+    choosables: &Vec<T>,
+) -> Result<(Vec<ReactionType>, String), &'static str>
+where
+    T: Choosable,
 {
     let mut text = String::from("");
 
@@ -75,7 +91,7 @@ where T: Choosable, F: FnOnce(&mut CreateEmbed, String) -> &mut CreateEmbed,
         } else if any_custom_emoji {
             return Err("All need to have emoji or none");
         } else {
-            let emoji = &KeyCap::get(i+1);
+            let emoji = &KeyCap::get(i + 1);
             emojis.push(ReactionType::Unicode(String::from(emoji.as_str())));
             text.push_str(&emoji);
         }
@@ -86,27 +102,61 @@ where T: Choosable, F: FnOnce(&mut CreateEmbed, String) -> &mut CreateEmbed,
         i += 1;
     }
 
-    let embed_message = msg
+    Ok((emojis, text))
+}
+
+pub async fn choose<T, F>(
+    msg: &Message,
+    ctx: &Context,
+    choosables: &Vec<T>,
+    f: F,
+) -> Result<usize, &'static str>
+where
+    T: Choosable,
+    F: FnOnce(&mut CreateEmbed, String) -> &mut CreateEmbed,
+{
+    let values = flatten_choosables::<T>(choosables)?;
+    let emojis = values.0;
+    let text = values.1;
+
+    let interactive_msg = msg
         .channel_id
         .send_message(&ctx, |m| {
-            m.embed(|e|f(e, text))
+            m.embed(|e| f(e, text)).components(|c| {
+                c.create_action_row(|f| {
+                    let mut i = 0;
+                    for emoji in emojis.iter() {
+                        f.create_button(|b| {
+                            b.style(ButtonStyle::Secondary)
+                                .custom_id(i)
+                                .emoji(ReactionType::Unicode(emoji.to_string()))
+                        });
+                        i += 1;
+                    }
+                    f
+                })
+            })
         })
-        .await.or(Err("Oops"))?;
+        .await
+        .or(Err("Oops"))?;
 
-    for emoji in emojis.iter() {
-        let _ = embed_message.react(ctx, emoji.clone()).await;
-    }
-
-    let reaction = &msg
-        .author
-        .await_reaction(&ctx)
+    let interaction = &interactive_msg
+        .await_component_interaction(&ctx)
         .author_id(msg.author.id)
-        .message_id(embed_message.id)
-        .filter(|_r| true) // emojis.contains(&r.emoji)
         .timeout(Duration::from_secs(60))
         .await
-        .ok_or("No emoji given")?;
+        .ok_or("Timed out...")?;
+    let _ = interaction
+        .create_interaction_response(&ctx, |f| {
+            f.kind(InteractionResponseType::DeferredUpdateMessage)
+        })
+        .await;
 
-    let index = emojis.iter().position(|e| e == &reaction.as_inner_ref().emoji).ok_or("err")?;
-    Ok(index)
+    match interaction.data.as_ref().ok_or("")? {
+        InteractionData::ApplicationCommand(_) => Err("Wrong type of interaction"),
+        InteractionData::MessageComponent(value) => match value.custom_id.parse::<usize>() {
+            Ok(index) => Ok(index),
+            Err(_) => Err("Can't convert to int"),
+        },
+    }
 }

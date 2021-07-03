@@ -1,5 +1,3 @@
-extern crate measurements;
-
 use regex::Regex;
 
 use super::{models::core::{Conversion, ConversionResult}, repository::currency_repository::CurrencyRepository};

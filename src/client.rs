@@ -1,7 +1,7 @@
 use serenity::{
     client::bridge::gateway::ShardManager,
     framework::{
-        standard::{CommandError},
+        standard::{macros::group, CommandError},
         StandardFramework,
     },
     http::Http,
@@ -14,6 +14,7 @@ use std::{collections::HashSet, env, sync::Arc};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use crate::modules::pigeon::commands::base::*;
+use crate::modules::games::base::*;
 
 use crate::handler::Handler;
 
@@ -46,15 +47,17 @@ use serenity::framework::standard::macros::hook;
 // }
 
 #[hook]
-async fn after_hook(ctx: &Context, msg: &Message, _cmd_name: &str, error: Result<(), CommandError>) {
+async fn after_hook(
+    ctx: &Context,
+    msg: &Message,
+    _cmd_name: &str,
+    error: Result<(), CommandError>,
+) {
     if let Err(why) = error {
         let _ = msg
             .channel_id
             .send_message(&ctx, |m| {
-                m.embed(|e| {
-                    e.color(serenity::utils::Color::RED)
-                        .description(why)
-                })
+                m.embed(|e| e.color(serenity::utils::Color::RED).description(why))
             })
             .await;
     }
@@ -89,10 +92,12 @@ pub async fn get_client() -> Client {
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("~"))
         .after(after_hook)
+        .group(&GAMES_GROUP)
         .group(&PIGEON_GROUP);
 
     let client = Client::builder(&token)
         .framework(framework)
+        .application_id(742365922244952095)
         .event_handler(Handler)
         .await
         .expect("Err creating client");

@@ -1,36 +1,80 @@
 
+pub trait UserInput {}
+impl UserInput for Interaction {}
+impl UserInput for String {}
 
-struct MessageWaiter<'fut> {
-    pub ctx: &'fut Context,
-    pub msg: &'fut Message,
-    // pub start_prompt: Option<String>,
-    // pub end_prompt: Option<String>
+pub trait WaitableValidator {
+    fn validate(&self);
 }
 
+#[async_trait]
+pub trait Waitable<U>
+where
+    U: UserInput,
+{
+    async fn wait<T>(&self) -> T
+    where
+        T: TryFrom<String> + TryFrom<Interaction>;
 
+    fn parse<T>(&self, input: U) -> Result<T, &'static str>
+    where
+        T: TryFrom<String> + TryFrom<Interaction>;
 
-impl MessageWaiter<'_> {
-
-    pub async fn wait<T: TryFrom<String>>(&self, timeout: u64, prompt: &str) -> Result<T, &'static str> {
-        let reply = &self
-            .msg
-            .author
-            .await_reply(&self.ctx)
-            .timeout(Duration::from_secs(timeout))
-            .await;
-
-        match reply {
-            Some(message) => {
-                let converted: std::result::Result<T, _> =
-                    String::from(message.content.as_str()).try_into();
-                return match converted {
-                    Ok(value) => Ok(value),
-                    Err(_) => Err("Failed to convert"),
-                };
-            }
-            None => {
-                return Err("Timed out".into());
-            }
-        };
+    fn validate<T, V>(&self, input: U, _validator: V) -> Result<T, &'static str>
+    where
+        T: TryFrom<String> + TryFrom<Interaction>,
+        V: WaitableValidator,
+    {
+        let parsed = self.parse::<T>(input)?;
+        Ok(parsed)
     }
 }
+
+struct MessageWaiter;
+#[async_trait]
+impl Waitable<String> for MessageWaiter {
+    async fn wait<T>(&self) -> T {
+        todo!()
+    }
+
+    fn parse<T>(&self, input: String) -> Result<T, &'static str>
+    where
+        T: TryFrom<String>,
+    {
+        let parsed: Result<T, _> = input.try_into();
+        parsed.map_err(|_| "Could not parse value")
+    }
+}
+
+struct InteractionWaiter;
+#[async_trait]
+impl Waitable<Interaction> for InteractionWaiter {
+    async fn wait<T>(&self) -> T {
+        todo!()
+    }
+
+    fn parse<T>(&self, input: Interaction) -> Result<T, &'static str>
+    where
+        T: TryFrom<Interaction>,
+    {
+        let parsed: Result<T, _> = input.try_into();
+        parsed.map_err(|_| "Could not parse value")
+    }
+}
+
+// trait MessageWaitable {
+//     fn validate<T>(&self, input: U) -> Result<T, &'static str> where T: From<String> + From<Interaction> {
+//         self.parse::<T>(input)
+//     }
+//     fn wait<T>(&self) -> T {
+//         todo!()
+//     }
+
+//     fn parse<T>(&self, input: String) -> Result<T, &'static str> where T: TryFrom<String> {
+//         let parsed: Result<T, _> = input.try_into();
+//         parsed.map_err(|_|"Could not parse value")
+//     }
+// }
+
+// struct MessageWaiter;
+// impl MessageWaitable for

@@ -1,3 +1,4 @@
+use crate::modules::pigeon::models::pigeon::PigeonProfile;
 use crate::{
     database::connection::get_connection_diesel, modules::pigeon::helpers::utils::PigeonWinnings,
 };
@@ -14,18 +15,6 @@ use diesel::{sql_query, sql_types::Integer, RunQueryDsl};
 pub struct PigeonRepository;
 
 impl PigeonRepository {
-    // pub fn get_active(h_id: i32) -> SinglePigeonResult {
-    //     use crate::database::schema::pigeon::dsl::*;
-    //     use diesel::prelude::*;
-
-    //     let connection = get_connection_diesel();
-    //     pigeon
-    //         .filter(human_id.eq(h_id))
-    //         .filter(condition.eq("active"))
-    //         .first::<Pigeon>(&connection)
-    //         .map_err(|_| "No active pigeon found.")
-    // }
-
     pub fn update_winnings(human_id: i32, winnings: &PigeonWinnings) {
         let connection = get_connection_diesel();
 
@@ -40,7 +29,7 @@ impl PigeonRepository {
                 `pigeon`.`food`        = LEAST(`pigeon`.`food` + ?, 100),
                 `human`.`gold`         = `human`.`gold` + ?
             WHERE `human`.`id` = ?"
-        )
+        ) // TODO: set dead to true when health under 0? think about a way to notify people their pigeon died
             .bind::<Varchar, _>(winnings.health.to_string())
             .bind::<Varchar, _>(winnings.happiness.to_string())
             .bind::<Varchar, _>(winnings.cleanliness.to_string())
@@ -49,6 +38,27 @@ impl PigeonRepository {
             .bind::<Varchar, _>(winnings.gold.to_string())
             .bind::<Integer, _>(human_id)
             .execute(&connection);
+    }
+
+    pub fn get_profile(human_id: i32) -> Result<PigeonProfile, String> {
+        let connection = get_connection_diesel();
+
+        let query = "
+            SELECT
+            name, health, happiness, cleanliness, experience, food, status
+            FROM
+            pigeon
+            WHERE `pigeon`.`human_id` = ? AND `pigeon`.`condition` = 'active'
+            LIMIT 1";
+
+        let results: Result<PigeonProfile, _> = sql_query(query)
+            .bind::<Integer, _>(human_id)
+            .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data),
+            Err(e) => Err(format!("{:?}", e)),
+        }
     }
 
     // pub fn has_active(human_id: i32) -> Result<bool, &'static str> {
