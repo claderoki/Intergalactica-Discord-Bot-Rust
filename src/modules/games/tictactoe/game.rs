@@ -108,14 +108,6 @@ impl Game {
         }
     }
 
-    pub fn is_over(&self) -> bool {
-        self.over
-    }
-
-    pub fn set_over(&mut self, over: bool) {
-        self.over = over
-    }
-
     pub fn get_player_user_id(&self, symbol: String) -> Result<u64, &'static str> {
         for player in self.players.iter() {
             if player.symbol.eq(&symbol) {

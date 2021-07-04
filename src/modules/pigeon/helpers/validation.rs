@@ -54,10 +54,10 @@ impl PigeonValidation {
         self
     }
 
-    pub fn item_needed(&mut self, value: &'static str) -> &mut Self {
-        self.item_needed = Some(String::from(value));
-        self
-    }
+    // pub fn item_needed(&mut self, value: &'static str) -> &mut Self {
+    //     self.item_needed = Some(String::from(value));
+    //     self
+    // }
 
     fn get_query(&self) -> String {
         let mut query = String::from("SELECT");

@@ -1,7 +1,7 @@
 use serenity::{
     client::bridge::gateway::ShardManager,
     framework::{
-        standard::{macros::group, CommandError},
+        standard::{CommandError},
         StandardFramework,
     },
     http::Http,

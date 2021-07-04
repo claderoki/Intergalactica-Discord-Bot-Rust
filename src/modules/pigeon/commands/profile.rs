@@ -4,14 +4,7 @@ use serenity::{
     model::channel::Message,
 };
 
-use crate::{
-    discord_helpers::embed_utils::EmbedExtension,
-    modules::pigeon::{
-        helpers::{utils::winning_to_emoji, validation::PigeonValidation},
-        models::pigeon::PigeonProfile,
-        repository::pigeon::PigeonRepository,
-    },
-};
+use crate::{discord_helpers::embed_utils::EmbedExtension, modules::pigeon::{helpers::{utils::winning_to_emoji, validation::PigeonValidation}, models::pigeon::{PigeonProfile, PigeonStatus}, repository::{exploration::ExplorationRepository, pigeon::PigeonRepository}}};
 
 #[command("profile")]
 #[description("View your pigeons profile.")]
@@ -21,13 +14,14 @@ pub async fn profile(ctx: &Context, msg: &Message) -> CommandResult {
         .validate(&msg.author)?;
 
     let profile = PigeonRepository::get_profile(human_id)?;
-    profile_message(ctx, msg, &profile).await?;
+    profile_message(ctx, msg, human_id, &profile).await?;
     Ok(())
 }
 
 pub async fn profile_message(
     ctx: &Context,
     msg: &Message,
+    human_id: i32,
     profile: &PigeonProfile,
 ) -> Result<(), &'static str> {
     let text = format!(
@@ -54,7 +48,20 @@ pub async fn profile_message(
             m.embed(|e| {
                 e.title(&profile.name)
                     .normal_embed(&text)
-                    .footer(|f| f.text(format!("Currently {}", profile.status.get_friendly_verb())))
+                    .footer(|f| {
+                        match profile.status {
+                            PigeonStatus::SpaceExploring => {
+                                let exploration = ExplorationRepository::get_exploration(human_id).expect("no exploration");
+                                let location = ExplorationRepository::get_location(exploration.location_id).expect("no location");
+                                f.icon_url(location.image_url).text({
+                                    if exploration.arrived {format!("exploring {}", location.planet_name)} else {format!("traveling to {}", location.planet_name)}
+                                });
+                            }
+                            _ => {f.text(profile.status.get_friendly_verb());},
+                        };
+                        f
+                    }
+                )
             })
         })
         .await

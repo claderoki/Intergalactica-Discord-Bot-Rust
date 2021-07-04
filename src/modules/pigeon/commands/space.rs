@@ -1,8 +1,5 @@
-use std::convert::TryInto;
-
-use serenity::{builder::{CreateActionRow, CreateButton, CreateComponents}, client::Context, framework::standard::{macros::command, CommandResult}, model::{
-        channel::{Message, ReactionType},
-        interactions::ButtonStyle,
+use serenity::{client::Context, framework::standard::{macros::command, CommandResult}, model::{
+        channel::{Message},
     }};
 
 use crate::{
@@ -18,7 +15,6 @@ use crate::{
             },
             repository::{
                 exploration::ExplorationRepository, pigeon::PigeonRepository,
-                planet_exploration::PlanetExplorationRepository,
             },
         },
         shared::helpers::{
@@ -135,7 +131,7 @@ async fn exploration_done_message(msg: &Message, ctx: &Context, end_stats: Explo
 }
 
 async fn still_travelling_message(msg: &Message, ctx: &Context, exploration: &Exploration) {
-    let location = PlanetExplorationRepository::get_location(exploration.location_id).unwrap();
+    let location = ExplorationRepository::get_location(exploration.location_id).unwrap();
 
     let text = format!(
         "Your pigeon is still travelling to {} and is set to arrive in {}\n",
@@ -162,7 +158,7 @@ async fn choose_action(
     exploration: &Exploration,
 ) -> Result<ExplorationAction, String> {
     let mut actions = ExplorationRepository::get_available_actions(exploration.location_id)?;
-    let location = PlanetExplorationRepository::get_location(exploration.location_id).unwrap();
+    let location = ExplorationRepository::get_location(exploration.location_id).unwrap();
 
     let index = choose::<ExplorationAction, _>(msg, ctx, &actions, |e, t| {
         e.normal_embed(&format!(

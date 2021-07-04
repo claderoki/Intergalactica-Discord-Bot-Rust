@@ -1,0 +1,1 @@
+INSERT INTO exploration_winnings (gold, health, experience, cleanliness, food, happiness, item_id, exploration_id, exploration_action_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)

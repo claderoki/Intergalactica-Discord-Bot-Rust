@@ -129,3 +129,27 @@ impl ExplorationActionScenarioWinnings {
         }
     }
 }
+
+#[derive(QueryableByName)]
+pub struct SimplePlanetLocation {
+    #[sql_type = "Integer"]
+    pub id: i32,
+
+    #[sql_type = "VarChar"]
+    pub image_url: String,
+}
+
+#[derive(QueryableByName)]
+pub struct PlanetLocation {
+    #[sql_type = "Integer"]
+    pub id: i32,
+
+    #[sql_type = "VarChar"]
+    pub planet_name: String,
+
+    #[sql_type = "VarChar"]
+    pub location_name: String,
+
+    #[sql_type = "VarChar"]
+    pub image_url: String,
+}

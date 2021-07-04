@@ -1,6 +1,4 @@
-use diesel::{
-    sql_types::{BigInt, Bool, Integer, Nullable, VarChar}
-};
+use diesel::{backend::Backend, deserialize, serialize::{self, Output}, sql_types::{Integer, VarChar}, types::{FromSql, ToSql, Varchar}};
 
 
 #[derive(Debug, Clone, Copy, FromSqlRow)]
@@ -136,4 +134,72 @@ pub struct PigeonProfile {
 
     #[sql_type = "VarChar"]
     pub status: PigeonStatus,
+}
+
+impl<DB> ToSql<Varchar, DB> for PigeonStatus
+where
+    DB: Backend,
+    str: ToSql<Varchar, DB>,
+{
+    fn to_sql<W>(&self, out: &mut Output<W, DB>) -> serialize::Result
+    where
+        W: std::io::Write,
+    {
+        self.to_string().as_str().to_sql(out)
+    }
+}
+
+impl<DB: Backend> FromSql<Varchar, DB> for PigeonStatus
+where
+    String: FromSql<Varchar, DB>,
+{
+    fn from_sql(bytes: Option<&DB::RawValue>) -> deserialize::Result<Self> {
+        let value = String::from_sql(bytes)?;
+        Ok(Self::from_str(&value))
+    }
+}
+impl<DB> ToSql<Varchar, DB> for Gender
+where
+    DB: Backend,
+    str: ToSql<Varchar, DB>,
+{
+    fn to_sql<W>(&self, out: &mut Output<W, DB>) -> serialize::Result
+    where
+        W: std::io::Write,
+    {
+        self.to_string().as_str().to_sql(out)
+    }
+}
+
+impl<DB: Backend> FromSql<Varchar, DB> for Gender
+where
+    String: FromSql<Varchar, DB>,
+{
+    fn from_sql(bytes: Option<&DB::RawValue>) -> deserialize::Result<Self> {
+        let value = String::from_sql(bytes)?;
+        Ok(Self::from_str(&value))
+    }
+}
+
+impl<DB> ToSql<Varchar, DB> for PigeonCondition
+where
+    DB: Backend,
+    str: ToSql<Varchar, DB>,
+{
+    fn to_sql<W>(&self, out: &mut Output<W, DB>) -> serialize::Result
+    where
+        W: std::io::Write,
+    {
+        self.to_string().as_str().to_sql(out)
+    }
+}
+
+impl<DB: Backend> FromSql<Varchar, DB> for PigeonCondition
+where
+    String: FromSql<Varchar, DB>,
+{
+    fn from_sql(bytes: Option<&DB::RawValue>) -> deserialize::Result<Self> {
+        let value = String::from_sql(bytes)?;
+        Ok(Self::from_str(&value))
+    }
 }

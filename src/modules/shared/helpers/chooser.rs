@@ -1,21 +1,11 @@
 use std::{
-    convert::{TryFrom, TryInto},
-    str::FromStr,
     time::Duration,
 };
 
-use async_trait::async_trait;
-use serenity::{
-    builder::{CreateEmbed, CreateInteractionResponse},
-    client::Context,
-    model::{
-        channel::{Message, ReactionType},
-        interactions::{
-            ButtonStyle, Interaction, InteractionApplicationCommandCallbackDataFlags,
+use serenity::{builder::{CreateEmbed}, client::Context, model::{channel::{Message, ReactionType}, interactions::{
+            ButtonStyle,
             InteractionData, InteractionResponseType,
-        },
-    },
-};
+        }}};
 
 pub trait Choosable {
     fn get_identifier(&self) -> i32;
