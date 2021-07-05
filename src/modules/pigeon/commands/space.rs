@@ -1,6 +1,8 @@
-use serenity::{client::Context, framework::standard::{macros::command, CommandResult}, model::{
-        channel::{Message},
-    }};
+use serenity::{
+    client::Context,
+    framework::standard::{macros::command, CommandResult},
+    model::channel::Message,
+};
 
 use crate::{
     discord_helpers::embed_utils::EmbedExtension,
@@ -13,9 +15,7 @@ use crate::{
                 },
                 pigeon::PigeonStatus,
             },
-            repository::{
-                exploration::ExplorationRepository, pigeon::PigeonRepository,
-            },
+            repository::{exploration::ExplorationRepository, pigeon::PigeonRepository},
         },
         shared::helpers::{
             chooser::{choose, Choosable},
@@ -37,7 +37,6 @@ impl Choosable for ExplorationAction {
         Some(String::from(&self.symbol))
     }
 }
-
 
 #[command("space")]
 #[description("Retrieve a space exploration.")]
@@ -167,8 +166,8 @@ async fn choose_action(
         ))
         .footer(|f| {
             f.text(format!(
-                "{} / 3 actions remaining",
-                exploration.actions_remaining
+                "{} / {} actions remaining",
+                exploration.actions_remaining, exploration.total_actions,
             ))
         })
         .thumbnail(location.image_url)

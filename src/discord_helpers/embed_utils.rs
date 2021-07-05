@@ -1,6 +1,5 @@
 use serenity::builder::CreateEmbed;
 
-
 pub trait EmbedExtension {
     fn priced_embed(&mut self, text: &str, cost: i32) -> &mut Self;
     fn normal_embed(&mut self, text: &str) -> &mut Self;
@@ -18,7 +17,6 @@ impl EmbedExtension for CreateEmbed {
     }
 
     fn error_embed(&mut self, text: &str) -> &mut Self {
-        self.color(serenity::utils::Color::RED)
-            .description(text)
+        self.color(serenity::utils::Color::RED).description(text)
     }
 }

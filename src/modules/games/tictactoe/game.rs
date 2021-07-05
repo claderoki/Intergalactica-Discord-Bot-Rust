@@ -72,10 +72,7 @@ impl Grid {
         let symbol3 = &cell3.symbol.as_ref().unwrap();
 
         if symbol1 == symbol2 && symbol2 == symbol3 {
-            return Some((
-                symbol1.to_string(),
-                [index1, index2, index3],
-            ));
+            return Some((symbol1.to_string(), [index1, index2, index3]));
         }
 
         None
@@ -207,13 +204,24 @@ impl CreateTicTacToeGrid for CreateComponents {
 }
 
 trait CreateTicTacToeCell {
-    fn create_cell(&mut self, index: i32, cell: &Cell, over: bool, winning_cell: bool) -> &mut Self;
+    fn create_cell(&mut self, index: i32, cell: &Cell, over: bool, winning_cell: bool)
+        -> &mut Self;
 }
 impl CreateTicTacToeCell for CreateButton {
-    fn create_cell(&mut self, index: i32, cell: &Cell, over: bool, winning_cell: bool) -> &mut Self {
+    fn create_cell(
+        &mut self,
+        index: i32,
+        cell: &Cell,
+        over: bool,
+        winning_cell: bool,
+    ) -> &mut Self {
         self.custom_id(index)
             .disabled(cell.symbol.is_some() || over)
-            .style(if winning_cell { ButtonStyle::Success } else { ButtonStyle::Secondary } )
+            .style(if winning_cell {
+                ButtonStyle::Success
+            } else {
+                ButtonStyle::Secondary
+            })
             .label(" ");
         if cell.symbol.is_some() {
             self.emoji(ReactionType::Unicode(
@@ -300,7 +308,15 @@ pub async fn run_game(ctx: &Context, msg: &Message, game: &mut Game) -> Result<(
     let mut interactive_msg = show_grid(ctx, msg, &game).await?;
     for _ in 0..9 {
         for player in &mut game.players.iter() {
-            edit_grid(&ctx, &mut interactive_msg, &game, player.user_id, false, None).await?;
+            edit_grid(
+                &ctx,
+                &mut interactive_msg,
+                &game,
+                player.user_id,
+                false,
+                None,
+            )
+            .await?;
             let index = wait_for_response(ctx, player.user_id, &interactive_msg).await?;
             let mut cell = &mut game.grid.cells[index];
             cell.symbol = Some(player.symbol.to_string());
@@ -318,8 +334,8 @@ pub async fn run_game(ctx: &Context, msg: &Message, game: &mut Game) -> Result<(
                     )
                     .await?;
                     return Ok(());
-                },
-                None => {},
+                }
+                None => {}
             }
         }
     }

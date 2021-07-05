@@ -1,9 +1,6 @@
 use serenity::{
     client::bridge::gateway::ShardManager,
-    framework::{
-        standard::{CommandError},
-        StandardFramework,
-    },
+    framework::{standard::CommandError, StandardFramework},
     http::Http,
     model::channel::Message,
     prelude::*,
@@ -13,8 +10,8 @@ use std::{collections::HashSet, env, sync::Arc};
 
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-use crate::modules::pigeon::commands::base::*;
 use crate::modules::games::base::*;
+use crate::modules::pigeon::commands::base::*;
 
 use crate::handler::Handler;
 

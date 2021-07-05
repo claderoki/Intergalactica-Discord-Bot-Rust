@@ -1,4 +1,4 @@
-use crate::{database::schema::{human, item, human_item, item_category}};
+use crate::database::schema::{human, human_item, item, item_category};
 
 #[derive(Debug, Queryable, AsChangeset, Identifiable)]
 #[table_name = "human"]

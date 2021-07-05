@@ -5,7 +5,10 @@ use diesel::{
 };
 use serenity::model::prelude::User;
 
-use crate::{database::connection::get_connection_diesel, modules::{pigeon::models::pigeon::PigeonStatus, shared::helpers::utils::HumanUtils}};
+use crate::{
+    database::connection::get_connection_diesel,
+    modules::{pigeon::models::pigeon::PigeonStatus, shared::helpers::utils::HumanUtils},
+};
 
 #[derive(QueryableByName)]
 pub struct PigeonValidationResult {
@@ -94,7 +97,7 @@ impl PigeonValidation {
             .bind::<Integer, _>(self.gold_needed)
             .bind::<VarChar, _>(match self.required_pigeon_status {
                 Some(status) => status.to_string(),
-                None => String::from("")
+                None => String::from(""),
             })
             .bind::<Integer, _>(1)
             .bind::<VarChar, _>(self.item_needed.as_ref().unwrap_or(&String::from("")))
@@ -103,9 +106,7 @@ impl PigeonValidation {
 
         return match results {
             Ok(result) => Ok(result),
-            Err(e) => {
-                Err(format!("{:?}", e))
-            }
+            Err(e) => Err(format!("{:?}", e)),
         };
     }
 
@@ -114,7 +115,10 @@ impl PigeonValidation {
         let result = self.get_validation_result(human_id)?;
 
         if self.gold_needed > 0 && !result.has_gold_needed {
-            return Err(format!("You need {} gold to perform this action", self.gold_needed));
+            return Err(format!(
+                "You need {} gold to perform this action",
+                self.gold_needed
+            ));
         }
 
         if self.needs_active_pigeon.is_some()
@@ -129,14 +133,20 @@ impl PigeonValidation {
 
         if self.item_needed.is_some() {
             if !result.has_item_needed {
-                return Err(format!("To perform this action you need the `{}` item ", self.item_needed.as_ref().unwrap()));
+                return Err(format!(
+                    "To perform this action you need the `{}` item ",
+                    self.item_needed.as_ref().unwrap()
+                ));
             }
         }
 
         match self.required_pigeon_status {
             Some(_) => {
                 if !result.has_required_status {
-                    return Err(format!("Your pigeon isn't {}.", self.required_pigeon_status.unwrap().to_string()));
+                    return Err(format!(
+                        "Your pigeon needs to be {} to perform this action.",
+                        self.required_pigeon_status.unwrap().get_friendly_verb()
+                    ));
                 }
             }
             None => {}

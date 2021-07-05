@@ -7,11 +7,11 @@ extern crate diesel;
 
 mod client;
 mod database;
+mod discord_helpers;
 mod handler;
 mod modules;
 mod redis_utils;
 mod wrappers;
-mod discord_helpers;
 
 #[tokio::main]
 async fn main() {

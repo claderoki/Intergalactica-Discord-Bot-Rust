@@ -6,10 +6,7 @@ use diesel::{
 
 use crate::{
     database::connection::get_connection_diesel,
-    modules::pigeon::{
-        helpers::utils::PigeonWinnings,
-        models::exploration::{*},
-    },
+    modules::pigeon::{helpers::utils::PigeonWinnings, models::exploration::*},
 };
 
 pub struct ExplorationRepository;
@@ -17,9 +14,10 @@ impl ExplorationRepository {
     pub fn get_end_stats(exploration_id: i32) -> Result<ExplorationEndStats, String> {
         let connection = get_connection_diesel();
 
-        let results: Result<ExplorationEndStats, _> = sql_query(include_str!("queries/exploration/get_end_stats.sql"))
-            .bind::<Integer, _>(exploration_id)
-            .get_result(&connection);
+        let results: Result<ExplorationEndStats, _> =
+            sql_query(include_str!("queries/exploration/get_end_stats.sql"))
+                .bind::<Integer, _>(exploration_id)
+                .get_result(&connection);
 
         match results {
             Ok(data) => Ok(data),
@@ -30,7 +28,9 @@ impl ExplorationRepository {
     pub fn reduce_action_remaining(exploration_id: i32) {
         let connection = get_connection_diesel();
 
-        let _results = sql_query(include_str!("queries/exploration/reduce_action_remaining.sql"))
+        let _results = sql_query(include_str!(
+            "queries/exploration/reduce_action_remaining.sql"
+        ))
         .bind::<Integer, _>(exploration_id)
         .execute(&connection);
     }
@@ -39,8 +39,8 @@ impl ExplorationRepository {
         let connection = get_connection_diesel();
 
         let _results = sql_query(include_str!("queries/exploration/finish_exploration.sql"))
-        .bind::<Integer, _>(exploration_id)
-        .execute(&connection);
+            .bind::<Integer, _>(exploration_id)
+            .execute(&connection);
     }
 
     pub fn add_exploration_winnings(
@@ -51,7 +51,9 @@ impl ExplorationRepository {
         let connection = get_connection_diesel();
         let item_id: Option<i32> = None;
 
-        let results = sql_query(include_str!("queries/exploration/add_exploration_winnings.sql"))
+        let results = sql_query(include_str!(
+            "queries/exploration/add_exploration_winnings.sql"
+        ))
         .bind::<Integer, _>(winnings.gold)
         .bind::<Integer, _>(winnings.health)
         .bind::<Integer, _>(winnings.experience)
@@ -76,9 +78,11 @@ impl ExplorationRepository {
     ) -> Result<ExplorationActionScenarioWinnings, String> {
         let connection = get_connection_diesel();
 
-        let results: Result<ExplorationActionScenarioWinnings, _> = sql_query(include_str!("queries/exploration/get_scenario_winnings.sql"))
-            .bind::<Integer, _>(winnings_id)
-            .get_result(&connection);
+        let results: Result<ExplorationActionScenarioWinnings, _> = sql_query(include_str!(
+            "queries/exploration/get_scenario_winnings.sql"
+        ))
+        .bind::<Integer, _>(winnings_id)
+        .get_result(&connection);
 
         match results {
             Ok(data) => Ok(data),
@@ -89,9 +93,10 @@ impl ExplorationRepository {
     pub fn get_scenario(action_id: i32) -> Result<ExplorationActionScenario, String> {
         let connection = get_connection_diesel();
 
-        let results: Result<ExplorationActionScenario, _> = sql_query(include_str!("queries/exploration/get_scenario.sql"))
-            .bind::<Integer, _>(action_id)
-            .get_result(&connection);
+        let results: Result<ExplorationActionScenario, _> =
+            sql_query(include_str!("queries/exploration/get_scenario.sql"))
+                .bind::<Integer, _>(action_id)
+                .get_result(&connection);
 
         match results {
             Ok(data) => Ok(data),
@@ -102,24 +107,23 @@ impl ExplorationRepository {
         let connection = get_connection_diesel();
 
         let results = sql_query(include_str!("queries/exploration/create_exploration.sql"))
-        .bind::<Integer, _>(location_id)
-        .bind::<Integer, _>(30)
-        .bind::<Integer, _>(human_id)
-        .execute(&connection);
+            .bind::<Integer, _>(location_id)
+            .bind::<Integer, _>(3)
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
 
         match results {
             Ok(_) => Ok(()),
-            Err(e) => {
-                Err(format!("{:?}", e))
-            }
+            Err(e) => Err(format!("{:?}", e)),
         }
     }
 
     pub fn get_random_location() -> Result<SimplePlanetLocation, String> {
         let connection = get_connection_diesel();
 
-        let results: Result<SimplePlanetLocation, _> = sql_query(include_str!("queries/exploration/random_location.sql"))
-        .get_result(&connection);
+        let results: Result<SimplePlanetLocation, _> =
+            sql_query(include_str!("queries/exploration/random_location.sql"))
+                .get_result(&connection);
 
         match results {
             Ok(simple_location) => Ok(simple_location),
@@ -130,22 +134,24 @@ impl ExplorationRepository {
     pub fn get_location(location_id: i32) -> Result<PlanetLocation, String> {
         let connection = get_connection_diesel();
 
-        let results: Result<PlanetLocation, _> = sql_query(include_str!("queries/exploration/get_location.sql"))
-        .bind::<Integer, _>(location_id)
-        .get_result(&connection);
+        let results: Result<PlanetLocation, _> =
+            sql_query(include_str!("queries/exploration/get_location.sql"))
+                .bind::<Integer, _>(location_id)
+                .get_result(&connection);
 
         match results {
             Ok(location) => Ok(location),
-            Err(e) => Err(format!("{:?}", e))
+            Err(e) => Err(format!("{:?}", e)),
         }
     }
 
     pub fn get_exploration(human_id: i32) -> Result<Exploration, String> {
         let connection = get_connection_diesel();
 
-        let results: Result<Exploration, _> = sql_query(include_str!("queries/exploration/get_exploration.sql"))
-            .bind::<Integer, _>(human_id)
-            .get_result(&connection);
+        let results: Result<Exploration, _> =
+            sql_query(include_str!("queries/exploration/get_exploration.sql"))
+                .bind::<Integer, _>(human_id)
+                .get_result(&connection);
 
         match results {
             Ok(data) => Ok(data),
@@ -156,14 +162,15 @@ impl ExplorationRepository {
     pub fn get_available_actions(location_id: i32) -> Result<Vec<ExplorationAction>, String> {
         let connection = get_connection_diesel();
 
-        let results: Result<Vec<ExplorationAction>, _> = sql_query(include_str!("queries/exploration/get_available_actions.sql"))
-            .bind::<Integer, _>(location_id)
-            .get_results(&connection);
+        let results: Result<Vec<ExplorationAction>, _> = sql_query(include_str!(
+            "queries/exploration/get_available_actions.sql"
+        ))
+        .bind::<Integer, _>(location_id)
+        .get_results(&connection);
 
         match results {
             Ok(data) => Ok(data),
             Err(e) => Err(format!("{:?}", e)),
         }
     }
-
 }

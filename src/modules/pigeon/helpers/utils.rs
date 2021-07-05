@@ -1,22 +1,66 @@
-// pub trait PigeonUtils {
-//     fn get_pigeon(&self) -> Option<Pigeon>;
-//     fn has_pigeon(&self) -> bool;
-//     fn create_pigeon(&self, name: &str) -> Result<(), &'static str>;
-// }
+pub struct PigeonWinningsBuilder {
+    pub gold: i32,
+    pub experience: i32,
+    pub cleanliness: i32,
+    pub happiness: i32,
+    pub food: i32,
+    pub health: i32,
+}
+impl PigeonWinningsBuilder {
+    pub fn new() -> Self {
+        Self {
+            gold: 0,
+            experience: 0,
+            cleanliness: 0,
+            happiness: 0,
+            food: 0,
+            health: 0,
+        }
+    }
 
-// impl PigeonUtils for Human {
-//     fn get_pigeon(&self) -> Option<Pigeon> {
-//         PigeonRepository::get_active(self.id).ok()
-//     }
+    pub fn gold(&mut self, value: i32) -> &mut Self {
+        self.gold = value;
+        self
+    }
 
-//     fn has_pigeon(&self) -> bool {
-//         PigeonRepository::has_active(self.id).is_ok()
-//     }
+    pub fn experience(&mut self, value: i32) -> &mut Self {
+        self.experience = value;
+        self
+    }
 
-//     fn create_pigeon(&self, name: &str) -> Result<(), &'static str> {
-//         PigeonRepository::create(self.id, name)
-//     }
-// }
+    pub fn cleanliness(&mut self, value: i32) -> &mut Self {
+        self.cleanliness = value;
+        self
+    }
+
+    pub fn happiness(&mut self, value: i32) -> &mut Self {
+        self.happiness = value;
+        self
+    }
+
+    pub fn food(&mut self, value: i32) -> &mut Self {
+        self.food = value;
+        self
+    }
+
+    pub fn health(&mut self, value: i32) -> &mut Self {
+        self.health = value;
+        self
+    }
+
+    pub fn build(&self) -> PigeonWinnings {
+        PigeonWinnings {
+            gold: self.gold,
+            experience: self.experience,
+            cleanliness: self.cleanliness,
+            happiness: self.happiness,
+            food: self.food,
+            health: self.health,
+        }
+    }
+}
+
+pub struct Item;
 
 pub struct PigeonWinnings {
     pub gold: i32,
@@ -25,52 +69,6 @@ pub struct PigeonWinnings {
     pub happiness: i32,
     pub food: i32,
     pub health: i32,
-}
-impl PigeonWinnings {
-    // pub fn new() -> Self {
-    //     PigeonWinnings {
-    //         gold: 0,
-    //         experience: 0,
-    //         cleanliness: 0,
-    //         happiness: 0,
-    //         food: 0,
-    //         health: 0,
-    //     }
-    // }
-
-    // pub fn gold(&mut self, value: i32) -> &mut Self {
-    //     self.gold = value;
-    //     self
-    // }
-
-    // pub fn experience(&mut self, value: i32) -> &mut Self {
-    //     self.experience = value;
-    //     self
-    // }
-
-    // pub fn cleanliness(&mut self, value: i32) -> &mut Self {
-    //     self.cleanliness = value;
-    //     self
-    // }
-
-    // pub fn happiness(&mut self, value: i32) -> &mut Self {
-    //     self.happiness = value;
-    //     self
-    // }
-
-    // pub fn food(&mut self, value: i32) -> &mut Self {
-    //     self.food = value;
-    //     self
-    // }
-
-    // pub fn health(&mut self, value: i32) -> &mut Self {
-    //     self.health = value;
-    //     self
-    // }
-
-    // pub fn build(&self) -> &Self {
-    //     self
-    // }
 }
 
 impl PigeonWinnings {

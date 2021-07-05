@@ -1,10 +1,17 @@
 use serenity::{
     client::Context,
     framework::standard::{macros::command, CommandResult},
-    model::channel::{Message},
+    model::channel::Message,
 };
 
-use crate::{discord_helpers::embed_utils::EmbedExtension, modules::{pigeon::{helpers::{validation::PigeonValidation}, models::pigeon::PigeonStatus, repository::{exploration::ExplorationRepository, pigeon::PigeonRepository}}}};
+use crate::{
+    discord_helpers::embed_utils::EmbedExtension,
+    modules::pigeon::{
+        helpers::validation::PigeonValidation,
+        models::pigeon::PigeonStatus,
+        repository::{exploration::ExplorationRepository, pigeon::PigeonRepository},
+    },
+};
 
 async fn success_scenario(msg: &Message, ctx: &Context, image_url: String) {
     let _ = msg

@@ -1,2 +1,2 @@
-pub mod pigeon;
 pub mod exploration;
+pub mod pigeon;

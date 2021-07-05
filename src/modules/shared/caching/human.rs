@@ -23,11 +23,10 @@ impl HumanCache {
     pub fn cache_id(user_id: u64, human_id: i32) -> Result<(), &'static str> {
         let mut conn = get_connection_redis()?;
 
-        let result : Result<(), _> = conn.set(HumanCache::get_key(user_id).as_str(), human_id);
+        let result: Result<(), _> = conn.set(HumanCache::get_key(user_id).as_str(), human_id);
         if result.is_err() {
             return Err("error");
         }
         Ok(())
     }
-
 }

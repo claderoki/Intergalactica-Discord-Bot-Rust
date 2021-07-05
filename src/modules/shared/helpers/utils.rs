@@ -119,5 +119,4 @@ impl TimeDelta {
 
         messages.join(" and ")
     }
-
 }

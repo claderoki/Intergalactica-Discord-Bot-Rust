@@ -1,5 +1,10 @@
-use diesel::{backend::Backend, deserialize, serialize::{self, Output}, sql_types::{Integer, VarChar}, types::{FromSql, ToSql, Varchar}};
-
+use diesel::{
+    backend::Backend,
+    deserialize,
+    serialize::{self, Output},
+    sql_types::{Integer, VarChar},
+    types::{FromSql, ToSql, Varchar},
+};
 
 #[derive(Debug, Clone, Copy, FromSqlRow)]
 pub enum PigeonStatus {
@@ -93,7 +98,7 @@ impl Gender {
         String::from(match *self {
             Gender::Male => "male",
             Gender::Female => "female",
-            Gender::Other => "other,"
+            Gender::Other => "other,",
         })
     }
 }

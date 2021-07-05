@@ -1,8 +1,6 @@
-use diesel::{
-    sql_types::{BigInt, Bool, Integer, Nullable, VarChar}
-};
+use diesel::sql_types::{BigInt, Bool, Integer, Nullable, VarChar};
 
-use crate::{modules::pigeon::helpers::utils::PigeonWinnings};
+use crate::modules::pigeon::helpers::utils::{PigeonWinnings, PigeonWinningsBuilder};
 
 use super::pigeon::PigeonStatus;
 
@@ -22,6 +20,9 @@ pub struct Exploration {
 
     #[sql_type = "Integer"]
     pub actions_remaining: i32,
+
+    #[sql_type = "Integer"]
+    pub total_actions: i32,
 
     #[sql_type = "BigInt"]
     pub remaining_seconds: i64,
@@ -101,32 +102,30 @@ pub struct ExplorationEndStats {
     pub food: i64,
 
     #[sql_type = "BigInt"]
-    pub total_seconds: i64
+    pub total_seconds: i64,
 }
 
 impl ExplorationEndStats {
     pub fn to_pigeon_winnings(&self) -> PigeonWinnings {
-        PigeonWinnings {
-            gold: self.gold as i32,
-            experience: self.happiness as i32,
-            cleanliness: self.health as i32,
-            happiness: self.cleanliness as i32,
-            food: self.experience as i32,
-            health: self.food as i32,
-        }
+        PigeonWinningsBuilder::new()
+            .food(self.food as i32)
+            .gold(self.gold as i32)
+            .happiness(self.happiness as i32)
+            .health(self.health as i32)
+            .experience(self.experience as i32)
+            .build()
     }
 }
 
 impl ExplorationActionScenarioWinnings {
     pub fn to_pigeon_winnings(&self) -> PigeonWinnings {
-        PigeonWinnings {
-            gold: self.gold,
-            experience: self.happiness,
-            cleanliness: self.health,
-            happiness: self.cleanliness,
-            food: self.experience,
-            health: self.food,
-        }
+        PigeonWinningsBuilder::new()
+            .food(self.food)
+            .gold(self.gold)
+            .happiness(self.happiness)
+            .health(self.health)
+            .experience(self.experience)
+            .build()
     }
 }
 

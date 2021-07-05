@@ -1,12 +1,8 @@
 use crate::database::schema::human;
 use crate::modules::shared::models::human::Human;
-use diesel::{
-    sql_query,
-    sql_types::{Integer},
-    RunQueryDsl,
-};
+use diesel::{sql_query, sql_types::Integer, RunQueryDsl};
 
-use crate::database::{connection::get_connection_diesel};
+use crate::database::connection::get_connection_diesel;
 
 #[derive(Insertable, Default)]
 #[table_name = "human"]
@@ -30,9 +26,9 @@ impl HumanRepository {
     fn update_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
         let connection = get_connection_diesel();
         let result = sql_query("UPDATE human SET gold = gold + ? WHERE id = ?")
-        .bind::<Integer, _>(amount)
-        .bind::<Integer, _>(human_id)
-        .execute(&connection);
+            .bind::<Integer, _>(amount)
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
 
         match result {
             Ok(_) => Ok(()),
@@ -66,9 +62,8 @@ impl HumanRepository {
         diesel::insert_into(human::table)
             .values(&new_human)
             .execute(&conn)
-            .map_or(Err("Not able to create human."), |_| HumanRepository::get(user_id))
+            .map_or(Err("Not able to create human."), |_| {
+                HumanRepository::get(user_id)
+            })
     }
-
 }
-
-

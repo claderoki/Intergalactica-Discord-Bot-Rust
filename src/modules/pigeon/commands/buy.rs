@@ -8,7 +8,7 @@ use crate::{
     discord_helpers::embed_utils::EmbedExtension,
     modules::{
         pigeon::{helpers::validation::PigeonValidation, repository::pigeon::PigeonRepository},
-        shared::{repository::human::HumanRepository},
+        shared::repository::human::HumanRepository,
     },
 };
 
