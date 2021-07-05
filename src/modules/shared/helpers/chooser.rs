@@ -137,6 +137,7 @@ where
         .timeout(Duration::from_secs(60))
         .await
         .ok_or("Timed out...")?;
+
     let _ = interaction
         .create_interaction_response(&ctx, |f| {
             f.kind(InteractionResponseType::DeferredUpdateMessage)

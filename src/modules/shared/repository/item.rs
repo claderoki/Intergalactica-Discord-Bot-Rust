@@ -1,13 +1,67 @@
-// use diesel::{
-//     sql_query,
-//     sql_types::{Integer, VarChar},RunQueryDsl,
-// };
+use diesel::{RunQueryDsl, sql_query, sql_types::{Integer, VarChar}};
 
-// use crate::database::{connection::get_connection_diesel, utils::Countable};
-// use crate::modules::shared::models::human::Item;
+use crate::database::connection::get_connection_diesel;
 
-// type SingleItemResult = Result<Item, &'static str>;
-// pub struct ItemRepository;
+#[derive(QueryableByName)]
+pub struct SimpleItem {
+    #[sql_type = "Integer"]
+    pub id: i32,
+
+    #[sql_type = "VarChar"]
+    pub name: String,
+
+    #[sql_type = "VarChar"]
+    pub image_url: String,
+}
+
+pub struct ItemRepository;
+impl ItemRepository {
+
+    pub fn get_simple(id: i32) -> Result<SimpleItem, String> {
+        let connection = get_connection_diesel();
+
+        let results: Result<SimpleItem, _> =
+            sql_query(include_str!("queries/item/get_simple_item.sql"))
+                .bind::<Integer, _>(id)
+                .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data),
+            Err(e) => {
+                println!("{:?}", e);
+                Err(format!("{:?}", e))
+            },
+        }
+    }
+
+    fn get_child_category_ids(parent_category_id: i32) {
+
+    }
+
+    pub fn get_random(category_id: i32) {
+
+    }
+
+    pub fn add_item(id: i32, human_id: i32, amount: i32) -> Result<(), &'static str> {
+        let connection = get_connection_diesel();
+
+        let result = sql_query(include_str!("queries/item/add_item.sql"))
+        .bind::<Integer, _>(id)
+        .bind::<Integer, _>(human_id)
+        .bind::<Integer, _>(amount)
+        .bind::<Integer, _>(amount)
+        .execute(&connection);
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                println!("{:?}", e);
+                Err("Could not update item")
+            },
+        }
+    }
+
+}
 
 // impl ItemRepository {
 //     pub fn get(item_code: &str) -> SingleItemResult {

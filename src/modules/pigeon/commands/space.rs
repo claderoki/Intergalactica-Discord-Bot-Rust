@@ -11,15 +11,19 @@ use crate::{
             helpers::{utils::PigeonWinnings, validation::PigeonValidation},
             models::{
                 exploration::{
-                    Exploration, ExplorationAction, ExplorationActionScenario, ExplorationEndStats,
+                    Exploration, ExplorationAction, ExplorationActionScenario,
+                    ExplorationActionScenarioWinnings, ExplorationEndStats,
                 },
                 pigeon::PigeonStatus,
             },
             repository::{exploration::ExplorationRepository, pigeon::PigeonRepository},
         },
-        shared::helpers::{
-            chooser::{choose, Choosable},
-            utils::TimeDelta,
+        shared::{
+            helpers::{
+                chooser::{choose, Choosable},
+                utils::TimeDelta,
+            },
+            repository::item::{ItemRepository, SimpleItem},
         },
     },
 };
@@ -48,29 +52,40 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
 
     let exploration = ExplorationRepository::get_exploration(human_id)?;
 
-    if exploration.arrived {
-        if exploration.actions_remaining == 0 {
-            let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
-            PigeonRepository::update_status(human_id, PigeonStatus::Idle);
-            ExplorationRepository::finish_exploration(exploration.id);
-            exploration_done_message(&msg, &ctx, end_stats).await;
-        } else {
-            let action = choose_action(msg, ctx, &exploration).await?;
-            let scenario = ExplorationRepository::get_scenario(action.id)?;
-            let scenario_winnings =
-                ExplorationRepository::get_scenario_winnings(scenario.winnings_id)?;
-            let winnings = scenario_winnings.to_pigeon_winnings();
-            PigeonRepository::update_winnings(human_id, &winnings);
-            ExplorationRepository::reduce_action_remaining(exploration.id);
-            ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings);
-            let remaining = exploration.actions_remaining - 1;
-            scenario_winnings_message(msg, ctx, &scenario, &winnings, remaining).await;
-        }
-    } else {
+    if !exploration.arrived {
         still_travelling_message(msg, ctx, &exploration).await;
+    } else if exploration.actions_remaining == 0 {
+        let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
+        PigeonRepository::update_status(human_id, PigeonStatus::Idle);
+        ExplorationRepository::finish_exploration(exploration.id);
+        exploration_done_message(&msg, &ctx, end_stats).await;
+    } else {
+        let action = choose_action(msg, ctx, &exploration).await?;
+        let scenario = ExplorationRepository::get_scenario(action.id)?;
+        let scenario_winnings = ExplorationRepository::get_scenario_winnings(scenario.winnings_id)?;
+        let item = get_item(&scenario_winnings);
+        let winnings = scenario_winnings.to_pigeon_winnings();
+        PigeonRepository::update_winnings(human_id, &winnings);
+        if item.is_some() {
+            ItemRepository::add_item(item.as_ref().unwrap().id, human_id, 1)?;
+        }
+        ExplorationRepository::reduce_action_remaining(exploration.id);
+        ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings);
+        let remaining = exploration.actions_remaining - 1;
+        scenario_winnings_message(msg, ctx, &scenario, &winnings, remaining, &item).await;
     }
 
     Ok(())
+}
+
+fn get_item(winnings: &ExplorationActionScenarioWinnings) -> Option<SimpleItem> {
+    if winnings.item_id.is_some() {
+        ItemRepository::get_simple(winnings.item_id.unwrap()).map_or_else(|_| None, |e| Some(e))
+    } else if winnings.item_category_id.is_some() {
+        None
+    } else {
+        None
+    }
 }
 
 /*
@@ -96,15 +111,24 @@ async fn scenario_winnings_message(
     scenario: &ExplorationActionScenario,
     winnings: &PigeonWinnings,
     actions_remaining: i32,
+    item: &Option<SimpleItem>,
 ) {
     let mut text = String::from(&scenario.text);
-    text.push_str("\n");
+    text.push_str("\n\n");
     text.push_str(&winnings.to_string());
 
     let _ = msg
         .channel_id
         .send_message(&ctx, |m| {
             m.embed(|e| {
+                match item {
+                    Some(i) => {
+                        e.thumbnail(&i.image_url);
+                        text.push_str(&format!("\n\nReceived: 1 `{}`!", &i.name))
+                    }
+                    None => {}
+                };
+
                 e.normal_embed(&text)
                     .footer(|f| f.text(format!("{} actions remaining", actions_remaining)))
             })

@@ -103,6 +103,8 @@ pub struct ExplorationEndStats {
 
     #[sql_type = "BigInt"]
     pub total_seconds: i64,
+
+    //TODO: add multiple items
 }
 
 impl ExplorationEndStats {
