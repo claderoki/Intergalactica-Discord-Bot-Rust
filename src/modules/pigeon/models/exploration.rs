@@ -104,30 +104,55 @@ pub struct ExplorationEndStats {
     #[sql_type = "BigInt"]
     pub total_seconds: i64,
 
-    //TODO: add multiple items
+    #[sql_type = "Nullable<VarChar>"]
+    pub item_ids: Option<String>,
 }
 
 impl ExplorationEndStats {
     pub fn to_pigeon_winnings(&self) -> PigeonWinnings {
-        PigeonWinningsBuilder::new()
+        let mut winnings = PigeonWinningsBuilder::new();
+
+        winnings
             .food(self.food as i32)
             .gold(self.gold as i32)
             .happiness(self.happiness as i32)
+            .cleanliness(self.cleanliness as i32)
             .health(self.health as i32)
-            .experience(self.experience as i32)
-            .build()
+            .experience(self.experience as i32);
+
+        match &self.item_ids {
+            Some(ids_str) => {
+                for id in ids_str.split(",").map(|i| i.parse::<i32>().unwrap()) {
+                    winnings.add_item_id(id);
+                }
+            }
+            _ => {}
+        }
+
+        winnings.build()
     }
 }
 
 impl ExplorationActionScenarioWinnings {
     pub fn to_pigeon_winnings(&self) -> PigeonWinnings {
-        PigeonWinningsBuilder::new()
-            .food(self.food)
-            .gold(self.gold)
-            .happiness(self.happiness)
-            .health(self.health)
-            .experience(self.experience)
-            .build()
+        let mut winnings = PigeonWinningsBuilder::new();
+
+        winnings
+            .food(self.food as i32)
+            .gold(self.gold as i32)
+            .happiness(self.happiness as i32)
+            .cleanliness(self.cleanliness as i32)
+            .health(self.health as i32)
+            .experience(self.experience as i32);
+
+        match self.item_id {
+            Some(item_id) => {
+                winnings.add_item_id(item_id);
+            }
+            _ => {}
+        }
+
+        winnings.build()
     }
 }
 

@@ -6,7 +6,10 @@ use diesel::{
 
 use crate::{
     database::connection::get_connection_diesel,
-    modules::pigeon::{helpers::utils::PigeonWinnings, models::exploration::*},
+    modules::{
+        pigeon::{helpers::utils::PigeonWinnings, models::exploration::*},
+        shared::repository::item::SimpleItem,
+    },
 };
 
 pub struct ExplorationRepository;
@@ -35,6 +38,23 @@ impl ExplorationRepository {
         .execute(&connection);
     }
 
+    pub fn get_end_items(exploration_id: i32) -> Result<Vec<SimpleItem>, String> {
+        let connection = get_connection_diesel();
+
+        let results: Result<Vec<SimpleItem>, _> =
+            sql_query(include_str!("queries/exploration/get_end_items.sql"))
+                .bind::<Integer, _>(exploration_id)
+                .get_results(&connection);
+
+        match results {
+            Ok(data) => Ok(data),
+            Err(e) => {
+                println!("{:?}", e);
+                Err(format!("{:?}", e))
+            }
+        }
+    }
+
     pub fn finish_exploration(exploration_id: i32) {
         let connection = get_connection_diesel();
 
@@ -49,7 +69,6 @@ impl ExplorationRepository {
         winnings: &PigeonWinnings,
     ) {
         let connection = get_connection_diesel();
-        let item_id: Option<i32> = None;
 
         let results = sql_query(include_str!(
             "queries/exploration/add_exploration_winnings.sql"
@@ -60,7 +79,7 @@ impl ExplorationRepository {
         .bind::<Integer, _>(winnings.cleanliness)
         .bind::<Integer, _>(winnings.food)
         .bind::<Integer, _>(winnings.happiness)
-        .bind::<Nullable<Integer>, _>(item_id)
+        .bind::<Nullable<Integer>, _>(winnings.item_ids.get(0))
         .bind::<Integer, _>(exploration_id)
         .bind::<Integer, _>(action_id)
         .execute(&connection);

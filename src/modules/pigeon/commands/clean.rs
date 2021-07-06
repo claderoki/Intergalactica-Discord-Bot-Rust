@@ -16,9 +16,9 @@ use crate::{
     },
 };
 
-#[command("heal")]
-#[description("Heal your pigeon.")]
-pub async fn heal(ctx: &Context, msg: &Message) -> CommandResult {
+#[command("clean")]
+#[description("Clean your pigeon.")]
+pub async fn clean(ctx: &Context, msg: &Message) -> CommandResult {
     let cost = 20;
     let increase = 20;
 
@@ -29,18 +29,17 @@ pub async fn heal(ctx: &Context, msg: &Message) -> CommandResult {
         .validate(&msg.author)?;
 
     let winnings = PigeonWinningsBuilder::new()
+        .cleanliness(increase)
         .gold(-cost)
-        .health(increase)
         .build();
 
     winnings_message(
         ctx,
         msg,
         &winnings,
-        "You give your pigeon some health. It's health is refilled!".into(),
+        "Your pigeon leaves dirty food prints on the floor! You decide to give it a bath.".into(),
     )
     .await?;
-    // heal_message(ctx, msg, &winnings).await?;
     PigeonRepository::update_winnings(human_id, &winnings)?;
     Ok(())
 }

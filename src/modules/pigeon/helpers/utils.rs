@@ -5,6 +5,7 @@ pub struct PigeonWinningsBuilder {
     pub happiness: i32,
     pub food: i32,
     pub health: i32,
+    pub item_ids: Vec<i32>,
 }
 impl PigeonWinningsBuilder {
     pub fn new() -> Self {
@@ -15,6 +16,7 @@ impl PigeonWinningsBuilder {
             happiness: 0,
             food: 0,
             health: 0,
+            item_ids: Vec::new(),
         }
     }
 
@@ -48,6 +50,11 @@ impl PigeonWinningsBuilder {
         self
     }
 
+    pub fn add_item_id(&mut self, value: i32) -> &mut Self {
+        self.item_ids.push(value);
+        self
+    }
+
     pub fn build(&self) -> PigeonWinnings {
         PigeonWinnings {
             gold: self.gold,
@@ -56,11 +63,10 @@ impl PigeonWinningsBuilder {
             happiness: self.happiness,
             food: self.food,
             health: self.health,
+            item_ids: (*self.item_ids).to_vec(),
         }
     }
 }
-
-pub struct Item;
 
 pub struct PigeonWinnings {
     pub gold: i32,
@@ -69,6 +75,7 @@ pub struct PigeonWinnings {
     pub happiness: i32,
     pub food: i32,
     pub health: i32,
+    pub item_ids: Vec<i32>,
 }
 
 impl PigeonWinnings {
@@ -118,7 +125,7 @@ fn winning_to_string(winning: i32, name: &'static str) -> String {
     let mut emoji = winning_to_emoji(name);
     emoji.push_str(" ");
     if winning >= 0 {
-        emoji.push_str(" +");
+        emoji.push_str("+");
     }
     emoji.push_str(winning.to_string().as_str());
     emoji

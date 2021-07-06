@@ -66,56 +66,25 @@ impl TimeDelta {
         }
     }
 
+    fn push_single_value(value: i64, name: &'static str, messages: &mut Vec<String>) {
+        if messages.len() < 2 && value > 0 {
+            if value == 1 {
+                messages.push(format!("{} {}", value, name));
+            } else {
+                messages.push(format!("{} {}s", value, name));
+            }
+        }
+    }
+
     pub fn to_text(&self) -> String {
         let mut messages: Vec<String> = Vec::new();
 
-        if messages.len() < 2 && self.years > 0 {
-            if self.years == 1 {
-                messages.push(format!("{} year", self.years));
-            } else {
-                messages.push(format!("{} years", self.years));
-            }
-        }
-
-        if messages.len() < 2 && self.months > 0 {
-            if self.months == 1 {
-                messages.push(format!("{} month", self.months));
-            } else {
-                messages.push(format!("{} months", self.months));
-            }
-        }
-
-        if messages.len() < 2 && self.days > 0 {
-            if self.days == 1 {
-                messages.push(format!("{} day", self.days));
-            } else {
-                messages.push(format!("{} days", self.days));
-            }
-        }
-
-        if messages.len() < 2 && self.hours > 0 {
-            if self.hours == 1 {
-                messages.push(format!("{} hour", self.hours));
-            } else {
-                messages.push(format!("{} hours", self.hours));
-            }
-        }
-
-        if messages.len() < 2 && self.minutes > 0 {
-            if self.minutes == 1 {
-                messages.push(format!("{} minute", self.minutes));
-            } else {
-                messages.push(format!("{} minutes", self.minutes));
-            }
-        }
-
-        if messages.len() < 2 && self.seconds > 0 {
-            if self.seconds == 1 {
-                messages.push(format!("{} second", self.seconds));
-            } else {
-                messages.push(format!("{} seconds", self.seconds));
-            }
-        }
+        TimeDelta::push_single_value(self.years, "year", &mut messages);
+        TimeDelta::push_single_value(self.months, "month", &mut messages);
+        TimeDelta::push_single_value(self.days, "day", &mut messages);
+        TimeDelta::push_single_value(self.hours, "hour", &mut messages);
+        TimeDelta::push_single_value(self.minutes, "minute", &mut messages);
+        TimeDelta::push_single_value(self.seconds, "second", &mut messages);
 
         messages.join(" and ")
     }

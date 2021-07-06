@@ -11,8 +11,7 @@ use crate::{
             helpers::{utils::PigeonWinnings, validation::PigeonValidation},
             models::{
                 exploration::{
-                    Exploration, ExplorationAction, ExplorationActionScenario,
-                    ExplorationActionScenarioWinnings, ExplorationEndStats,
+                    Exploration, ExplorationAction, ExplorationActionScenario, ExplorationEndStats,
                 },
                 pigeon::PigeonStatus,
             },
@@ -58,17 +57,24 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
         let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
         PigeonRepository::update_status(human_id, PigeonStatus::Idle);
         ExplorationRepository::finish_exploration(exploration.id);
-        exploration_done_message(&msg, &ctx, end_stats).await;
+        exploration_done_message(&msg, &ctx, &exploration, end_stats).await;
     } else {
         let action = choose_action(msg, ctx, &exploration).await?;
         let scenario = ExplorationRepository::get_scenario(action.id)?;
         let scenario_winnings = ExplorationRepository::get_scenario_winnings(scenario.winnings_id)?;
-        let item = get_item(&scenario_winnings);
-        let winnings = scenario_winnings.to_pigeon_winnings();
-        PigeonRepository::update_winnings(human_id, &winnings);
-        if item.is_some() {
-            ItemRepository::add_item(item.as_ref().unwrap().id, human_id, 1)?;
-        }
+        let mut winnings = scenario_winnings.to_pigeon_winnings();
+
+        let item = if winnings.item_ids.len() > 0 {
+            ItemRepository::get_simple(*winnings.item_ids.get(0).unwrap()).ok()
+        } else if scenario_winnings.item_category_id.is_some() {
+            let item = ItemRepository::get_random(scenario_winnings.item_category_id.unwrap())?;
+            winnings.item_ids.push(item.id);
+            Some(item)
+        } else {
+            None
+        };
+
+        PigeonRepository::update_winnings(human_id, &winnings)?;
         ExplorationRepository::reduce_action_remaining(exploration.id);
         ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings);
         let remaining = exploration.actions_remaining - 1;
@@ -77,33 +83,6 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
-
-fn get_item(winnings: &ExplorationActionScenarioWinnings) -> Option<SimpleItem> {
-    if winnings.item_id.is_some() {
-        ItemRepository::get_simple(winnings.item_id.unwrap()).map_or_else(|_| None, |e| Some(e))
-    } else if winnings.item_category_id.is_some() {
-        None
-    } else {
-        None
-    }
-}
-
-/*
-.create_select_menu(|s| {
-    s.min_values(1)
-        .placeholder("hmm")
-        .max_values(max)
-        .custom_id("abc")
-        .options(|m| {
-            m.create_option(|o| {
-                o.description("Option 1").label("1").value("option 1")
-            })
-            .create_option(|o| {
-                o.description("Option 2").label("2").value("otpion 2")
-            })
-        })
-})
-*/
 
 async fn scenario_winnings_message(
     msg: &Message,
@@ -137,17 +116,40 @@ async fn scenario_winnings_message(
         .or(Err("scenario_winnings_message failure"));
 }
 
-async fn exploration_done_message(msg: &Message, ctx: &Context, end_stats: ExplorationEndStats) {
-    let mut text = String::from(&format!(
+async fn exploration_done_message(
+    msg: &Message,
+    ctx: &Context,
+    exploration: &Exploration,
+    end_stats: ExplorationEndStats,
+) {
+    let text = format!(
         "After {} of exploring Luna, your pigeon finally returns home.\n\n",
         TimeDelta::from_seconds(end_stats.total_seconds).to_text()
-    ));
-    text.push_str(&end_stats.to_pigeon_winnings().to_string());
+    );
+
+    let winnings = &end_stats.to_pigeon_winnings();
 
     let _ = msg
         .channel_id
         .send_message(&ctx, |m| {
-            m.embed(|e| e.normal_embed(&text).footer(|f| f.text("")))
+            m.embed(|e| {
+                e.normal_embed(&text).footer(|f| f.text(""));
+                e.field("Stats", &winnings.to_string(), false);
+                if !&winnings.item_ids.is_empty() {
+                    let items_result = ExplorationRepository::get_end_items(exploration.id);
+                    match items_result {
+                        Ok(items) => {
+                            let mut value = String::from("");
+                            for item in items {
+                                value.push_str(&format!("{}x {}\n", item.amount, item.name));
+                            }
+                            e.field("Items", value, false);
+                        }
+                        _ => {}
+                    }
+                }
+                e
+            })
         })
         .await
         .or(Err("exploration_done_message failure"));
@@ -200,6 +202,23 @@ async fn choose_action(
     let action = actions.swap_remove(index);
     Ok(action)
 }
+
+/*
+.create_select_menu(|s| {
+    s.min_values(1)
+        .placeholder("hmm")
+        .max_values(max)
+        .custom_id("abc")
+        .options(|m| {
+            m.create_option(|o| {
+                o.description("Option 1").label("1").value("option 1")
+            })
+            .create_option(|o| {
+                o.description("Option 2").label("2").value("otpion 2")
+            })
+        })
+})
+*/
 
 /*
 

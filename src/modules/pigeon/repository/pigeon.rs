@@ -1,5 +1,6 @@
 use crate::modules::pigeon::models::pigeon::PigeonProfile;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
+use crate::modules::shared::repository::item::ItemRepository;
 use crate::{
     database::connection::get_connection_diesel, modules::pigeon::helpers::utils::PigeonWinnings,
 };
@@ -8,19 +9,30 @@ use diesel::{sql_query, sql_types::Integer, RunQueryDsl};
 pub struct PigeonRepository;
 
 impl PigeonRepository {
-    pub fn update_winnings(human_id: i32, winnings: &PigeonWinnings) {
+    pub fn update_winnings(human_id: i32, winnings: &PigeonWinnings) -> Result<(), String> {
         let connection = get_connection_diesel();
 
         let _results = sql_query(include_str!("queries/pigeon/update_winnings.sql"))
             // TODO: set dead to true when health under 0? think about a way to notify people their pigeon died
-            .bind::<Varchar, _>(winnings.health.to_string())
-            .bind::<Varchar, _>(winnings.happiness.to_string())
-            .bind::<Varchar, _>(winnings.cleanliness.to_string())
-            .bind::<Varchar, _>(winnings.experience.to_string())
-            .bind::<Varchar, _>(winnings.food.to_string())
-            .bind::<Varchar, _>(winnings.gold.to_string())
+            .bind::<Integer, _>(winnings.health)
+            .bind::<Integer, _>(winnings.happiness)
+            .bind::<Integer, _>(winnings.cleanliness)
+            .bind::<Integer, _>(winnings.experience)
+            .bind::<Integer, _>(winnings.food)
+            .bind::<Integer, _>(winnings.gold)
             .bind::<Integer, _>(human_id)
             .execute(&connection);
+
+        match _results {
+            Err(e) => return Err(format!("{:?}", e).into()),
+            _ => {}
+        }
+
+        if !winnings.item_ids.is_empty() {
+            let _ = ItemRepository::add_items((*winnings.item_ids).to_vec(), human_id)?;
+        }
+
+        Ok(())
     }
 
     pub fn get_profile(human_id: i32) -> Result<PigeonProfile, String> {
