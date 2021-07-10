@@ -1,19 +1,14 @@
-use diesel::{
-    sql_query,
-    sql_types::{Double, Integer, Nullable},
-    RunQueryDsl,
-};
+use diesel::sql_query;
+use diesel::sql_types::Double;
+use diesel::sql_types::Integer;
+use diesel::sql_types::Nullable;
+use diesel::RunQueryDsl;
 
-use crate::{
-    database::connection::get_connection_diesel,
-    modules::{
-        pigeon::{
-            helpers::utils::PigeonWinnings, models::exploration::*,
-            repository::pigeon::PigeonRepository,
-        },
-        shared::repository::item::SimpleItem,
-    },
-};
+use crate::database::connection::get_connection_diesel;
+use crate::modules::pigeon::helpers::utils::PigeonWinnings;
+use crate::modules::pigeon::models::exploration::*;
+use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::repository::item::SimpleItem;
 
 pub struct ExplorationRepository;
 impl ExplorationRepository {

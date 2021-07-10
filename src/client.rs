@@ -1,14 +1,16 @@
-use serenity::{
-    client::bridge::gateway::ShardManager,
-    framework::{standard::CommandError, StandardFramework},
-    http::Http,
-    model::channel::Message,
-    prelude::*,
-};
+use serenity::client::bridge::gateway::ShardManager;
+use serenity::framework::standard::CommandError;
+use serenity::framework::StandardFramework;
+use serenity::http::Http;
+use serenity::model::channel::Message;
+use serenity::prelude::*;
 
-use std::{collections::HashSet, env, sync::Arc};
+use std::collections::HashSet;
+use std::env;
+use std::sync::Arc;
 
-use tracing_subscriber::{EnvFilter, FmtSubscriber};
+use tracing_subscriber::EnvFilter;
+use tracing_subscriber::FmtSubscriber;
 
 use crate::modules::games::base::*;
 use crate::modules::pigeon::commands::base::*;

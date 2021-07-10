@@ -1,15 +1,16 @@
+use crate::database::connection::get_connection_diesel;
+use crate::modules::pigeon::helpers::utils::PigeonWinnings;
 use crate::modules::pigeon::models::pigeon::GoldModifier;
 use crate::modules::pigeon::models::pigeon::PigeonName;
 use crate::modules::pigeon::models::pigeon::PigeonProfile;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::shared::repository::item::ItemRepository;
-use crate::{
-    database::connection::get_connection_diesel, modules::pigeon::helpers::utils::PigeonWinnings,
-};
+use diesel::sql_query;
 use diesel::sql_types::Bool;
 use diesel::sql_types::Double;
+use diesel::sql_types::Integer;
 use diesel::types::Varchar;
-use diesel::{sql_query, sql_types::Integer, RunQueryDsl};
+use diesel::RunQueryDsl;
 pub struct PigeonRepository;
 
 impl PigeonRepository {
@@ -42,10 +43,9 @@ impl PigeonRepository {
     pub fn get_name(human_id: i32) -> Result<PigeonName, String> {
         let connection = get_connection_diesel();
 
-        let results: Result<PigeonName, _> =
-            sql_query(include_str!("queries/pigeon/get_name.sql"))
-                .bind::<Integer, _>(human_id)
-                .get_result(&connection);
+        let results: Result<PigeonName, _> = sql_query(include_str!("queries/pigeon/get_name.sql"))
+            .bind::<Integer, _>(human_id)
+            .get_result(&connection);
 
         match results {
             Ok(data) => Ok(data),

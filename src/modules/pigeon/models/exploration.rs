@@ -1,6 +1,11 @@
-use diesel::sql_types::{BigInt, Bool, Integer, Nullable, VarChar};
+use diesel::sql_types::BigInt;
+use diesel::sql_types::Bool;
+use diesel::sql_types::Integer;
+use diesel::sql_types::Nullable;
+use diesel::sql_types::VarChar;
 
-use crate::modules::pigeon::helpers::utils::{PigeonWinnings, PigeonWinningsBuilder};
+use crate::modules::pigeon::helpers::utils::PigeonWinnings;
+use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
 
 use super::pigeon::PigeonStatus;
 

@@ -1,34 +1,24 @@
-use serenity::{
-    client::Context,
-    framework::standard::{macros::command, CommandResult},
-    model::channel::Message,
-};
+use serenity::client::Context;
+use serenity::framework::standard::macros::command;
+use serenity::framework::standard::CommandResult;
+use serenity::model::channel::Message;
 
-use crate::{
-    discord_helpers::embed_utils::EmbedExtension,
-    modules::{
-        pigeon::{
-            helpers::{
-                utils::{PigeonWinnable, PigeonWinnings},
-                validation::PigeonValidation,
-            },
-            models::{
-                exploration::{
-                    Exploration, ExplorationAction, ExplorationActionScenario, ExplorationEndStats,
-                },
-                pigeon::PigeonStatus,
-            },
-            repository::{exploration::ExplorationRepository, pigeon::PigeonRepository},
-        },
-        shared::{
-            helpers::{
-                chooser::{choose, Choosable},
-                utils::TimeDelta,
-            },
-            repository::item::{ItemRepository, SimpleItem},
-        },
-    },
-};
+use crate::discord_helpers::embed_utils::EmbedExtension;
+use crate::modules::pigeon::helpers::utils::PigeonWinnable;
+use crate::modules::pigeon::helpers::utils::PigeonWinnings;
+use crate::modules::pigeon::helpers::validation::PigeonValidation;
+use crate::modules::pigeon::models::exploration::Exploration;
+use crate::modules::pigeon::models::exploration::ExplorationAction;
+use crate::modules::pigeon::models::exploration::ExplorationActionScenario;
+use crate::modules::pigeon::models::exploration::ExplorationEndStats;
+use crate::modules::pigeon::models::pigeon::PigeonStatus;
+use crate::modules::pigeon::repository::exploration::ExplorationRepository;
+use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::helpers::chooser::choose;
+use crate::modules::shared::helpers::chooser::Choosable;
+use crate::modules::shared::helpers::utils::TimeDelta;
+use crate::modules::shared::repository::item::ItemRepository;
+use crate::modules::shared::repository::item::SimpleItem;
 
 impl Choosable for ExplorationAction {
     fn get_identifier(&self) -> i32 {

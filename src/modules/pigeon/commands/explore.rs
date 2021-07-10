@@ -1,17 +1,13 @@
-use serenity::{
-    client::Context,
-    framework::standard::{macros::command, CommandResult},
-    model::channel::Message,
-};
+use serenity::client::Context;
+use serenity::framework::standard::macros::command;
+use serenity::framework::standard::CommandResult;
+use serenity::model::channel::Message;
 
-use crate::{
-    discord_helpers::embed_utils::EmbedExtension,
-    modules::pigeon::{
-        helpers::validation::PigeonValidation,
-        models::pigeon::PigeonStatus,
-        repository::{exploration::ExplorationRepository, pigeon::PigeonRepository},
-    },
-};
+use crate::discord_helpers::embed_utils::EmbedExtension;
+use crate::modules::pigeon::helpers::validation::PigeonValidation;
+use crate::modules::pigeon::models::pigeon::PigeonStatus;
+use crate::modules::pigeon::repository::exploration::ExplorationRepository;
+use crate::modules::pigeon::repository::pigeon::PigeonRepository;
 
 async fn success_scenario(msg: &Message, ctx: &Context, image_url: String) {
     let _ = msg

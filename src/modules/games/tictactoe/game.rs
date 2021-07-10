@@ -1,13 +1,14 @@
-use std::{convert::TryInto, time::Duration};
+use std::convert::TryInto;
+use std::time::Duration;
 
-use serenity::{
-    builder::{CreateButton, CreateComponents},
-    client::Context,
-    model::{
-        channel::{Message, ReactionType},
-        interactions::{ButtonStyle, InteractionData, InteractionResponseType},
-    },
-};
+use serenity::builder::CreateButton;
+use serenity::builder::CreateComponents;
+use serenity::client::Context;
+use serenity::model::channel::Message;
+use serenity::model::channel::ReactionType;
+use serenity::model::interactions::ButtonStyle;
+use serenity::model::interactions::InteractionData;
+use serenity::model::interactions::InteractionResponseType;
 
 pub struct Player {
     pub number: i32,

@@ -1,6 +1,9 @@
-use crate::database::{schema::human, utils::Countable};
+use crate::database::schema::human;
+use crate::database::utils::Countable;
 use crate::modules::shared::models::human::Human;
-use diesel::{sql_query, sql_types::Integer, RunQueryDsl};
+use diesel::sql_query;
+use diesel::sql_types::Integer;
+use diesel::RunQueryDsl;
 
 use crate::database::connection::get_connection_diesel;
 

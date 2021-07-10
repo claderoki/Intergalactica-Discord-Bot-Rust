@@ -1,24 +1,17 @@
-use serenity::{
-    builder::CreateEmbed,
-    client::Context,
-    framework::standard::{macros::command, CommandResult},
-    model::channel::Message,
-};
+use serenity::builder::CreateEmbed;
+use serenity::client::Context;
+use serenity::framework::standard::macros::command;
+use serenity::framework::standard::CommandResult;
+use serenity::model::channel::Message;
 
-use crate::{
-    discord_helpers::embed_utils::EmbedExtension,
-    modules::{
-        pigeon::{
-            helpers::{
-                utils::{PigeonWinnable, PigeonWinnings, PigeonWinningsBuilder},
-                validation::PigeonValidation,
-            },
-            models::pigeon::PigeonStatus,
-            repository::pigeon::PigeonRepository,
-        },
-        shared::repository::human::HumanRepository,
-    },
-};
+use crate::discord_helpers::embed_utils::EmbedExtension;
+use crate::modules::pigeon::helpers::utils::PigeonWinnable;
+use crate::modules::pigeon::helpers::utils::PigeonWinnings;
+use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
+use crate::modules::pigeon::helpers::validation::PigeonValidation;
+use crate::modules::pigeon::models::pigeon::PigeonStatus;
+use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::repository::human::HumanRepository;
 
 #[command("train")]
 #[description("Bulk up your bird.")]

@@ -1,4 +1,6 @@
-use diesel::sql_types::{BigInt, Integer, Nullable};
+use diesel::sql_types::BigInt;
+use diesel::sql_types::Integer;
+use diesel::sql_types::Nullable;
 
 #[derive(QueryableByName)]
 pub struct Countable {

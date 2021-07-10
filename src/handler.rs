@@ -1,8 +1,7 @@
-use serenity::{
-    async_trait,
-    model::{event::ResumedEvent, gateway::Ready},
-    prelude::*,
-};
+use serenity::async_trait;
+use serenity::model::event::ResumedEvent;
+use serenity::model::gateway::Ready;
+use serenity::prelude::*;
 
 use tracing::info;
 

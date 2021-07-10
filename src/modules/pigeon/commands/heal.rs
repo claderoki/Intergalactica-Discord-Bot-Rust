@@ -1,17 +1,13 @@
-use serenity::{
-    client::Context,
-    framework::standard::{macros::command, CommandResult},
-    model::channel::Message,
-};
+use serenity::client::Context;
+use serenity::framework::standard::macros::command;
+use serenity::framework::standard::CommandResult;
+use serenity::model::channel::Message;
 
-use crate::modules::pigeon::{
-    helpers::{
-        utils::PigeonWinningsBuilder, validation::PigeonValidation,
-        winning_message::winnings_message,
-    },
-    models::pigeon::PigeonStatus,
-    repository::pigeon::PigeonRepository,
-};
+use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
+use crate::modules::pigeon::helpers::validation::PigeonValidation;
+use crate::modules::pigeon::helpers::winning_message::winnings_message;
+use crate::modules::pigeon::models::pigeon::PigeonStatus;
+use crate::modules::pigeon::repository::pigeon::PigeonRepository;
 
 #[command("heal")]
 #[description("Heal your pigeon.")]

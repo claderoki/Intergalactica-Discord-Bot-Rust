@@ -1,10 +1,13 @@
-use diesel::{
-    backend::Backend,
-    deserialize,
-    serialize::{self, Output},
-    sql_types::{Double, Integer, VarChar},
-    types::{FromSql, ToSql, Varchar},
-};
+use diesel::backend::Backend;
+use diesel::deserialize;
+use diesel::serialize::Output;
+use diesel::serialize::{self};
+use diesel::sql_types::Double;
+use diesel::sql_types::Integer;
+use diesel::sql_types::VarChar;
+use diesel::types::FromSql;
+use diesel::types::ToSql;
+use diesel::types::Varchar;
 
 use crate::modules::pigeon::helpers::utils::PigeonWinnable;
 

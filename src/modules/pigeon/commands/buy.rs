@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use serenity::framework::standard::{macros::command, CommandResult};
+use serenity::framework::standard::macros::command;
+use serenity::framework::standard::CommandResult;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 

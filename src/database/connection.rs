@@ -1,4 +1,5 @@
-use diesel::prelude::{Connection, MysqlConnection};
+use diesel::prelude::Connection;
+use diesel::prelude::MysqlConnection;
 use std::env;
 
 fn get_db_url() -> String {

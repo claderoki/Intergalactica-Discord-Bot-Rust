@@ -1,8 +1,9 @@
-use serenity::model::prelude::{User, UserId};
+use serenity::model::id::UserId;
+use serenity::model::prelude::User;
 
-use crate::modules::shared::{
-    caching::human::HumanCache, models::human::Human, repository::human::HumanRepository,
-};
+use crate::modules::shared::caching::human::HumanCache;
+use crate::modules::shared::models::human::Human;
+use crate::modules::shared::repository::human::HumanRepository;
 
 pub trait HumanUtils {
     fn get_human(&self) -> Option<Human>;
@@ -89,4 +90,3 @@ impl TimeDelta {
         messages.join(" and ")
     }
 }
-

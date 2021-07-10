@@ -1,10 +1,10 @@
-use serenity::{
-    client::Context,
-    framework::standard::{macros::command, CommandResult},
-    model::channel::Message,
-};
+use serenity::client::Context;
+use serenity::framework::standard::macros::command;
+use serenity::framework::standard::CommandResult;
+use serenity::model::channel::Message;
 
-use super::game::{run_game, Game};
+use super::game::run_game;
+use super::game::Game;
 
 #[command("ttt")]
 #[description("Play TicTacToe.")]

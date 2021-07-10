@@ -1,17 +1,14 @@
-use diesel::{
-    sql_query,
-    sql_types::{Bool, Integer, VarChar},
-    RunQueryDsl,
-};
+use diesel::sql_query;
+use diesel::sql_types::Bool;
+use diesel::sql_types::Integer;
+use diesel::sql_types::VarChar;
+use diesel::RunQueryDsl;
 use serenity::model::prelude::User;
 
-use crate::{
-    database::connection::get_connection_diesel,
-    modules::{
-        pigeon::{models::pigeon::PigeonStatus, repository::pigeon::PigeonRepository},
-        shared::helpers::utils::HumanUtils,
-    },
-};
+use crate::database::connection::get_connection_diesel;
+use crate::modules::pigeon::models::pigeon::PigeonStatus;
+use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::helpers::utils::HumanUtils;
 
 #[derive(QueryableByName)]
 pub struct PigeonValidationResult {
