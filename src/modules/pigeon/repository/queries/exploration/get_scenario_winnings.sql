@@ -1,5 +1,10 @@
 SELECT
-    `exploration_action_scenario_winnings`.`gold`,
+    (CASE WHEN
+        `exploration_action_scenario_winnings`.`gold` > 0
+    THEN
+        CAST((`exploration_action_scenario_winnings`.`gold` * ?) AS INT)
+    ELSE `exploration_action_scenario_winnings`.`gold`
+    END) as `gold`,
     `exploration_action_scenario_winnings`.`health`,
     `exploration_action_scenario_winnings`.`happiness`,
     `exploration_action_scenario_winnings`.`cleanliness`,
@@ -9,6 +14,5 @@ SELECT
     `exploration_action_scenario_winnings`.`item_category_id`
 FROM
 exploration_action_scenario_winnings
--- LEFT JOIN `exploration_action_scenario_winnings`.`item_id` = `item`.`id`
 WHERE id = ?
 LIMIT 1

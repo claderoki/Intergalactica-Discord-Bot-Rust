@@ -78,38 +78,101 @@ pub struct PigeonWinnings {
     pub item_ids: Vec<i32>,
 }
 
-impl PigeonWinnings {
-    pub fn to_string(&self) -> String {
+pub trait PigeonWinnable {
+    fn get_gold(&self) -> i32;
+
+    fn get_cleanliness(&self) -> i32;
+
+    fn get_happiness(&self) -> i32;
+
+    fn get_health(&self) -> i32;
+
+    fn get_experience(&self) -> i32;
+
+    fn get_food(&self) -> i32;
+
+    fn get_seperator(&self) -> String {
+        ", ".into()
+    }
+
+    fn is_gained(&self) -> bool {
+        true
+    }
+
+    fn to_string(&self) -> String {
         let mut messages: Vec<String> = Vec::new();
 
-        if self.gold != 0 {
-            messages.push(winning_to_string(self.gold, "gold"));
+        if self.get_gold() != 0 {
+            messages.push(winning_to_string(self.get_gold(), "gold", self.is_gained()));
         }
 
-        if self.cleanliness != 0 {
-            messages.push(winning_to_string(self.cleanliness, "cleanliness"));
+        if self.get_cleanliness() != 0 {
+            messages.push(winning_to_string(
+                self.get_cleanliness(),
+                "cleanliness",
+                self.is_gained(),
+            ));
         }
 
-        if self.health != 0 {
-            messages.push(winning_to_string(self.health, "health"));
+        if self.get_health() != 0 {
+            messages.push(winning_to_string(
+                self.get_health(),
+                "health",
+                self.is_gained(),
+            ));
         }
 
-        if self.experience != 0 {
-            messages.push(winning_to_string(self.experience, "experience"));
+        if self.get_experience() != 0 {
+            messages.push(winning_to_string(
+                self.get_experience(),
+                "experience",
+                self.is_gained(),
+            ));
         }
 
-        if self.happiness != 0 {
-            messages.push(winning_to_string(self.happiness, "happiness"));
+        if self.get_happiness() != 0 {
+            messages.push(winning_to_string(
+                self.get_happiness(),
+                "happiness",
+                self.is_gained(),
+            ));
         }
 
-        if self.food != 0 {
-            messages.push(winning_to_string(self.food, "food"));
+        if self.get_food() != 0 {
+            messages.push(winning_to_string(self.get_food(), "food", self.is_gained()));
         }
-        messages.join(", ")
+
+        messages.join(&self.get_seperator())
     }
 }
 
-pub fn winning_to_emoji(winning: &'static str) -> String {
+impl PigeonWinnable for PigeonWinnings {
+    fn get_gold(&self) -> i32 {
+        self.gold
+    }
+
+    fn get_health(&self) -> i32 {
+        self.health
+    }
+
+    fn get_cleanliness(&self) -> i32 {
+        self.cleanliness
+    }
+
+    fn get_happiness(&self) -> i32 {
+        self.happiness
+    }
+
+    fn get_experience(&self) -> i32 {
+        self.experience
+    }
+
+    fn get_food(&self) -> i32 {
+        self.food
+    }
+}
+
+fn winning_to_emoji(winning: &'static str) -> String {
     String::from(match winning {
         "gold" => "💶",
         "experience" => "📊",
@@ -121,10 +184,10 @@ pub fn winning_to_emoji(winning: &'static str) -> String {
     })
 }
 
-fn winning_to_string(winning: i32, name: &'static str) -> String {
+fn winning_to_string(winning: i32, name: &'static str, show_plus: bool) -> String {
     let mut emoji = winning_to_emoji(name);
     emoji.push_str(" ");
-    if winning >= 0 {
+    if winning >= 0 && show_plus {
         emoji.push_str("+");
     }
     emoji.push_str(winning.to_string().as_str());

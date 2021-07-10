@@ -1,9 +1,13 @@
+use crate::modules::pigeon::models::pigeon::GoldModifier;
+use crate::modules::pigeon::models::pigeon::PigeonName;
 use crate::modules::pigeon::models::pigeon::PigeonProfile;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::shared::repository::item::ItemRepository;
 use crate::{
     database::connection::get_connection_diesel, modules::pigeon::helpers::utils::PigeonWinnings,
 };
+use diesel::sql_types::Bool;
+use diesel::sql_types::Double;
 use diesel::types::Varchar;
 use diesel::{sql_query, sql_types::Integer, RunQueryDsl};
 pub struct PigeonRepository;
@@ -13,7 +17,7 @@ impl PigeonRepository {
         let connection = get_connection_diesel();
 
         let _results = sql_query(include_str!("queries/pigeon/update_winnings.sql"))
-            // TODO: set dead to true when health under 0? think about a way to notify people their pigeon died
+            .bind::<Integer, _>(winnings.health)
             .bind::<Integer, _>(winnings.health)
             .bind::<Integer, _>(winnings.happiness)
             .bind::<Integer, _>(winnings.cleanliness)
@@ -35,6 +39,20 @@ impl PigeonRepository {
         Ok(())
     }
 
+    pub fn get_name(human_id: i32) -> Result<PigeonName, String> {
+        let connection = get_connection_diesel();
+
+        let results: Result<PigeonName, _> =
+            sql_query(include_str!("queries/pigeon/get_name.sql"))
+                .bind::<Integer, _>(human_id)
+                .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data),
+            Err(e) => Err(format!("{:?}", e)),
+        }
+    }
+
     pub fn get_profile(human_id: i32) -> Result<PigeonProfile, String> {
         let connection = get_connection_diesel();
 
@@ -49,6 +67,29 @@ impl PigeonRepository {
         }
     }
 
+    pub fn get_gold_modifier(human_id: i32) -> Result<GoldModifier, String> {
+        let connection = get_connection_diesel();
+
+        let results: Result<GoldModifier, _> =
+            sql_query(include_str!("queries/pigeon/get_gold_modifier.sql"))
+                .bind::<Integer, _>(human_id)
+                .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data),
+            Err(e) => Err(format!("{:?}", e)),
+        }
+    }
+
+    pub fn increase_gold_modifier(human_id: i32, value: f64) {
+        let connection = get_connection_diesel();
+
+        let _results = sql_query(include_str!("queries/pigeon/increase_gold_modifier.sql"))
+            .bind::<Double, _>(value)
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
+    }
+
     pub fn update_status(human_id: i32, status: PigeonStatus) {
         let connection = get_connection_diesel();
 
@@ -58,10 +99,19 @@ impl PigeonRepository {
             .execute(&connection);
     }
 
+    pub fn update_death_notified(human_id: i32, value: bool) {
+        let connection = get_connection_diesel();
+
+        let _results = sql_query(include_str!("queries/pigeon/update_death_notified.sql"))
+            .bind::<Bool, _>(value)
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
+    }
+
     pub fn create(human_id: i32, name: &str) -> Result<(), &'static str> {
         let connection = get_connection_diesel();
 
-        let _results = sql_query(include_str!("queries/pigeon/update_winnings.sql"))
+        let _results = sql_query(include_str!("queries/pigeon/create.sql"))
             .bind::<Varchar, _>(name)
             .bind::<Integer, _>(human_id)
             .execute(&connection)

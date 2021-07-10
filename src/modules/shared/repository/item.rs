@@ -21,6 +21,11 @@ pub struct SimpleItem {
     pub amount: i64,
 }
 
+enum CategoryType {
+    Children,
+    Parents
+}
+
 pub struct ItemRepository;
 impl ItemRepository {
     pub fn get_simple(id: i32) -> Result<SimpleItem, String> {
@@ -62,9 +67,12 @@ impl ItemRepository {
     //     }
     // }
 
-    fn get_parents(connection: &MysqlConnection, category_id: i32) -> Result<Vec<i32>, String> {
+    fn get_categories(connection: &MysqlConnection, category_id: i32, category_type: &CategoryType) -> Result<Vec<i32>, String> {
         let results: Result<Vec<NullableIdOnly>, _> =
-            sql_query(include_str!("queries/item/get_parents.sql"))
+            sql_query(match category_type {
+                    CategoryType::Children => include_str!("queries/item/get_children.sql"),
+                    CategoryType::Parents =>  include_str!("queries/item/get_parents.sql"),
+                })
                 .bind::<Integer, _>(category_id)
                 .get_results(connection);
 
@@ -88,22 +96,23 @@ impl ItemRepository {
         }
     }
 
-    fn get_all_parents(connection: &MysqlConnection, category_id: i32) -> Result<Vec<i32>, String> {
-        let mut all_parents: Vec<i32> = Vec::new();
-        all_parents.push(category_id);
+    fn get_all_categories(connection: &MysqlConnection, category_id: i32, category_type: &CategoryType) -> Result<Vec<i32>, String> {
+        let mut all: Vec<i32> = Vec::new();
+        all.push(category_id);
         let mut category_ids: Vec<i32> = Vec::new();
         category_ids.push(category_id);
-        let mut i = 0;
 
-        while category_ids.len() > 0 || i > 5 {
+        let mut i = 0;
+        while category_ids.len() > 0 && i < 5 {
+            println!("looping");
             for cat_id in category_ids.clone().iter() {
-                let parents = ItemRepository::get_parents(&connection, *cat_id);
-                match parents {
-                    Ok(p) => {
-                        if p.len() > 0 {
-                            category_ids.clear();
-                            for id in p.iter() {
-                                all_parents.push(*id);
+                let categories = ItemRepository::get_categories(&connection, *cat_id, &category_type);
+                match categories {
+                    Ok(c) => {
+                        category_ids.clear();
+                        if c.len() > 0 {
+                            for id in c.iter() {
+                                all.push(*id);
                                 category_ids.push(*id);
                             }
                         }
@@ -116,13 +125,18 @@ impl ItemRepository {
             i += 1;
         }
 
-        Ok(all_parents)
+        for c in all.iter() {
+            println!("{}", c);
+        }
+
+        Ok(all)
     }
 
     pub fn get_random(category_id: i32) -> Result<SimpleItem, String> {
         let connection = get_connection_diesel();
 
-        let parents = ItemRepository::get_all_parents(&connection, category_id)?;
+        let parents = ItemRepository::get_all_categories(&connection, category_id, &CategoryType::Children)?;
+
         if parents.is_empty() {
             return Err("No items found.".into());
         }

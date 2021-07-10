@@ -56,8 +56,8 @@ pub struct ExplorationAction {
 }
 #[derive(QueryableByName)]
 pub struct ExplorationActionScenarioWinnings {
-    #[sql_type = "Integer"]
-    pub gold: i32,
+    #[sql_type = "BigInt"]
+    pub gold: i64,
 
     #[sql_type = "Integer"]
     pub health: i32,

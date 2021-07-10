@@ -2,9 +2,11 @@ use diesel::{
     backend::Backend,
     deserialize,
     serialize::{self, Output},
-    sql_types::{Integer, VarChar},
+    sql_types::{Double, Integer, VarChar},
     types::{FromSql, ToSql, Varchar},
 };
+
+use crate::modules::pigeon::helpers::utils::PigeonWinnable;
 
 #[derive(Debug, Clone, Copy, FromSqlRow)]
 pub enum PigeonStatus {
@@ -31,7 +33,7 @@ impl PigeonStatus {
 
     pub fn get_friendly_verb(self) -> String {
         String::from(match self {
-            PigeonStatus::Idle => "being lazy",
+            PigeonStatus::Idle => "idle",
             PigeonStatus::Mailing => "sending a mail",
             PigeonStatus::Exploring => "exploring",
             PigeonStatus::Fighting => "in a fight",
@@ -126,6 +128,9 @@ pub struct PigeonProfile {
     pub health: i32,
 
     #[sql_type = "Integer"]
+    pub gold: i32,
+
+    #[sql_type = "Integer"]
     pub happiness: i32,
 
     #[sql_type = "Integer"]
@@ -139,6 +144,52 @@ pub struct PigeonProfile {
 
     #[sql_type = "VarChar"]
     pub status: PigeonStatus,
+}
+
+#[derive(QueryableByName)]
+pub struct PigeonName {
+    #[sql_type = "VarChar"]
+    pub value: String,
+}
+
+#[derive(QueryableByName)]
+pub struct GoldModifier {
+    #[sql_type = "Double"]
+    pub value: f64,
+}
+
+impl PigeonWinnable for PigeonProfile {
+    fn get_gold(&self) -> i32 {
+        self.gold
+    }
+
+    fn get_health(&self) -> i32 {
+        self.health
+    }
+
+    fn get_cleanliness(&self) -> i32 {
+        self.cleanliness
+    }
+
+    fn get_happiness(&self) -> i32 {
+        self.happiness
+    }
+
+    fn get_experience(&self) -> i32 {
+        self.experience
+    }
+
+    fn get_food(&self) -> i32 {
+        self.food
+    }
+
+    fn is_gained(&self) -> bool {
+        false
+    }
+
+    fn get_seperator(&self) -> String {
+        return "\n".into();
+    }
 }
 
 impl<DB> ToSql<Varchar, DB> for PigeonStatus

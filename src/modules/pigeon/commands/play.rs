@@ -4,16 +4,13 @@ use serenity::{
     model::channel::Message,
 };
 
-use crate::{
-    modules::pigeon::{
-        helpers::{
-            utils::{PigeonWinningsBuilder},
-            validation::PigeonValidation,
-            winning_message::winnings_message,
-        },
-        models::pigeon::PigeonStatus,
-        repository::pigeon::PigeonRepository,
+use crate::modules::pigeon::{
+    helpers::{
+        utils::PigeonWinningsBuilder, validation::PigeonValidation,
+        winning_message::winnings_message,
     },
+    models::pigeon::PigeonStatus,
+    repository::pigeon::PigeonRepository,
 };
 
 #[command("play")]

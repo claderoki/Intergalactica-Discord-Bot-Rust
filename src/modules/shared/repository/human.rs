@@ -1,4 +1,4 @@
-use crate::database::schema::human;
+use crate::database::{schema::human, utils::Countable};
 use crate::modules::shared::models::human::Human;
 use diesel::{sql_query, sql_types::Integer, RunQueryDsl};
 
@@ -33,6 +33,33 @@ impl HumanRepository {
         match result {
             Ok(_) => Ok(()),
             Err(_) => Err("Could not update item"),
+        }
+    }
+
+    pub fn has_gold(human_id: i32, min_amount: i32) -> Result<bool, &'static str> {
+        let connection = get_connection_diesel();
+
+        let results: Result<Countable, _> = sql_query(
+            "
+            SELECT
+            COUNT(*) AS count
+            FROM
+            human
+            WHERE gold >= ?
+            AND id = ?
+            LIMIT 1
+            ",
+        )
+        .bind::<Integer, _>(min_amount)
+        .bind::<Integer, _>(human_id)
+        .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data.count > 0),
+            Err(e) => {
+                println!("{:?}", e);
+                Err("idk wtf is wrong")
+            }
         }
     }
 

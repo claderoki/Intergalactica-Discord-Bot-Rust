@@ -1,7 +1,9 @@
 use serenity::{client::Context, model::channel::Message};
 
 use super::utils::PigeonWinnings;
-use crate::discord_helpers::embed_utils::EmbedExtension;
+use crate::{
+    discord_helpers::embed_utils::EmbedExtension, modules::pigeon::helpers::utils::PigeonWinnable,
+};
 
 pub async fn winnings_message(
     ctx: &Context,

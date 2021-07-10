@@ -1,4 +1,9 @@
-SELECT results.* FROM (
+SELECT
+    `results`.`id`,
+    `results`.`name`,
+    `results`.`image_url`,
+    CAST(1 AS INT) as `amount`
+FROM (
     SELECT 
         `item`.`id`,
         `item`.`name`,

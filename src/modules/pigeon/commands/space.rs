@@ -8,7 +8,10 @@ use crate::{
     discord_helpers::embed_utils::EmbedExtension,
     modules::{
         pigeon::{
-            helpers::{utils::PigeonWinnings, validation::PigeonValidation},
+            helpers::{
+                utils::{PigeonWinnable, PigeonWinnings},
+                validation::PigeonValidation,
+            },
             models::{
                 exploration::{
                     Exploration, ExplorationAction, ExplorationActionScenario, ExplorationEndStats,
@@ -61,7 +64,8 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
     } else {
         let action = choose_action(msg, ctx, &exploration).await?;
         let scenario = ExplorationRepository::get_scenario(action.id)?;
-        let scenario_winnings = ExplorationRepository::get_scenario_winnings(scenario.winnings_id)?;
+        let scenario_winnings =
+            ExplorationRepository::get_scenario_winnings(scenario.winnings_id, human_id)?;
         let mut winnings = scenario_winnings.to_pigeon_winnings();
 
         let item = if winnings.item_ids.len() > 0 {
@@ -73,7 +77,6 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
         } else {
             None
         };
-
         PigeonRepository::update_winnings(human_id, &winnings)?;
         ExplorationRepository::reduce_action_remaining(exploration.id);
         ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings);
@@ -185,7 +188,7 @@ async fn choose_action(
     let mut actions = ExplorationRepository::get_available_actions(exploration.location_id)?;
     let location = ExplorationRepository::get_location(exploration.location_id).unwrap();
 
-    let index = choose::<ExplorationAction, _>(msg, ctx, &actions, |e, t| {
+    let index = choose::<ExplorationAction, _>(ctx, msg, &actions, |e, t| {
         e.normal_embed(&format!(
             "You arrive at {}.\n\nWhat action would you like to perform?\n{}",
             location.planet_name, &t

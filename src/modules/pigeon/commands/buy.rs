@@ -4,13 +4,10 @@ use serenity::framework::standard::{macros::command, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
-use crate::{
-    discord_helpers::embed_utils::EmbedExtension,
-    modules::{
-        pigeon::{helpers::validation::PigeonValidation, repository::pigeon::PigeonRepository},
-        shared::repository::human::HumanRepository,
-    },
-};
+use crate::discord_helpers::embed_utils::EmbedExtension;
+use crate::modules::pigeon::helpers::validation::PigeonValidation;
+use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::repository::human::HumanRepository;
 
 async fn ask_pigeon_name(msg: &Message, ctx: &Context) -> Result<String, &'static str> {
     let _ = msg
@@ -48,7 +45,7 @@ pub async fn buy(ctx: &Context, msg: &Message) -> CommandResult {
     let _ = msg
         .channel_id
         .send_message(&ctx, |m| {
-            m.embed(|e| e.priced_embed("You just purchased a pigeon!", cost))
+            m.embed(|e| e.normal_embed("You just purchased a pigeon!"))
         })
         .await;
 

@@ -6,8 +6,12 @@
 //     fn get_value(&self) -> i32;
 // }
 
+// pub enum HumanStat {
+//     Gold(i32)
+// }
+
 // #[derive(Debug)]
-// enum PigeonStat {
+// pub enum PigeonStat {
 //     Food(i32),
 //     Health(i32),
 //     Cleanliness(i32),

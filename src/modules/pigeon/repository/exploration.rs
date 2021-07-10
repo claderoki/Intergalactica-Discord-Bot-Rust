@@ -1,13 +1,16 @@
 use diesel::{
     sql_query,
-    sql_types::{Integer, Nullable},
+    sql_types::{Double, Integer, Nullable},
     RunQueryDsl,
 };
 
 use crate::{
     database::connection::get_connection_diesel,
     modules::{
-        pigeon::{helpers::utils::PigeonWinnings, models::exploration::*},
+        pigeon::{
+            helpers::utils::PigeonWinnings, models::exploration::*,
+            repository::pigeon::PigeonRepository,
+        },
         shared::repository::item::SimpleItem,
     },
 };
@@ -94,12 +97,16 @@ impl ExplorationRepository {
 
     pub fn get_scenario_winnings(
         winnings_id: i32,
+        human_id: i32,
     ) -> Result<ExplorationActionScenarioWinnings, String> {
         let connection = get_connection_diesel();
+
+        let gold_modifier = PigeonRepository::get_gold_modifier(human_id)?;
 
         let results: Result<ExplorationActionScenarioWinnings, _> = sql_query(include_str!(
             "queries/exploration/get_scenario_winnings.sql"
         ))
+        .bind::<Double, _>(gold_modifier.value)
         .bind::<Integer, _>(winnings_id)
         .get_result(&connection);
 

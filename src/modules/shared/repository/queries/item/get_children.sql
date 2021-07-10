@@ -1,5 +1,5 @@
 SELECT
-`item_category`.`parent_id`
+`item_category`.`id`
 FROM
 `item_category`
-WHERE `item_category`.`id` = ?
+WHERE `item_category`.`parent_id` = ?

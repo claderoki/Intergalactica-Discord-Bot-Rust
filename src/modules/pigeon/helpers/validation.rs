@@ -7,7 +7,10 @@ use serenity::model::prelude::User;
 
 use crate::{
     database::connection::get_connection_diesel,
-    modules::{pigeon::models::pigeon::PigeonStatus, shared::helpers::utils::HumanUtils},
+    modules::{
+        pigeon::{models::pigeon::PigeonStatus, repository::pigeon::PigeonRepository},
+        shared::helpers::utils::HumanUtils,
+    },
 };
 
 #[derive(QueryableByName)]
@@ -22,6 +25,9 @@ pub struct PigeonValidationResult {
     has_required_status: bool,
 
     #[sql_type = "Bool"]
+    should_notify_death: bool,
+
+    #[sql_type = "Bool"]
     has_item_needed: bool,
 }
 
@@ -30,6 +36,8 @@ pub struct PigeonValidation {
     item_needed: Option<String>,
     needs_active_pigeon: Option<bool>,
     required_pigeon_status: Option<PigeonStatus>,
+    other: bool,
+    human_id: Option<i32>,
 }
 
 impl PigeonValidation {
@@ -37,6 +45,8 @@ impl PigeonValidation {
         PigeonValidation {
             gold_needed: 0,
             item_needed: None,
+            other: false,
+            human_id: None,
             needs_active_pigeon: None,
             required_pigeon_status: None,
         }
@@ -47,10 +57,20 @@ impl PigeonValidation {
         self
     }
 
+    pub fn other(&mut self, value: bool) -> &mut Self {
+        self.other = value;
+        self
+    }
+
     pub fn needs_active_pigeon(&mut self, value: bool) -> &mut Self {
         self.needs_active_pigeon = Some(value);
         self
     }
+
+    // pub fn human_id(&mut self, value: i32) -> &mut Self {
+    //     self.human_id = Some(value);
+    //     self
+    // }
 
     pub fn required_pigeon_status(&mut self, value: PigeonStatus) -> &mut Self {
         self.required_pigeon_status = Some(value);
@@ -72,6 +92,8 @@ impl PigeonValidation {
         } else {
             query.push_str("(1 OR ? = 1) as has_required_status, ");
         }
+
+        query.push_str("(SELECT COUNT(*) from `pigeon` p WHERE `p`.`human_id` = `human`.`id` AND `p`.`condition` = 'dead' AND `p`.`death_notified` = 0) as should_notify_death,");
 
         if self.item_needed.is_some() {
             query.push_str("(`human_item`.`amount` IS NOT NULL AND `human_item`.`amount` >= ?) as has_item_needed ");
@@ -111,42 +133,77 @@ impl PigeonValidation {
     }
 
     pub fn validate(&self, user: &User) -> Result<i32, String> {
-        let human_id = user.get_human_id().ok_or("Error creating human")?;
+        let human_id = match self.human_id {
+            Some(id) => id,
+            None => user.get_human_id().ok_or("Error creating human")?,
+        };
+
         let result = self.get_validation_result(human_id)?;
 
+        if result.should_notify_death && !self.other {
+            PigeonRepository::update_death_notified(human_id, true);
+            return Err("Your pigeon has died. Better take better care of it next time!".into());
+        }
+
         if self.gold_needed > 0 && !result.has_gold_needed {
-            return Err(format!(
-                "You need {} gold to perform this action",
-                self.gold_needed
-            ));
+            return Err(if self.other {
+                format!(
+                    "The other person needs {} gold to perform this action",
+                    self.gold_needed
+                )
+            } else {
+                format!("You need {} gold to perform this action", self.gold_needed)
+            });
         }
 
         if self.needs_active_pigeon.is_some()
             && !self.needs_active_pigeon.eq(&Some(result.has_active_pigeon))
         {
             if result.has_active_pigeon {
-                return Err("You already have a pigeon!".into());
+                if self.other {
+                    return Err("The other person already has a pigeon!".into());
+                } else {
+                    return Err("You already have a pigeon!".into());
+                }
             } else {
-                return Err("You do not have a pigeon!".into());
+                if self.other {
+                    return Err("The other person not have a pigeon!".into());
+                } else {
+                    return Err("You do not have a pigeon!".into());
+                }
             }
         }
 
         if self.item_needed.is_some() {
             if !result.has_item_needed {
-                return Err(format!(
-                    "To perform this action you need the `{}` item ",
-                    self.item_needed.as_ref().unwrap()
-                ));
+                return Err(if self.other {
+                    format!(
+                        "To perform this action the other person needs the `{}` item ",
+                        self.item_needed.as_ref().unwrap()
+                    )
+                } else {
+                    format!(
+                        "To perform this action you need the `{}` item ",
+                        self.item_needed.as_ref().unwrap()
+                    )
+                });
             }
         }
 
         match self.required_pigeon_status {
             Some(_) => {
                 if !result.has_required_status {
-                    return Err(format!(
-                        "Your pigeon needs to be {} to perform this action.",
-                        self.required_pigeon_status.unwrap().get_friendly_verb()
-                    ));
+                    return Err(if self.other {
+                        format!(
+                            "The other pigeon needs to be {} to perform this action.",
+                            self.required_pigeon_status.unwrap().get_friendly_verb()
+                        )
+                    } else {
+                        format!(
+                            "Your pigeon needs to be {} to perform this action.",
+                            self.required_pigeon_status.unwrap().get_friendly_verb()
+                        )
+                    });
                 }
             }
             None => {}
