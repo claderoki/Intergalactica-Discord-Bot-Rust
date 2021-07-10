@@ -4,6 +4,7 @@ use crate::modules::pigeon::models::pigeon::GoldModifier;
 use crate::modules::pigeon::models::pigeon::PigeonName;
 use crate::modules::pigeon::models::pigeon::PigeonProfile;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
+use crate::modules::pigeon::models::pigeon::DecayingPigeon;
 use crate::modules::shared::repository::item::ItemRepository;
 use diesel::sql_query;
 use diesel::sql_types::Bool;
@@ -46,6 +47,19 @@ impl PigeonRepository {
         let results: Result<PigeonName, _> = sql_query(include_str!("queries/pigeon/get_name.sql"))
             .bind::<Integer, _>(human_id)
             .get_result(&connection);
+
+        match results {
+            Ok(data) => Ok(data),
+            Err(e) => Err(format!("{:?}", e)),
+        }
+    }
+
+    pub fn get_decaying_pigeons() -> Result<Vec<DecayingPigeon>, String> {
+        let connection = get_connection_diesel();
+
+        let results: Result<Vec<DecayingPigeon>, _> =
+            sql_query(include_str!("queries/pigeon/get_decaying_pigeons.sql"))
+                .get_results(&connection);
 
         match results {
             Ok(data) => Ok(data),

@@ -95,6 +95,10 @@ pub trait PigeonWinnable {
         ", ".into()
     }
 
+    fn ignore_zero(&self) -> bool {
+        true
+    }
+
     fn is_gained(&self) -> bool {
         true
     }
@@ -102,11 +106,11 @@ pub trait PigeonWinnable {
     fn to_string(&self) -> String {
         let mut messages: Vec<String> = Vec::new();
 
-        if self.get_gold() != 0 {
+        if self.get_gold() != 0 || !self.ignore_zero() {
             messages.push(winning_to_string(self.get_gold(), "gold", self.is_gained()));
         }
 
-        if self.get_cleanliness() != 0 {
+        if self.get_cleanliness() != 0 || !self.ignore_zero() {
             messages.push(winning_to_string(
                 self.get_cleanliness(),
                 "cleanliness",
@@ -114,7 +118,7 @@ pub trait PigeonWinnable {
             ));
         }
 
-        if self.get_health() != 0 {
+        if self.get_health() != 0 || !self.ignore_zero() {
             messages.push(winning_to_string(
                 self.get_health(),
                 "health",
@@ -122,7 +126,7 @@ pub trait PigeonWinnable {
             ));
         }
 
-        if self.get_experience() != 0 {
+        if self.get_experience() != 0 || !self.ignore_zero() {
             messages.push(winning_to_string(
                 self.get_experience(),
                 "experience",
@@ -130,7 +134,7 @@ pub trait PigeonWinnable {
             ));
         }
 
-        if self.get_happiness() != 0 {
+        if self.get_happiness() != 0 || !self.ignore_zero() {
             messages.push(winning_to_string(
                 self.get_happiness(),
                 "happiness",
@@ -138,7 +142,7 @@ pub trait PigeonWinnable {
             ));
         }
 
-        if self.get_food() != 0 {
+        if self.get_food() != 0 || !self.ignore_zero() {
             messages.push(winning_to_string(self.get_food(), "food", self.is_gained()));
         }
 
@@ -184,7 +188,7 @@ fn winning_to_emoji(winning: &'static str) -> String {
     })
 }
 
-fn winning_to_string(winning: i32, name: &'static str, show_plus: bool) -> String {
+pub fn winning_to_string(winning: i32, name: &'static str, show_plus: bool) -> String {
     let mut emoji = winning_to_emoji(name);
     emoji.push_str(" ");
     if winning >= 0 && show_plus {

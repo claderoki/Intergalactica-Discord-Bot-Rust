@@ -97,7 +97,7 @@ pub async fn get_client() -> Client {
     let client = Client::builder(&token)
         .framework(framework)
         .application_id(742365922244952095)
-        .event_handler(Handler)
+        .event_handler(Handler::new())
         .await
         .expect("Err creating client");
 

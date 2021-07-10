@@ -36,13 +36,29 @@ pub async fn profile(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+trait Fillable {
+    fn fill(&self, threshhold: usize) -> Self;
+}
+
+impl Fillable for String {
+    fn fill(&self, threshhold: usize) -> Self {
+        if self.len() > threshhold {
+            self.to_string()
+        } else {
+            let missing = threshhold - self.len();
+            format!("{}{}", self, "_".repeat(missing))
+        }
+    }
+}
+
 fn create_profile_embed<'a>(
     embed: &'a mut CreateEmbed,
     human_id: i32,
     profile: &PigeonProfile,
 ) -> &'a mut CreateEmbed {
     embed
-        .title(&profile.name)
+        .title(&profile.name.fill(15))
+        .thumbnail(get_embed_thumbnail_url(&profile.status))
         .normal_embed(&profile.to_string())
         .footer(|f| create_status_footer(f, human_id, &profile.status))
 }
@@ -72,4 +88,15 @@ fn create_status_footer<'a>(
     };
 
     footer
+}
+
+fn get_embed_thumbnail_url(status: &PigeonStatus) -> String {
+    match status {
+        PigeonStatus::Idle           => "https://media.discordapp.net/attachments/744172199770062899/863422058154033162/idle.png",
+        PigeonStatus::Mailing        => "",
+        PigeonStatus::Exploring      => "https://media.discordapp.net/attachments/744172199770062899/863422074927317052/exploring.png",
+        PigeonStatus::Fighting       => "",
+        PigeonStatus::Dating         => "",
+        PigeonStatus::SpaceExploring => "https://media.discordapp.net/attachments/744172199770062899/863421831532511242/space_exploring.png",
+    }.into()
 }

@@ -36,7 +36,7 @@ impl PigeonStatus {
 
     pub fn get_friendly_verb(self) -> String {
         String::from(match self {
-            PigeonStatus::Idle => "idle",
+            PigeonStatus::Idle => "idle‏‏‎ ",
             PigeonStatus::Mailing => "sending a mail",
             PigeonStatus::Exploring => "exploring",
             PigeonStatus::Fighting => "in a fight",
@@ -150,6 +150,24 @@ pub struct PigeonProfile {
 }
 
 #[derive(QueryableByName)]
+pub struct DecayingPigeon {
+    #[sql_type = "Integer"]
+    pub health: i32,
+
+    #[sql_type = "Integer"]
+    pub happiness: i32,
+
+    #[sql_type = "Integer"]
+    pub cleanliness: i32,
+
+    #[sql_type = "Integer"]
+    pub food: i32,
+
+    #[sql_type = "Integer"]
+    pub human_id: i32,
+}
+
+#[derive(QueryableByName)]
 pub struct PigeonName {
     #[sql_type = "VarChar"]
     pub value: String,
@@ -193,12 +211,16 @@ impl PigeonWinnable for PigeonProfile {
     fn get_seperator(&self) -> String {
         return "\n".into();
     }
+
+    fn ignore_zero(&self) -> bool {
+        false
+    }
 }
 
 impl<DB> ToSql<Varchar, DB> for PigeonStatus
 where
     DB: Backend,
-    str: ToSql<Varchar, DB>,
+    str: ToSql<Varchar, DB>,‎‎
 {
     fn to_sql<W>(&self, out: &mut Output<W, DB>) -> serialize::Result
     where

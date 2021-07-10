@@ -5,6 +5,7 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
+use crate::discord_helpers::ui::GoldConfirmation;
 use crate::modules::pigeon::helpers::utils::PigeonWinnable;
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
 use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
@@ -26,10 +27,12 @@ pub async fn train(ctx: &Context, msg: &Message) -> CommandResult {
     let gold_modifier = PigeonRepository::get_gold_modifier(human_id)?;
     let cost = calculate_cost(gold_modifier.value);
 
-    let has_gold = HumanRepository::has_gold(human_id, cost)?;
-
-    if !has_gold {
+    if !HumanRepository::has_gold(human_id, cost)? {
         return Err(format!("You need {} gold to perform this action", cost).into());
+    }
+
+    if !GoldConfirmation::new().confirm(ctx, msg, cost).await? {
+        return Err("Cancelled".into());
     }
 
     PigeonRepository::increase_gold_modifier(human_id, increase);
