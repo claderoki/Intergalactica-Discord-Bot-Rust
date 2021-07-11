@@ -14,6 +14,7 @@ impl HumanUtils for User {
     fn get_human(&self) -> Option<Human> {
         self.id.get_human()
     }
+
     fn get_human_id(&self) -> Option<i32> {
         self.id.get_human_id()
     }
@@ -23,6 +24,7 @@ impl HumanUtils for UserId {
     fn get_human(&self) -> Option<Human> {
         HumanRepository::get_or_create(*self.as_u64()).ok()
     }
+
     fn get_human_id(&self) -> Option<i32> {
         let cached_id = HumanCache::get_id(*self.as_u64());
         if cached_id.is_some() {

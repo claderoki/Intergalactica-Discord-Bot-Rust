@@ -1,4 +1,6 @@
+use serenity::client::bridge::gateway::GatewayIntents;
 use serenity::client::bridge::gateway::ShardManager;
+use serenity::framework::standard::macros::hook;
 use serenity::framework::standard::CommandError;
 use serenity::framework::StandardFramework;
 use serenity::http::Http;
@@ -23,27 +25,7 @@ impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
-trait Utils {
-    fn get_color(&self) -> serenity::utils::Color;
-    fn translate(&self, key: &'static str) -> String;
-}
-
-impl Utils for Context {
-    fn get_color(&self) -> serenity::utils::Color {
-        serenity::utils::Color::from_rgb(242, 181, 37)
-    }
-    fn translate(&self, key: &'static str) -> String {
-        String::from(key)
-    }
-}
-
-use serenity::framework::standard::macros::hook;
-
-// #[hook]
-// async fn before_hook(ctx: &Context, msg: &Message, cmd_name: &str) -> bool {
-//     // println!("Running command {}", cmd_name);
-//     true
-// }
+const PREFIX: &str = "~";
 
 #[hook]
 async fn after_hook(
@@ -63,9 +45,6 @@ async fn after_hook(
 }
 
 pub async fn get_client() -> Client {
-    // dotenv::from_filename("dev.env")
-    // dotenv::from_filename("prod.env")
-
     dotenv::dotenv().expect("Failed to load .env file");
 
     let subscriber = FmtSubscriber::builder()
@@ -78,7 +57,7 @@ pub async fn get_client() -> Client {
 
     let http = Http::new_with_token(&token);
 
-    let (owners, _bot_id) = match http.get_current_application_info().await {
+    let (owners, application_id) = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
@@ -89,18 +68,18 @@ pub async fn get_client() -> Client {
     };
 
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix("~"))
+        .configure(|c| c.owners(owners).prefix(PREFIX))
         .after(after_hook)
         .group(&GAMES_GROUP)
         .group(&PIGEON_GROUP);
 
     let client = Client::builder(&token)
         .framework(framework)
-        .application_id(742365922244952095)
+        .application_id(application_id.into())
         .event_handler(Handler::new())
+        .intents(GatewayIntents::all())
         .await
         .expect("Err creating client");
-
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());

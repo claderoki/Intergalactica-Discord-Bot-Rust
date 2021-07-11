@@ -21,6 +21,11 @@ pub async fn clean(ctx: &Context, msg: &Message) -> CommandResult {
         .required_pigeon_status(PigeonStatus::Idle)
         .validate(&msg.author)?;
 
+    let stat = PigeonRepository::get_stat_value(human_id, "cleanliness")?;
+    if stat.value >= 100 {
+        return Err("You already have max cleanliness!".into());
+    }
+
     let winnings = PigeonWinningsBuilder::new()
         .cleanliness(increase)
         .gold(-cost)

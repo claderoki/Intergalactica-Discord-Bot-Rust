@@ -1,5 +1,5 @@
 SELECT
-`pigeon`.`name`,
+`pigeon`.`name` as `value`
 FROM
 `pigeon`
 INNER JOIN `human` ON `human`.`id` = `pigeon`.`human_id`

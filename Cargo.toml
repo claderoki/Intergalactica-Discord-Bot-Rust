@@ -1,20 +1,16 @@
 [package]
 name    = "intergalactica_discord_bot_rust"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Claderoki", "Zengatsu"]
 edition = "2018"
 
 [dependencies]
-diesel             = { version = "1.4.4", features = ["mysql"] }
+diesel             = { version = "1.4.4", features = ["mysql", "chrono"] }
 dotenv             = "0.15"
 tracing            = "0.1.23"
 tracing-subscriber = "0.2"
-regex              = "1"
-mysql              = "*"
-reqwest            = "0.11.1"
-serde              = "1.0.116"
-serde_json         = "1.0.59"
 rand               = "*"
+chrono             = "*"
 async-trait        = "0.1.50"
 
 [dependencies.tokio]

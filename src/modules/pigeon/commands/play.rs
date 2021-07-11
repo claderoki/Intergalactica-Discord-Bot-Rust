@@ -21,6 +21,12 @@ pub async fn play(ctx: &Context, msg: &Message) -> CommandResult {
         .required_pigeon_status(PigeonStatus::Idle)
         .validate(&msg.author)?;
 
+    let stat = PigeonRepository::get_stat_value(human_id, "happiness")?;
+    if stat.value >= 100 {
+        return Err("You already have max happiness!".into());
+    }
+
+    
     let winnings = PigeonWinningsBuilder::new()
         .happiness(increase)
         .gold(-cost)

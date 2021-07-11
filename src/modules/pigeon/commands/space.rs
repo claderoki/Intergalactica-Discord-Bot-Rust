@@ -10,6 +10,7 @@ use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::models::exploration::Exploration;
 use crate::modules::pigeon::models::exploration::ExplorationAction;
 use crate::modules::pigeon::models::exploration::ExplorationActionScenario;
+use crate::modules::pigeon::models::exploration::ExplorationActionScenarioWinnings;
 use crate::modules::pigeon::models::exploration::ExplorationEndStats;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::exploration::ExplorationRepository;
@@ -19,20 +20,6 @@ use crate::modules::shared::helpers::chooser::Choosable;
 use crate::modules::shared::helpers::utils::TimeDelta;
 use crate::modules::shared::repository::item::ItemRepository;
 use crate::modules::shared::repository::item::SimpleItem;
-
-impl Choosable for ExplorationAction {
-    fn get_identifier(&self) -> i32 {
-        self.id
-    }
-
-    fn get_description(&self) -> String {
-        String::from(&self.name)
-    }
-
-    fn get_emoji(&self) -> Option<String> {
-        Some(String::from(&self.symbol))
-    }
-}
 
 #[command("space")]
 #[description("Retrieve a space exploration.")]
@@ -46,61 +33,70 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
 
     if !exploration.arrived {
         still_travelling_message(msg, ctx, &exploration).await;
-    } else if exploration.actions_remaining == 0 {
-        let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
-        PigeonRepository::update_status(human_id, PigeonStatus::Idle);
-        ExplorationRepository::finish_exploration(exploration.id);
-        exploration_done_message(&msg, &ctx, &exploration, end_stats).await;
-    } else {
+    } else if exploration.actions_remaining > 0 {
         let action = choose_action(msg, ctx, &exploration).await?;
         let scenario = ExplorationRepository::get_scenario(action.id)?;
         let scenario_winnings =
             ExplorationRepository::get_scenario_winnings(scenario.winnings_id, human_id)?;
         let mut winnings = scenario_winnings.to_pigeon_winnings();
-
-        let item = if winnings.item_ids.len() > 0 {
-            ItemRepository::get_simple(*winnings.item_ids.get(0).unwrap()).ok()
-        } else if scenario_winnings.item_category_id.is_some() {
-            let item = ItemRepository::get_random(scenario_winnings.item_category_id.unwrap())?;
-            winnings.item_ids.push(item.id);
-            Some(item)
-        } else {
-            None
-        };
+        let item = get_item(&scenario_winnings, &mut winnings)?;
         PigeonRepository::update_winnings(human_id, &winnings)?;
         ExplorationRepository::reduce_action_remaining(exploration.id);
         ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings);
         let remaining = exploration.actions_remaining - 1;
-        scenario_winnings_message(msg, ctx, &scenario, &winnings, remaining, &item).await;
+        scenario_winnings_message(msg, ctx, &scenario, &action, &winnings, remaining, &item).await;
+    }
+
+    if exploration.arrived && exploration.actions_remaining-1 <= 0 {
+        let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
+        PigeonRepository::update_status(human_id, PigeonStatus::Idle);
+        ExplorationRepository::finish_exploration(exploration.id);
+        exploration_done_message(&msg, &ctx, &exploration, end_stats).await;
     }
 
     Ok(())
+}
+
+fn get_item(
+    scenario_winnings: &ExplorationActionScenarioWinnings,
+    winnings: &mut PigeonWinnings,
+) -> Result<Option<SimpleItem>, String> {
+    Ok(if winnings.item_ids.len() > 0 {
+        ItemRepository::get_simple(*winnings.item_ids.get(0).unwrap()).ok()
+    } else if scenario_winnings.item_category_id.is_some() {
+        let item = ItemRepository::get_random(scenario_winnings.item_category_id.unwrap())?;
+        winnings.item_ids.push(item.id);
+        Some(item)
+    } else {
+        None
+    })
 }
 
 async fn scenario_winnings_message(
     msg: &Message,
     ctx: &Context,
     scenario: &ExplorationActionScenario,
+    action: &ExplorationAction,
     winnings: &PigeonWinnings,
     actions_remaining: i32,
     item: &Option<SimpleItem>,
 ) {
-    let mut text = String::from(&scenario.text);
-    text.push_str("\n\n");
-    text.push_str(&winnings.to_string());
+    let mut text = format!("{}\n\n{}", scenario.text, &winnings.to_string());
 
     let _ = msg
         .channel_id
         .send_message(&ctx, |m| {
             m.embed(|e| {
-                match item {
-                    Some(i) => {
-                        e.thumbnail(&i.image_url);
-                        text.push_str(&format!("\n\nReceived: 1 `{}`!", &i.name))
-                    }
-                    None => {}
-                };
+                e.title(format!(
+                    "{} {}",
+                    action.get_emoji().unwrap_or("".into()),
+                    action.get_description()
+                ));
 
+                if let Some(i) = item {
+                    e.thumbnail(&i.image_url);
+                    text.push_str(&format!("\n\nReceived: 1 `{}`!", &i.name))
+                };
                 e.normal_embed(&text)
                     .footer(|f| f.text(format!("{} actions remaining", actions_remaining)))
             })
@@ -178,10 +174,10 @@ async fn choose_action(
     let mut actions = ExplorationRepository::get_available_actions(exploration.location_id)?;
     let location = ExplorationRepository::get_location(exploration.location_id).unwrap();
 
-    let index = choose::<ExplorationAction, _>(ctx, msg, &actions, |e, t| {
+    let index = choose::<ExplorationAction, _>(ctx, msg, &actions, |e| {
         e.normal_embed(&format!(
-            "You arrive at {}.\n\nWhat action would you like to perform?\n{}",
-            location.planet_name, &t
+            "You arrive at {}.\n\nWhat action would you like to perform?\n",
+            location.planet_name
         ))
         .footer(|f| {
             f.text(format!(

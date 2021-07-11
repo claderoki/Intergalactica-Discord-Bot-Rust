@@ -25,7 +25,7 @@ pub struct SimpleItem {
 
 enum CategoryType {
     Children,
-    Parents,
+    _Parents,
 }
 
 pub struct ItemRepository;
@@ -76,7 +76,7 @@ impl ItemRepository {
     ) -> Result<Vec<i32>, String> {
         let results: Result<Vec<NullableIdOnly>, _> = sql_query(match category_type {
             CategoryType::Children => include_str!("queries/item/get_children.sql"),
-            CategoryType::Parents => include_str!("queries/item/get_parents.sql"),
+            CategoryType::_Parents => include_str!("queries/item/get_parents.sql"),
         })
         .bind::<Integer, _>(category_id)
         .get_results(connection);
@@ -113,7 +113,6 @@ impl ItemRepository {
 
         let mut i = 0;
         while category_ids.len() > 0 && i < 5 {
-            println!("looping");
             for cat_id in category_ids.clone().iter() {
                 let categories =
                     ItemRepository::get_categories(&connection, *cat_id, &category_type);
@@ -133,10 +132,6 @@ impl ItemRepository {
                 }
             }
             i += 1;
-        }
-
-        for c in all.iter() {
-            println!("{}", c);
         }
 
         Ok(all)

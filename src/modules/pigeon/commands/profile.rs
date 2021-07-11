@@ -46,7 +46,7 @@ impl Fillable for String {
             self.to_string()
         } else {
             let missing = threshhold - self.len();
-            format!("{}{}", self, "_".repeat(missing))
+            format!("{}{}", self, "-".repeat(missing))
         }
     }
 }

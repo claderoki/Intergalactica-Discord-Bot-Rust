@@ -16,7 +16,6 @@ pub struct NewHuman {
 
 type HumanResult = Result<Human, &'static str>;
 pub struct HumanRepository;
-
 impl HumanRepository {
     pub fn get_or_create(user_id: u64) -> HumanResult {
         if let Ok(human) = HumanRepository::get(user_id) {
@@ -25,6 +24,22 @@ impl HumanRepository {
             return HumanRepository::create_for(user_id);
         }
     }
+
+    // pub fn get_user_id(human_id: i32) -> Result<u64, String> {
+    //     let connection = get_connection_diesel();
+
+    //     let results: Result<HumanUserId, _> = sql_query(include_str!("queries/human/get_user_id.sql"))
+    //     .bind::<Integer, _>(human_id)
+    //     .get_result(&connection);
+
+    //     match results {
+    //         Ok(data) => Ok(data.count > 0),
+    //         Err(e) => {
+    //             println!("{:?}", e);
+    //             Err("Get user id query failed")
+    //         }
+    //     }
+    // }
 
     fn update_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
         let connection = get_connection_diesel();

@@ -5,8 +5,10 @@ use diesel::serialize::{self};
 use diesel::sql_types::Double;
 use diesel::sql_types::Integer;
 use diesel::sql_types::VarChar;
+use diesel::sql_types::BigInt;
 use diesel::types::FromSql;
 use diesel::types::ToSql;
+use diesel::types::Unsigned;
 use diesel::types::Varchar;
 
 use crate::modules::pigeon::helpers::utils::PigeonWinnable;
@@ -36,7 +38,7 @@ impl PigeonStatus {
 
     pub fn get_friendly_verb(self) -> String {
         String::from(match self {
-            PigeonStatus::Idle => "idle‏‏‎ ",
+            PigeonStatus::Idle => "idle‏‏",
             PigeonStatus::Mailing => "sending a mail",
             PigeonStatus::Exploring => "exploring",
             PigeonStatus::Fighting => "in a fight",
@@ -165,6 +167,10 @@ pub struct DecayingPigeon {
 
     #[sql_type = "Integer"]
     pub human_id: i32,
+
+    #[sql_type = "Unsigned<BigInt>"]
+    pub user_id: u64,
+
 }
 
 #[derive(QueryableByName)]
@@ -177,6 +183,12 @@ pub struct PigeonName {
 pub struct GoldModifier {
     #[sql_type = "Double"]
     pub value: f64,
+}
+
+#[derive(QueryableByName, Debug)]
+pub struct PigeonStatValue {
+    #[sql_type = "Integer"]
+    pub value: i32,
 }
 
 impl PigeonWinnable for PigeonProfile {

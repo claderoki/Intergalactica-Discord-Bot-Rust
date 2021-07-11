@@ -1,1 +1,25 @@
-INSERT INTO exploration_winnings (gold, health, experience, cleanliness, food, happiness, item_id, exploration_id, exploration_action_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO
+`exploration_winnings`
+(
+    `exploration_winnings`.`gold`,
+    `exploration_winnings`.`health`,
+    `exploration_winnings`.`experience`,
+    `exploration_winnings`.`cleanliness`,
+    `exploration_winnings`.`food`,
+    `exploration_winnings`.`happiness`,
+    `exploration_winnings`.`item_id`,
+    `exploration_winnings`.`exploration_id`,
+    `exploration_winnings`.`exploration_action_id`
+)
+VALUES
+(
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?
+)

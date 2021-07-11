@@ -57,8 +57,8 @@ pub async fn winnings_message(
 
     let text = format!(
         "Your pigeon successfully poops on {}, and to finish it off, {} wipes its butt clean on its fur.",
-        initiator_name.value,
         recipient_name.value,
+        initiator_name.value,
     );
 
     let _ = msg

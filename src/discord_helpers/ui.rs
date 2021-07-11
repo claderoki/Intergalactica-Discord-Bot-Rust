@@ -22,10 +22,10 @@ impl GoldConfirmation {
         Self { threshhold: 100 }
     }
 
-    pub async fn threshhold(&mut self, value: i32) -> &mut Self {
-        self.threshhold = value;
-        self
-    }
+    // pub fn threshhold(&mut self, value: i32) -> &mut Self {
+    //     self.threshhold = value;
+    //     self
+    // }
 
     pub async fn confirm(
         &self,

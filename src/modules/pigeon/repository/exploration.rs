@@ -1,4 +1,6 @@
+use chrono::NaiveDateTime;
 use diesel::sql_query;
+use diesel::sql_types::Datetime;
 use diesel::sql_types::Double;
 use diesel::sql_types::Integer;
 use diesel::sql_types::Nullable;
@@ -124,12 +126,12 @@ impl ExplorationRepository {
             Err(e) => Err(format!("{:?}", e)),
         }
     }
-    pub fn create_exploration(human_id: i32, location_id: i32) -> Result<(), String> {
+    pub fn create_exploration(human_id: i32, location_id: i32, arrival_date: NaiveDateTime) -> Result<(), String> {
         let connection = get_connection_diesel();
 
         let results = sql_query(include_str!("queries/exploration/create_exploration.sql"))
             .bind::<Integer, _>(location_id)
-            .bind::<Integer, _>(3)
+            .bind::<Datetime, _>(arrival_date)
             .bind::<Integer, _>(human_id)
             .execute(&connection);
 

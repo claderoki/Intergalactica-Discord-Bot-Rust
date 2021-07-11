@@ -5,9 +5,7 @@ use crate::redis_utils::connection::get_connection_redis;
 pub struct HumanCache;
 impl HumanCache {
     pub fn get_key(user_id: u64) -> String {
-        let mut key = String::from("human:");
-        key.push_str(&user_id.to_string());
-        key
+        format!("human:{}", user_id)
     }
 
     pub fn get_id(user_id: u64) -> Option<i32> {

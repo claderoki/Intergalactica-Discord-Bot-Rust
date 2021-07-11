@@ -6,6 +6,7 @@ use diesel::sql_types::VarChar;
 
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
 use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
+use crate::modules::shared::helpers::chooser::Choosable;
 
 use super::pigeon::PigeonStatus;
 
@@ -59,6 +60,21 @@ pub struct ExplorationAction {
     #[sql_type = "VarChar"]
     pub symbol: String,
 }
+
+impl Choosable for ExplorationAction {
+    fn get_identifier(&self) -> i32 {
+        self.id
+    }
+
+    fn get_description(&self) -> String {
+        String::from(&self.name)
+    }
+
+    fn get_emoji(&self) -> Option<String> {
+        Some(String::from(&self.symbol))
+    }
+}
+
 #[derive(QueryableByName)]
 pub struct ExplorationActionScenarioWinnings {
     #[sql_type = "BigInt"]

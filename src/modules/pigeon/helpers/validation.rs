@@ -164,7 +164,7 @@ impl PigeonValidation {
                 }
             } else {
                 if self.other {
-                    return Err("The other person not have a pigeon!".into());
+                    return Err("The other person does not have a pigeon!".into());
                 } else {
                     return Err("You do not have a pigeon!".into());
                 }

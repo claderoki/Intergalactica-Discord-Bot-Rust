@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use serenity::builder::CreateButton;
 use serenity::builder::CreateEmbed;
 use serenity::client::Context;
 use serenity::model::channel::Message;
@@ -24,27 +25,51 @@ pub async fn choose<T, F>(
 ) -> Result<usize, &'static str>
 where
     T: Choosable,
-    F: FnOnce(&mut CreateEmbed, String) -> &mut CreateEmbed,
+    F: FnOnce(&mut CreateEmbed) -> &mut CreateEmbed,
 {
     let interactive_msg = msg
         .channel_id
         .send_message(&ctx, |m| {
-            m.embed(|e| f(e, "".into())).components(|c| {
-                c.create_action_row(|f| {
-                    let mut i = 0;
-                    for choosable in choosables.iter() {
-                        f.create_button(|b| {
-                            b.style(ButtonStyle::Secondary)
-                                .custom_id(i)
-                                .label(choosable.get_description())
-                                .emoji(ReactionType::Unicode(
-                                    choosable.get_emoji().unwrap().to_string(),
-                                ))
-                        });
-                        i += 1;
-                    }
-                    f
-                })
+            m.embed(|e| f(e)).components(|c| {
+                // c.create_action_row(|f| {
+                //     f.create_select_menu(|s| {
+                //         s.min_values(1)
+                //             .placeholder("hmm")
+                //             .max_values(2)
+                //             .custom_id("abc")
+                //             .options(|m| {
+                //                 m.create_option(|o| {
+                //                     o.description("Option 1").label("1").value("option 1")
+                //                 })
+                //                 .create_option(|o| {
+                //                     o.description("Option 2").label("2").value("otpion 2")
+                //                 })
+                //         })
+                //     })
+                // });
+
+                let length = choosables.len();
+                const MAX_ELEMENTS_PER_ROW: usize = 5;
+                let remainder = length % MAX_ELEMENTS_PER_ROW;
+                let row_count = (length / MAX_ELEMENTS_PER_ROW) + remainder;
+                let mut index = 0;
+
+                for i in 0..row_count {
+                    let last = if i == row_count-1 && remainder != 0 {
+                        length
+                    } else {
+                        MAX_ELEMENTS_PER_ROW
+                    };
+
+                    c.create_action_row(|f| {
+                        for choosable in choosables.get((i*MAX_ELEMENTS_PER_ROW)..last).unwrap().iter() {
+                            f.create_button(|b| create_button_for_choosable::<T>(b, &choosable, index));
+                            index += 1;
+                        }
+                        f
+                    });
+                }
+                c
             })
         })
         .await
@@ -70,6 +95,15 @@ where
             Err(_) => Err("Can't convert to int"),
         },
     }
+}
+
+fn create_button_for_choosable<'a, T>(button: &'a mut CreateButton, choosable: &T, index: usize) -> &'a mut CreateButton where T: Choosable {
+    button.style(ButtonStyle::Secondary)
+    .custom_id(index)
+    .label(choosable.get_description())
+    .emoji(ReactionType::Unicode(
+        choosable.get_emoji().unwrap().to_string(),
+    ))
 }
 
 pub async fn confirm(ctx: &Context, msg: &Message, message: String) -> Result<bool, &'static str> {
