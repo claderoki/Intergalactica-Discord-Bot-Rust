@@ -1,5 +1,5 @@
 use redis::Commands;
-use chrono::NaiveDateTime;
+use chrono::{Duration, NaiveDateTime};
 
 use crate::redis_utils::connection::get_connection_redis;
 
@@ -8,11 +8,76 @@ pub trait Flag {
     fn new(when: NaiveDateTime) -> Self;
 }
 
-// trait CacheKeyBuilder {
-//     fn build_key() -> String;
-// }
+pub struct PigeonLastHealed {
+    pub when: NaiveDateTime
+}
+impl Flag for PigeonLastHealed {
+    fn get_key() -> String {
+        "pigeon_last_healed".into()
+    }
 
-// pub struct FlagCacheKeyBuilder;
+    fn new(when: NaiveDateTime) -> Self {
+        Self {
+            when: when
+        }
+    }
+}
+pub struct PigeonLastFed {
+    pub when: NaiveDateTime
+}
+impl Flag for PigeonLastFed {
+    fn get_key() -> String {
+        "pigeon_last_fed".into()
+    }
+
+    fn new(when: NaiveDateTime) -> Self {
+        Self {
+            when: when
+        }
+    }
+}
+pub struct PigeonLastCleaned {
+    pub when: NaiveDateTime
+}
+impl Flag for PigeonLastCleaned {
+    fn get_key() -> String {
+        "pigeon_last_cleaned".into()
+    }
+
+    fn new(when: NaiveDateTime) -> Self {
+        Self {
+            when: when
+        }
+    }
+}
+pub struct PigeonLastPlayedWith {
+    pub when: NaiveDateTime
+}
+impl Flag for PigeonLastPlayedWith {
+    fn get_key() -> String {
+        "pigeon_last_played_with".into()
+    }
+
+    fn new(when: NaiveDateTime) -> Self {
+        Self {
+            when: when
+        }
+    }
+}
+
+pub struct FlagValidator;
+impl FlagValidator {
+    pub fn validate<T>(human_id: i32, duration: Duration) -> Result<NaiveDateTime, String> where T: Flag {
+        let now = chrono::offset::Utc::now().naive_utc();
+        if let Some(flag) = FlagCache::get::<PigeonLastPlayedWith>(human_id) {
+            let difference = flag.when - now;
+            if difference <= duration {
+                return Err(format!("You can only use this command every ..."));
+            }
+        }
+        Ok(now)
+    }
+}
 
 const DT_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 

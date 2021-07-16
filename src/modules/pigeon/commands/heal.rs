@@ -1,3 +1,4 @@
+use chrono::Duration;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
@@ -8,12 +9,15 @@ use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::helpers::winning_message::winnings_message;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::caching::flag::FlagCache;
+use crate::modules::shared::caching::flag::FlagValidator;
+use crate::modules::shared::caching::flag::PigeonLastHealed;
 
 #[command("heal")]
 #[description("Heal your pigeon.")]
 pub async fn heal(ctx: &Context, msg: &Message) -> CommandResult {
-    let cost = 20;
-    let increase = 20;
+    let cost = 15;
+    let increase = 25;
 
     let human_id = PigeonValidation::new()
         .needs_active_pigeon(true)
@@ -25,6 +29,8 @@ pub async fn heal(ctx: &Context, msg: &Message) -> CommandResult {
     if stat.value >= 100 {
         return Err("You already have max health!".into());
     }
+
+    let now = FlagValidator::validate::<PigeonLastHealed>(human_id, Duration::minutes(45))?;
 
     let winnings = PigeonWinningsBuilder::new()
         .gold(-cost)
@@ -38,7 +44,7 @@ pub async fn heal(ctx: &Context, msg: &Message) -> CommandResult {
         "You give your pigeon some health. It's health is refilled!".into(),
     )
     .await?;
-    // heal_message(ctx, msg, &winnings).await?;
     PigeonRepository::update_winnings(human_id, &winnings)?;
+    FlagCache::add::<PigeonLastHealed>(human_id, now);
     Ok(())
 }
