@@ -20,9 +20,9 @@ use crate::modules::pigeon::repository::pigeon::PigeonRepository;
 use crate::modules::shared::repository::reminder::NewReminder;
 use crate::modules::shared::repository::reminder::ReminderRepository;
 
-#[command("explore")]
+#[command("spaceplore")]
 #[description("Send your pigeon into space.")]
-pub async fn explore(ctx: &Context, msg: &Message) -> CommandResult {
+pub async fn spaceplore(ctx: &Context, msg: &Message) -> CommandResult {
     let human_id = PigeonValidation::new()
         // .item_needed("space_shuttle")
         .needs_active_pigeon(true)
@@ -31,7 +31,7 @@ pub async fn explore(ctx: &Context, msg: &Message) -> CommandResult {
 
     let simple_location = ExplorationRepository::get_random_location()?;
 
-    let arrival_date = (chrono::offset::Utc::now() + chrono::Duration::minutes(3)).naive_utc();
+    let arrival_date = (chrono::offset::Utc::now() + chrono::Duration::minutes(30)).naive_utc();
 
     ExplorationRepository::create_exploration(human_id, simple_location.id, arrival_date)?;
     PigeonRepository::update_status(human_id, PigeonStatus::SpaceExploring);
@@ -63,7 +63,6 @@ async fn should_remind(ctx: &Context, msg: &Message, user: &User) -> bool {
                     f.kind(InteractionResponseType::DeferredUpdateMessage)
                 })
                 .await;
-            
                 if let Some(data) = interaction.data.as_ref() {
                     if let InteractionData::MessageComponent(value) = data {
                         if value.custom_id == "reminder" {
@@ -71,9 +70,7 @@ async fn should_remind(ctx: &Context, msg: &Message, user: &User) -> bool {
                         }
                     }
                 }
-
             false
-
         },
         None => false,
     }
@@ -91,11 +88,13 @@ async fn success_scenario(msg: &Message, ctx: &Context, image_url: String, arriv
             })
         })
         .await;
-    
+
         match interactive_msg {
             Ok(message) => {
                 if should_remind(ctx, &message, &msg.author).await {
-                    let mut reminder = NewReminder::new(msg.author.id.into(), "Your pigeon has arrived at its destination", arrival_date);
+                    let text = format!("Your pigeon has landed on {}", "Luna");
+
+                    let mut reminder = NewReminder::new(msg.author.id.into(), text, arrival_date);
                     reminder.channel_id(msg.channel_id.into());
                     let result = ReminderRepository::create(&reminder);
                     match result {

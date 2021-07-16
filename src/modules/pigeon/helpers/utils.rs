@@ -110,6 +110,14 @@ pub trait PigeonWinnable {
             messages.push(winning_to_string(self.get_gold(), "gold", self.is_gained()));
         }
 
+        if self.get_experience() != 0 || !self.ignore_zero() {
+            messages.push(winning_to_string(
+                self.get_experience(),
+                "experience",
+                self.is_gained(),
+            ));
+        }
+
         if self.get_cleanliness() != 0 || !self.ignore_zero() {
             messages.push(winning_to_string(
                 self.get_cleanliness(),
@@ -122,14 +130,6 @@ pub trait PigeonWinnable {
             messages.push(winning_to_string(
                 self.get_health(),
                 "health",
-                self.is_gained(),
-            ));
-        }
-
-        if self.get_experience() != 0 || !self.ignore_zero() {
-            messages.push(winning_to_string(
-                self.get_experience(),
-                "experience",
                 self.is_gained(),
             ));
         }

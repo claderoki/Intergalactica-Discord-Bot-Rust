@@ -15,6 +15,8 @@ use diesel::types::Varchar;
 use diesel::RunQueryDsl;
 pub struct PigeonRepository;
 
+use tracing::error;
+
 impl PigeonRepository {
     pub fn update_winnings(human_id: i32, winnings: &PigeonWinnings) -> Result<(), String> {
         let connection = get_connection_diesel();
@@ -30,8 +32,12 @@ impl PigeonRepository {
             .bind::<Integer, _>(human_id)
             .execute(&connection);
 
+        // TODO: if let
         match _results {
-            Err(e) => return Err(format!("{:?}", e).into()),
+            Err(e) => {
+                error!("{:?}", e);
+                return Err("Failed to update winnings.".into());
+            },
             _ => {}
         }
 
@@ -51,7 +57,10 @@ impl PigeonRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get pigeon name.".into())
+            },
         }
     }
 
@@ -64,7 +73,10 @@ impl PigeonRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get decaying pigeons.".into())
+            },
         }
     }
 
@@ -78,7 +90,10 @@ impl PigeonRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get pigeon profile.".into())
+            },
         }
     }
 
@@ -92,7 +107,10 @@ impl PigeonRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get stat value.".into())
+            },
         }
     }
 
@@ -106,7 +124,10 @@ impl PigeonRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get gold modifier.".into())
+            },
         }
     }
 

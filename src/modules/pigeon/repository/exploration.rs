@@ -6,6 +6,8 @@ use diesel::sql_types::Integer;
 use diesel::sql_types::Nullable;
 use diesel::RunQueryDsl;
 
+use tracing::error;
+
 use crate::database::connection::get_connection_diesel;
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
 use crate::modules::pigeon::models::exploration::*;
@@ -24,7 +26,10 @@ impl ExplorationRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get end stats.".into())
+            },
         }
     }
 
@@ -49,9 +54,9 @@ impl ExplorationRepository {
         match results {
             Ok(data) => Ok(data),
             Err(e) => {
-                println!("{:?}", e);
-                Err(format!("{:?}", e))
-            }
+                error!("{:?}", e);
+                Err("Failed to get end items.".into())
+            },
         }
     }
 
@@ -109,7 +114,10 @@ impl ExplorationRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get scenario winnings.".into())
+            },
         }
     }
 
@@ -123,7 +131,10 @@ impl ExplorationRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get scenario.".into())
+            },
         }
     }
     pub fn create_exploration(human_id: i32, location_id: i32, arrival_date: NaiveDateTime) -> Result<(), String> {
@@ -137,7 +148,10 @@ impl ExplorationRepository {
 
         match results {
             Ok(_) => Ok(()),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to create exploration.".into())
+            },
         }
     }
 
@@ -150,7 +164,10 @@ impl ExplorationRepository {
 
         match results {
             Ok(simple_location) => Ok(simple_location),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get random location.".into())
+            },
         }
     }
 
@@ -164,7 +181,10 @@ impl ExplorationRepository {
 
         match results {
             Ok(location) => Ok(location),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get location.".into())
+            },
         }
     }
 
@@ -178,7 +198,10 @@ impl ExplorationRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get exploration.".into())
+            },
         }
     }
 
@@ -193,7 +216,10 @@ impl ExplorationRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get available actions.".into())
+            },
         }
     }
 }

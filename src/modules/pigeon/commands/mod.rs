@@ -1,7 +1,7 @@
 pub mod base;
 pub mod buy;
 pub mod clean;
-pub mod explore;
+pub mod spaceplore;
 pub mod feed;
 pub mod heal;
 pub mod play;

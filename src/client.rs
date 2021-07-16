@@ -25,7 +25,7 @@ impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
-const PREFIX: &str = "~";
+const PREFIX: &str = "/";
 
 #[hook]
 async fn after_hook(

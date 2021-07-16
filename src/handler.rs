@@ -53,13 +53,13 @@ impl EventHandler for Handler {
         let ctx = Arc::new(ctx);
         if !self.is_loop_running.load(Ordering::Relaxed) {
 
-            let ctx1 = Arc::clone(&ctx);
-            tokio::spawn(async move {
-                loop {
-                    decay_pigeons(Arc::clone(&ctx1)).await;
-                    tokio::time::sleep(Duration::from_secs(120)).await;
-                }
-            });
+            // let ctx1 = Arc::clone(&ctx);
+            // tokio::spawn(async move {
+            //     loop {
+            //         tokio::time::sleep(Duration::from_secs(60*60)).await;
+            //         decay_pigeons(Arc::clone(&ctx1)).await;
+            //     }
+            // });
 
             let ctx2 = Arc::clone(&ctx);
             tokio::spawn(async move {

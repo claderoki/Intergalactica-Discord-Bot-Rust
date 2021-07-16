@@ -5,6 +5,7 @@ use diesel::sql_types::VarChar;
 use diesel::MysqlConnection;
 use diesel::RunQueryDsl;
 
+use tracing::error;
 use crate::database::connection::get_connection_diesel;
 use crate::database::utils::NullableIdOnly;
 
@@ -95,8 +96,8 @@ impl ItemRepository {
                 Ok(ids)
             }
             Err(e) => {
-                println!("{:?}", e);
-                Err(format!("{:?}", e))
+                error!("{:?}", e);
+                Err("Failed to get_categories".into())
             }
         }
     }
@@ -161,8 +162,8 @@ impl ItemRepository {
         match results {
             Ok(data) => Ok(data),
             Err(e) => {
-                println!("{:?}", e);
-                Err(format!("{:?}", e))
+                error!("{:?}", e);
+                Err("Failed to get_random".into())
             }
         }
     }
@@ -180,7 +181,7 @@ impl ItemRepository {
         match result {
             Ok(_) => Ok(()),
             Err(e) => {
-                println!("{:?}", e);
+                error!("{:?}", e);
                 Err("Could not update item")
             }
         }

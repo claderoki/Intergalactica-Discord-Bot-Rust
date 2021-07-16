@@ -5,6 +5,7 @@ use diesel::sql_query;
 use diesel::sql_types::Integer;
 use diesel::RunQueryDsl;
 
+use tracing::error;
 use crate::database::connection::get_connection_diesel;
 
 #[derive(Insertable, Default)]
@@ -75,8 +76,8 @@ impl HumanRepository {
         match results {
             Ok(data) => Ok(data.count > 0),
             Err(e) => {
-                println!("{:?}", e);
-                Err("idk wtf is wrong")
+                error!("{:?}", e);
+                Err("Failed to get has_gold")
             }
         }
     }

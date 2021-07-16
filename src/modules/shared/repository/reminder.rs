@@ -33,7 +33,7 @@ pub struct NewReminder {
 }
 
 impl NewReminder {
-    pub fn new(user_id: u64, message: &'static str, due_date: NaiveDateTime) -> Self {
+    pub fn new(user_id: u64, message: String, due_date: NaiveDateTime) -> Self {
         Self {
             user_id,
             channel_id: None,
