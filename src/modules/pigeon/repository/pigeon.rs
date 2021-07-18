@@ -97,7 +97,7 @@ impl PigeonRepository {
         }
     }
 
-    pub fn get_stat_value(human_id: i32, stat_name: &'static str) -> Result<PigeonStatValue, String> {
+    pub fn get_stat_value(human_id: i32, stat_name: &str) -> Result<PigeonStatValue, String> {
         let connection = get_connection_diesel();
 
         let results: Result<PigeonStatValue, _> =

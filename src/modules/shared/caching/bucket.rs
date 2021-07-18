@@ -20,7 +20,7 @@ pub struct Bucket {
 }
 
 impl Bucket {
-    pub fn new(identifier: &'static str, bucket_type: BucketType, cooldown: Duration) -> Self {
+    pub fn new(identifier: &str, bucket_type: BucketType, cooldown: Duration) -> Self {
         Self {
             identifier: identifier.into(),
             bucket_type,
@@ -28,7 +28,7 @@ impl Bucket {
         }
     }
 
-    pub fn user<T: Into<u64>>(identifier: &'static str, user_id: T, cooldown: Duration) -> Self {
+    pub fn user<T: Into<u64>>(identifier: &str, user_id: T, cooldown: Duration) -> Self {
         Self::new(identifier, BucketType::User(user_id.into()), cooldown)
     }
 

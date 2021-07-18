@@ -50,6 +50,19 @@ impl PigeonWinningsBuilder {
         self
     }
 
+    pub fn dynamic_stat(&mut self, stat_name: &str, value: i32) -> &mut Self {
+        match stat_name {
+            "food" => self.food = value,
+            "gold" => self.gold = value,
+            "experience" => self.experience = value,
+            "cleanliness" => self.cleanliness = value,
+            "happiness" => self.happiness = value,
+            "health" => self.health = value,
+            _ => {},
+        };
+        self
+    }
+
     pub fn add_item_id(&mut self, value: i32) -> &mut Self {
         self.item_ids.push(value);
         self

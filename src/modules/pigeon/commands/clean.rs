@@ -4,45 +4,20 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
-use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
-use crate::modules::pigeon::helpers::validation::PigeonValidation;
-use crate::modules::pigeon::helpers::winning_message::winnings_message;
-use crate::modules::pigeon::models::pigeon::PigeonStatus;
-use crate::modules::pigeon::repository::pigeon::PigeonRepository;
-use crate::modules::shared::caching::bucket::Bucket;
+use crate::modules::pigeon::helpers::increase_stats::IncreaseParams;
+use crate::modules::pigeon::helpers::increase_stats::increase;
 
 #[command("clean")]
 #[description("Clean your pigeon.")]
 pub async fn clean(ctx: &Context, msg: &Message) -> CommandResult {
-    let bucket = Bucket::user("pigeon_clean", msg.author.id, Duration::minutes(45));
-    let now = bucket.validate()?;
-
-    let cost = 15;
-    let increase = 25;
-
-    let human_id = PigeonValidation::new()
-        .needs_active_pigeon(true)
-        .gold_needed(cost)
-        .required_pigeon_status(PigeonStatus::Idle)
-        .validate(&msg.author)?;
-
-    let stat = PigeonRepository::get_stat_value(human_id, "cleanliness")?;
-    if stat.value >= 100 {
-        return Err("You already have max cleanliness!".into());
-    }
-
-    let winnings = PigeonWinningsBuilder::new()
-        .cleanliness(increase)
-        .gold(-cost)
-        .build();
-
-    winnings_message(
-        ctx,
-        msg,
-        &winnings,
-        "Your pigeon leaves dirty food prints on the floor! You decide to give it a bath.".into(),
-    ).await?;
-    PigeonRepository::update_winnings(human_id, &winnings)?;
-    bucket.spend(now);
+    let increase_params = IncreaseParams::new(
+        15,
+        25,
+        "pigeon_clean",
+        Duration::minutes(45),
+        "cleanliness",
+        "Your pigeon leaves dirty food prints on the floor! You decide to give it a bath.",
+    );
+    increase(&ctx, &msg, increase_params).await?;
     Ok(())
 }

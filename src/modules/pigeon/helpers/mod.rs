@@ -1,3 +1,3 @@
 pub mod utils;
 pub mod validation;
-pub mod winning_message;
+pub mod increase_stats;
