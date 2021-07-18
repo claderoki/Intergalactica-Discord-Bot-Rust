@@ -21,7 +21,14 @@ pub struct IncreaseParams {
 }
 
 impl IncreaseParams {
-    pub fn new(cost: i32, increase: i32, command_name: &'static str, cooldown: Duration, stat_name: &'static str, message: &'static str) -> Self {
+    pub fn new(
+        cost: i32,
+        increase: i32,
+        command_name: &'static str,
+        cooldown: Duration,
+        stat_name: &'static str,
+        message: &'static str,
+    ) -> Self {
         Self {
             cost: cost,
             increase: increase,
@@ -53,18 +60,11 @@ pub async fn increase(ctx: &Context, msg: &Message, params: IncreaseParams) -> R
         .gold(-params.cost)
         .build();
 
-    winnings_message(
-        ctx,
-        msg,
-        &winnings,
-        params.message,
-    )
-    .await?;
+    winnings_message(ctx, msg, &winnings, params.message).await?;
 
     PigeonRepository::update_winnings(human_id, &winnings)?;
     bucket.spend(now);
     Ok(())
-
 }
 
 pub async fn winnings_message(

@@ -35,8 +35,7 @@ impl EmbedExtension for CreateEmbed {
     }
 
     fn normal_embed<D: ToString>(&mut self, text: D) -> &mut Self {
-        self.default_color()
-            .description(text)
+        self.default_color().description(text)
     }
 
     fn error_embed<D: ToString>(&mut self, text: D) -> &mut Self {

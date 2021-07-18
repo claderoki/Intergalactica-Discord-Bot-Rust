@@ -47,7 +47,7 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
         scenario_winnings_message(msg, ctx, &scenario, &action, &winnings, remaining, &item).await;
     }
 
-    if exploration.arrived && exploration.actions_remaining-1 <= 0 {
+    if exploration.arrived && exploration.actions_remaining - 1 <= 0 {
         let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
         PigeonRepository::update_status(human_id, PigeonStatus::Idle);
         ExplorationRepository::finish_exploration(exploration.id);

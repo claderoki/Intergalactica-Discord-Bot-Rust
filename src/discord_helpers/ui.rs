@@ -15,8 +15,6 @@ pub struct GoldConfirmation {
 //     }
 // }
 
-
-
 impl GoldConfirmation {
     pub fn new() -> Self {
         Self { threshhold: 100 }

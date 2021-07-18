@@ -1,4 +1,10 @@
-use diesel::{backend::Backend, deserialize, serialize::{self, Output}, sql_types::Integer, types::{FromSql, ToSql}};
+use diesel::{
+    backend::Backend,
+    deserialize,
+    serialize::{self, Output},
+    sql_types::Integer,
+    types::{FromSql, ToSql},
+};
 
 pub trait Stat {
     fn get_name(&self) -> String;

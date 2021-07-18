@@ -4,8 +4,8 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
-use crate::modules::pigeon::helpers::increase_stats::IncreaseParams;
 use crate::modules::pigeon::helpers::increase_stats::increase;
+use crate::modules::pigeon::helpers::increase_stats::IncreaseParams;
 
 #[command("heal")]
 #[description("Heal your pigeon.")]

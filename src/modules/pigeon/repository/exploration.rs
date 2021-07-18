@@ -29,7 +29,7 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get end stats.".into())
-            },
+            }
         }
     }
 
@@ -56,7 +56,7 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get end items.".into())
-            },
+            }
         }
     }
 
@@ -117,7 +117,7 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get scenario winnings.".into())
-            },
+            }
         }
     }
 
@@ -134,10 +134,14 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get scenario.".into())
-            },
+            }
         }
     }
-    pub fn create_exploration(human_id: i32, location_id: i32, arrival_date: NaiveDateTime) -> Result<(), String> {
+    pub fn create_exploration(
+        human_id: i32,
+        location_id: i32,
+        arrival_date: NaiveDateTime,
+    ) -> Result<(), String> {
         let connection = get_connection_diesel();
 
         let results = sql_query(include_str!("queries/exploration/create_exploration.sql"))
@@ -151,7 +155,7 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to create exploration.".into())
-            },
+            }
         }
     }
 
@@ -167,7 +171,7 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get random location.".into())
-            },
+            }
         }
     }
 
@@ -184,7 +188,7 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get location.".into())
-            },
+            }
         }
     }
 
@@ -201,7 +205,7 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get exploration.".into())
-            },
+            }
         }
     }
 
@@ -219,7 +223,7 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get available actions.".into())
-            },
+            }
         }
     }
 }

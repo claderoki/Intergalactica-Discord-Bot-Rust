@@ -1,5 +1,5 @@
-use redis::Commands;
 use chrono::{Duration, NaiveDateTime};
+use redis::Commands;
 
 use crate::redis_utils::connection::get_connection_redis;
 
@@ -8,7 +8,6 @@ pub trait Flag {
     fn new(datetime: NaiveDateTime) -> Self;
     fn get_datetime(&self) -> NaiveDateTime;
 }
-
 
 // pub struct GenericFlag<T> {
 //     pub when: NaiveDateTime,
@@ -32,7 +31,6 @@ pub trait Flag {
 //     }
 // }
 
-
 // pub struct PigeonLastHealed {
 //     pub datetime: NaiveDateTime,
 //     pub identifier: String,
@@ -55,7 +53,10 @@ pub trait Flag {
 // }
 pub struct FlagValidator;
 impl FlagValidator {
-    pub fn validate<T>(human_id: i32, duration: Duration) -> Result<NaiveDateTime, String> where T: Flag {
+    pub fn validate<T>(human_id: i32, duration: Duration) -> Result<NaiveDateTime, String>
+    where
+        T: Flag,
+    {
         let now = chrono::offset::Utc::now().naive_utc();
         if let Some(flag) = FlagCache::get::<T>(human_id) {
             let difference = flag.get_datetime() - now;
@@ -71,25 +72,38 @@ const DT_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
 pub struct FlagCache;
 impl FlagCache {
-    fn get_key<T>(human_id: i32) -> String where T: Flag {
+    fn get_key<T>(human_id: i32) -> String
+    where
+        T: Flag,
+    {
         format!("flags:{}:{}", human_id, T::get_key())
     }
 
-    pub fn get<T>(human_id: i32) -> Option<T> where T: Flag {
+    pub fn get<T>(human_id: i32) -> Option<T>
+    where
+        T: Flag,
+    {
         let mut connection = get_connection_redis();
 
         let value: Result<String, _> = connection.get(&FlagCache::get_key::<T>(human_id));
         match value {
-            Ok(v) => Some(T::new(NaiveDateTime::parse_from_str(&v, DT_FORMAT).unwrap())),
-            Err(_) => None
+            Ok(v) => Some(T::new(
+                NaiveDateTime::parse_from_str(&v, DT_FORMAT).unwrap(),
+            )),
+            Err(_) => None,
         }
     }
 
-    pub fn add<T>(human_id: i32, when: NaiveDateTime) -> bool where T: Flag {
+    pub fn add<T>(human_id: i32, when: NaiveDateTime) -> bool
+    where
+        T: Flag,
+    {
         let mut connection = get_connection_redis();
 
-        let result: Result<(), _> = connection.set(&FlagCache::get_key::<T>(human_id), when.format(DT_FORMAT).to_string());
+        let result: Result<(), _> = connection.set(
+            &FlagCache::get_key::<T>(human_id),
+            when.format(DT_FORMAT).to_string(),
+        );
         result.is_ok()
     }
 }
-

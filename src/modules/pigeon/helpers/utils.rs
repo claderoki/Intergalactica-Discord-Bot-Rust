@@ -58,7 +58,7 @@ impl PigeonWinningsBuilder {
             "cleanliness" => self.cleanliness = value,
             "happiness" => self.happiness = value,
             "health" => self.health = value,
-            _ => {},
+            _ => {}
         };
         self
     }

@@ -41,25 +41,31 @@ async fn remind(ctx: &Context, reminder: &Reminder) -> bool {
         match ctx.cache.guild_channel(channel_id).await {
             Some(channel) => {
                 match remind_channel(ctx, reminder.user_id, &channel, &reminder.message).await {
-                    Ok(_) => {return true;},
-                    Err(e) => {println!("{:?}", e);},
+                    Ok(_) => {
+                        return true;
+                    }
+                    Err(e) => {
+                        println!("{:?}", e);
+                    }
                 }
-            },
+            }
             None => {
                 println!("Channel not in cache");
-            },
+            }
         }
     } else {
         match ctx.cache.user(reminder.user_id).await {
-            Some(user) => {
-                match remind_user(ctx, &user, &reminder.message).await {
-                    Ok(_) => {return true;},
-                    Err(e) => {println!("{:?}", e);},
+            Some(user) => match remind_user(ctx, &user, &reminder.message).await {
+                Ok(_) => {
+                    return true;
+                }
+                Err(e) => {
+                    println!("{:?}", e);
                 }
             },
             None => {
                 println!("User not found in cache");
-            },
+            }
         }
     }
 
@@ -68,24 +74,28 @@ async fn remind(ctx: &Context, reminder: &Reminder) -> bool {
 
 async fn remind_user(ctx: &Context, user: &User, message: &String) -> Result<(), String> {
     match user
-    .dm(&ctx, |m| {
-        m.embed(|e| create_reminder_embed(e, message))
-    })
-    .await {
+        .dm(&ctx, |m| m.embed(|e| create_reminder_embed(e, message)))
+        .await
+    {
         Ok(_) => Ok(()),
         Err(_) => Err("Nope".into()),
     }
 }
 
-async fn remind_channel(ctx: &Context, user_id: u64, channel: &GuildChannel, message: &String) -> Result<(), String> {
+async fn remind_channel(
+    ctx: &Context,
+    user_id: u64,
+    channel: &GuildChannel,
+    message: &String,
+) -> Result<(), String> {
     match channel
-    .send_message(&ctx, |m| {
-        m.content(format!("<@{}>", user_id))
-            .embed(|e| create_reminder_embed(e, &message))
-    })
-    .await {
+        .send_message(&ctx, |m| {
+            m.content(format!("<@{}>", user_id))
+                .embed(|e| create_reminder_embed(e, &message))
+        })
+        .await
+    {
         Ok(_) => Ok(()),
         Err(_) => Err("Nope".into()),
     }
 }
-

@@ -14,7 +14,6 @@ use std::env;
 
 // static DB_URL: &str = ;
 
-
 fn get_db_url() -> String {
     format!(
         "mysql://{}:{}@{}/{}",
@@ -26,6 +25,5 @@ fn get_db_url() -> String {
 }
 
 pub fn get_connection_diesel() -> MysqlConnection {
-    MysqlConnection::establish(&get_db_url())
-        .unwrap_or_else(|_| panic!("Error connecting to db"))
+    MysqlConnection::establish(&get_db_url()).unwrap_or_else(|_| panic!("Error connecting to db"))
 }

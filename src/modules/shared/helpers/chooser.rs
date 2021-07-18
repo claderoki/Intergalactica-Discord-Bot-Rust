@@ -55,15 +55,21 @@ where
                 let mut index = 0;
 
                 for i in 0..row_count {
-                    let last = if i == row_count-1 && remainder != 0 {
+                    let last = if i == row_count - 1 && remainder != 0 {
                         length
                     } else {
                         MAX_ELEMENTS_PER_ROW
                     };
 
                     c.create_action_row(|f| {
-                        for choosable in choosables.get((i*MAX_ELEMENTS_PER_ROW)..last).unwrap().iter() {
-                            f.create_button(|b| create_button_for_choosable::<T>(b, &choosable, index));
+                        for choosable in choosables
+                            .get((i * MAX_ELEMENTS_PER_ROW)..last)
+                            .unwrap()
+                            .iter()
+                        {
+                            f.create_button(|b| {
+                                create_button_for_choosable::<T>(b, &choosable, index)
+                            });
                             index += 1;
                         }
                         f
@@ -97,13 +103,21 @@ where
     }
 }
 
-fn create_button_for_choosable<'a, T>(button: &'a mut CreateButton, choosable: &T, index: usize) -> &'a mut CreateButton where T: Choosable {
-    button.style(ButtonStyle::Secondary)
-    .custom_id(index)
-    .label(choosable.get_description())
-    .emoji(ReactionType::Unicode(
-        choosable.get_emoji().unwrap().to_string(),
-    ))
+fn create_button_for_choosable<'a, T>(
+    button: &'a mut CreateButton,
+    choosable: &T,
+    index: usize,
+) -> &'a mut CreateButton
+where
+    T: Choosable,
+{
+    button
+        .style(ButtonStyle::Secondary)
+        .custom_id(index)
+        .label(choosable.get_description())
+        .emoji(ReactionType::Unicode(
+            choosable.get_emoji().unwrap().to_string(),
+        ))
 }
 
 pub async fn confirm(ctx: &Context, msg: &Message, message: String) -> Result<bool, &'static str> {

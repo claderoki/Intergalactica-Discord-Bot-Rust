@@ -5,8 +5,8 @@ use diesel::sql_query;
 use diesel::sql_types::Integer;
 use diesel::RunQueryDsl;
 
-use tracing::error;
 use crate::database::connection::get_connection_diesel;
+use tracing::error;
 
 #[derive(Insertable, Default)]
 #[table_name = "human"]

@@ -1,6 +1,6 @@
 use chrono::Duration;
-use redis::Commands;
 use chrono::NaiveDateTime;
+use redis::Commands;
 
 use crate::modules::shared::helpers::utils::TimeDelta;
 use crate::redis_utils::connection::get_connection_redis;
@@ -38,11 +38,16 @@ impl Bucket {
                 let now = chrono::offset::Utc::now().naive_utc();
                 let difference = now - datetime;
                 if difference <= self.cooldown {
-                    let delta = TimeDelta::from_seconds(self.cooldown.num_seconds() - difference.num_seconds());
-                    return Err(format!("This command will be available again in {}.", delta.to_text()));
+                    let delta = TimeDelta::from_seconds(
+                        self.cooldown.num_seconds() - difference.num_seconds(),
+                    );
+                    return Err(format!(
+                        "This command will be available again in {}.",
+                        delta.to_text()
+                    ));
                 }
                 Ok(now)
-            },
+            }
             None => Ok(chrono::offset::Utc::now().naive_utc()),
         }
     }
@@ -69,14 +74,17 @@ impl BucketCache {
         let value: Result<String, _> = connection.get(&BucketCache::get_key(bucket));
         match value {
             Ok(v) => NaiveDateTime::parse_from_str(&v, DT_FORMAT).ok(),
-            Err(_) => None
+            Err(_) => None,
         }
     }
 
     pub fn add(bucket: &Bucket, when: NaiveDateTime) -> bool {
         let mut connection = get_connection_redis();
 
-        let result: Result<(), _> = connection.set(&BucketCache::get_key(bucket), when.format(DT_FORMAT).to_string());
+        let result: Result<(), _> = connection.set(
+            &BucketCache::get_key(bucket),
+            when.format(DT_FORMAT).to_string(),
+        );
         result.is_ok()
     }
 }

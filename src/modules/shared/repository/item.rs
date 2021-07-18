@@ -5,9 +5,9 @@ use diesel::sql_types::VarChar;
 use diesel::MysqlConnection;
 use diesel::RunQueryDsl;
 
-use tracing::error;
 use crate::database::connection::get_connection_diesel;
 use crate::database::utils::NullableIdOnly;
+use tracing::error;
 
 #[derive(QueryableByName, Debug)]
 pub struct SimpleItem {

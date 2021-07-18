@@ -2,10 +2,10 @@ use diesel::backend::Backend;
 use diesel::deserialize;
 use diesel::serialize::Output;
 use diesel::serialize::{self};
+use diesel::sql_types::BigInt;
 use diesel::sql_types::Double;
 use diesel::sql_types::Integer;
 use diesel::sql_types::VarChar;
-use diesel::sql_types::BigInt;
 use diesel::types::FromSql;
 use diesel::types::ToSql;
 use diesel::types::Unsigned;
@@ -170,7 +170,6 @@ pub struct DecayingPigeon {
 
     #[sql_type = "Unsigned<BigInt>"]
     pub user_id: u64,
-
 }
 
 #[derive(QueryableByName)]
@@ -232,7 +231,7 @@ impl PigeonWinnable for PigeonProfile {
 impl<DB> ToSql<Varchar, DB> for PigeonStatus
 where
     DB: Backend,
-    str: ToSql<Varchar, DB>,‎‎
+    str: ToSql<Varchar, DB>,
 {
     fn to_sql<W>(&self, out: &mut Output<W, DB>) -> serialize::Result
     where

@@ -1,11 +1,11 @@
 use crate::database::connection::get_connection_diesel;
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
+use crate::modules::pigeon::models::pigeon::DecayingPigeon;
 use crate::modules::pigeon::models::pigeon::GoldModifier;
 use crate::modules::pigeon::models::pigeon::PigeonName;
 use crate::modules::pigeon::models::pigeon::PigeonProfile;
 use crate::modules::pigeon::models::pigeon::PigeonStatValue;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
-use crate::modules::pigeon::models::pigeon::DecayingPigeon;
 use crate::modules::shared::repository::item::ItemRepository;
 use diesel::sql_query;
 use diesel::sql_types::Bool;
@@ -37,7 +37,7 @@ impl PigeonRepository {
             Err(e) => {
                 error!("{:?}", e);
                 return Err("Failed to update winnings.".into());
-            },
+            }
             _ => {}
         }
 
@@ -60,7 +60,7 @@ impl PigeonRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get pigeon name.".into())
-            },
+            }
         }
     }
 
@@ -76,7 +76,7 @@ impl PigeonRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get decaying pigeons.".into())
-            },
+            }
         }
     }
 
@@ -93,24 +93,26 @@ impl PigeonRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get pigeon profile.".into())
-            },
+            }
         }
     }
 
     pub fn get_stat_value(human_id: i32, stat_name: &str) -> Result<PigeonStatValue, String> {
         let connection = get_connection_diesel();
 
-        let results: Result<PigeonStatValue, _> =
-            sql_query(format!("SELECT {} as value FROM pigeon WHERE human_id = ? AND `condition` = 'active' LIMIT 1", stat_name))
-                .bind::<Integer, _>(human_id)
-                .get_result(&connection);
+        let results: Result<PigeonStatValue, _> = sql_query(format!(
+            "SELECT {} as value FROM pigeon WHERE human_id = ? AND `condition` = 'active' LIMIT 1",
+            stat_name
+        ))
+        .bind::<Integer, _>(human_id)
+        .get_result(&connection);
 
         match results {
             Ok(data) => Ok(data),
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get stat value.".into())
-            },
+            }
         }
     }
 
@@ -127,7 +129,7 @@ impl PigeonRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get gold modifier.".into())
-            },
+            }
         }
     }
 

@@ -1,6 +1,6 @@
-use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
+use std::sync::Arc;
 use std::time::Duration;
 
 use serenity::async_trait;
@@ -21,7 +21,7 @@ pub struct Handler {
 impl Handler {
     pub fn new() -> Self {
         Self {
-            is_loop_running: AtomicBool::new(false)
+            is_loop_running: AtomicBool::new(false),
         }
     }
 }
@@ -52,7 +52,6 @@ impl EventHandler for Handler {
     async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
         let ctx = Arc::new(ctx);
         if !self.is_loop_running.load(Ordering::Relaxed) {
-
             // let ctx1 = Arc::clone(&ctx);
             // tokio::spawn(async move {
             //     loop {
