@@ -9,13 +9,14 @@ use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::helpers::winning_message::winnings_message;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
-use crate::modules::shared::caching::flag::FlagCache;
-use crate::modules::shared::caching::flag::FlagValidator;
-use crate::modules::shared::caching::flag::PigeonLastFed;
+use crate::modules::shared::caching::bucket::Bucket;
 
 #[command("feed")]
 #[description("Feed your pigeon.")]
 pub async fn feed(ctx: &Context, msg: &Message) -> CommandResult {
+    let bucket = Bucket::user("pigeon_feed", msg.author.id, Duration::minutes(45));
+    let now = bucket.validate()?;
+
     let cost = 15;
     let increase = 25;
 
@@ -29,8 +30,6 @@ pub async fn feed(ctx: &Context, msg: &Message) -> CommandResult {
     if stat.value >= 100 {
         return Err("You already have max food!".into());
     }
-
-    let now = FlagValidator::validate::<PigeonLastFed>(human_id, Duration::minutes(45))?;
 
     let winnings = PigeonWinningsBuilder::new()
         .food(increase)
@@ -46,6 +45,6 @@ pub async fn feed(ctx: &Context, msg: &Message) -> CommandResult {
     .await?;
 
     PigeonRepository::update_winnings(human_id, &winnings)?;
-    FlagCache::add::<PigeonLastFed>(human_id, now);
+    bucket.spend(now);
     Ok(())
 }

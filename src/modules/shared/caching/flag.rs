@@ -5,72 +5,60 @@ use crate::redis_utils::connection::get_connection_redis;
 
 pub trait Flag {
     fn get_key() -> String;
-    fn new(when: NaiveDateTime) -> Self;
+    fn new(datetime: NaiveDateTime) -> Self;
+    fn get_datetime(&self) -> NaiveDateTime;
 }
 
-pub struct PigeonLastHealed {
-    pub when: NaiveDateTime
-}
-impl Flag for PigeonLastHealed {
-    fn get_key() -> String {
-        "pigeon_last_healed".into()
-    }
 
-    fn new(when: NaiveDateTime) -> Self {
-        Self {
-            when: when
-        }
-    }
-}
-pub struct PigeonLastFed {
-    pub when: NaiveDateTime
-}
-impl Flag for PigeonLastFed {
-    fn get_key() -> String {
-        "pigeon_last_fed".into()
-    }
+// pub struct GenericFlag<T> {
+//     pub when: NaiveDateTime,
+//     pub identifier: T,
+// }
 
-    fn new(when: NaiveDateTime) -> Self {
-        Self {
-            when: when
-        }
-    }
-}
-pub struct PigeonLastCleaned {
-    pub when: NaiveDateTime
-}
-impl Flag for PigeonLastCleaned {
-    fn get_key() -> String {
-        "pigeon_last_cleaned".into()
-    }
+// impl Flag for GenericFlag<T> where T: ToString {
+//     fn get_key() -> String {
+//         T.into()
+//     }
 
-    fn new(when: NaiveDateTime) -> Self {
-        Self {
-            when: when
-        }
-    }
-}
-pub struct PigeonLastPlayedWith {
-    pub when: NaiveDateTime
-}
-impl Flag for PigeonLastPlayedWith {
-    fn get_key() -> String {
-        "pigeon_last_played_with".into()
-    }
+//     fn new(when: NaiveDateTime) -> Self {
+//         Self {
+//             when,
+//             identifier: (),
+//         }
+//     }
 
-    fn new(when: NaiveDateTime) -> Self {
-        Self {
-            when: when
-        }
-    }
-}
+//     fn get_datetime(&self) -> NaiveDateTime {
+//         todo!()
+//     }
+// }
 
+
+// pub struct PigeonLastHealed {
+//     pub datetime: NaiveDateTime,
+//     pub identifier: String,
+// }
+// impl Flag for PigeonLastHealed {
+//     fn get_key() -> String {
+//         "pigeon_last_healed".into()
+//     }
+
+//     fn new(datetime: NaiveDateTime, identifier: &'static str) -> Self {
+//         Self {
+//             datetime,
+//             identifier: identifier.into(),
+//         }
+//     }
+
+//     fn get_datetime(&self) -> NaiveDateTime {
+//         self.datetime
+//     }
+// }
 pub struct FlagValidator;
 impl FlagValidator {
     pub fn validate<T>(human_id: i32, duration: Duration) -> Result<NaiveDateTime, String> where T: Flag {
         let now = chrono::offset::Utc::now().naive_utc();
-        if let Some(flag) = FlagCache::get::<PigeonLastPlayedWith>(human_id) {
-            let difference = flag.when - now;
+        if let Some(flag) = FlagCache::get::<T>(human_id) {
+            let difference = flag.get_datetime() - now;
             if difference <= duration {
                 return Err(format!("You can only use this command every ..."));
             }
@@ -103,5 +91,5 @@ impl FlagCache {
         let result: Result<(), _> = connection.set(&FlagCache::get_key::<T>(human_id), when.format(DT_FORMAT).to_string());
         result.is_ok()
     }
-
 }
+

@@ -9,13 +9,14 @@ use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::helpers::winning_message::winnings_message;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
-use crate::modules::shared::caching::flag::FlagCache;
-use crate::modules::shared::caching::flag::FlagValidator;
-use crate::modules::shared::caching::flag::PigeonLastPlayedWith;
+use crate::modules::shared::caching::bucket::Bucket;
 
 #[command("play")]
 #[description("Play with your pigeon.")]
 pub async fn play(ctx: &Context, msg: &Message) -> CommandResult {
+    let bucket = Bucket::user("pigeon_play", msg.author.id, Duration::minutes(45));
+    let now = bucket.validate()?;
+
     let cost = 15;
     let increase = 25;
 
@@ -24,8 +25,6 @@ pub async fn play(ctx: &Context, msg: &Message) -> CommandResult {
         .gold_needed(cost)
         .required_pigeon_status(PigeonStatus::Idle)
         .validate(&msg.author)?;
-
-    let now = FlagValidator::validate::<PigeonLastPlayedWith>(human_id, Duration::minutes(45))?;
 
     let stat = PigeonRepository::get_stat_value(human_id, "happiness")?;
     if stat.value >= 100 {
@@ -46,6 +45,6 @@ pub async fn play(ctx: &Context, msg: &Message) -> CommandResult {
     .await?;
 
     PigeonRepository::update_winnings(human_id, &winnings)?;
-    FlagCache::add::<PigeonLastPlayedWith>(human_id, now);
+    bucket.spend(now);
     Ok(())
 }
