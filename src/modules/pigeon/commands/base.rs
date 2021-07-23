@@ -18,10 +18,10 @@ use serenity::framework::standard::macros::group;
     spaceplore,
     space,
     profile,
-    // feed,
-    // heal,
-    // clean,
-    // play,
+    feed,
+    heal,
+    clean,
+    play,
     // poop,
     // train
 )]

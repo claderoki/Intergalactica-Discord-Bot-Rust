@@ -16,6 +16,7 @@ use crate::modules::pigeon::repository::pigeon::PigeonRepository;
 
 #[command("profile")]
 #[description("View your pigeons profile.")]
+#[aliases("status")]
 pub async fn profile(ctx: &Context, msg: &Message) -> CommandResult {
     let user: &User = msg.mentions.get(0).map_or(&msg.author, |u| u);
 

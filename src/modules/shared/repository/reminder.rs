@@ -91,13 +91,16 @@ impl ReminderRepository {
                     .iter()
                     .map(|id| id.to_string())
                     .collect::<Vec<String>>()
-                    .join(", "),
+                    .join(","),
             )
             .execute(&connection);
 
         match result {
             Ok(_) => Ok(()),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                println!("{:?}", e);
+                Err("Something went wrong with set_sent_multiple query.".into())
+            },
         }
     }
 }

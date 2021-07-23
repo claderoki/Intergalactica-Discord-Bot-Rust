@@ -46,11 +46,13 @@ async fn remind(ctx: &Context, reminder: &Reminder) -> bool {
                     }
                     Err(e) => {
                         println!("{:?}", e);
+                        return false;
                     }
                 }
             }
             None => {
                 println!("Channel not in cache");
+                return false;
             }
         }
     } else {
@@ -61,15 +63,15 @@ async fn remind(ctx: &Context, reminder: &Reminder) -> bool {
                 }
                 Err(e) => {
                     println!("{:?}", e);
+                    return false;
                 }
             },
             None => {
                 println!("User not found in cache");
+                return false;
             }
         }
     }
-
-    false
 }
 
 async fn remind_user(ctx: &Context, user: &User, message: &String) -> Result<(), String> {
