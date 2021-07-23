@@ -36,19 +36,6 @@ impl EventHandler for Handler {
         info!("Resumed");
     }
 
-    // async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-    //     println!("got something");
-
-    //     if let Some(data) = interaction.data.as_ref() {
-    //         match data {
-    //             InteractionData::ApplicationCommand(_) => {},
-    //             InteractionData::MessageComponent(value) => {
-    //                 println!("{:?}", value);
-    //             },
-    //         };
-    //     }
-    // }
-
     async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
         let ctx = Arc::new(ctx);
         if !self.is_loop_running.load(Ordering::Relaxed) {

@@ -8,13 +8,14 @@ use super::profile::*;
 use super::space::*;
 use super::spaceplore::*;
 use super::train::*;
+use super::battle::*;
 
 use serenity::framework::standard::macros::group;
 
 #[group]
 #[prefix("pigeon")]
 #[commands(
-    // buy,
+    buy,
     spaceplore,
     space,
     profile,
@@ -22,7 +23,8 @@ use serenity::framework::standard::macros::group;
     heal,
     clean,
     play,
-    // poop,
-    // train
+    train,
+    battle,
+    poop,
 )]
 pub struct Pigeon;

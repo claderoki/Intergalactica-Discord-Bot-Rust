@@ -9,3 +9,4 @@ pub mod profile;
 pub mod space;
 pub mod spaceplore;
 pub mod train;
+pub mod battle;

@@ -31,7 +31,7 @@ pub async fn spaceplore(ctx: &Context, msg: &Message) -> CommandResult {
 
     let simple_location = ExplorationRepository::get_random_location()?;
 
-    let arrival_date = (chrono::offset::Utc::now() + chrono::Duration::minutes(30)).naive_utc();
+    let arrival_date = (chrono::offset::Utc::now() + chrono::Duration::minutes(simple_location.travel_distance_in_minutes)).naive_utc();
 
     ExplorationRepository::create_exploration(human_id, simple_location.id, arrival_date)?;
     PigeonRepository::update_status(human_id, PigeonStatus::SpaceExploring);

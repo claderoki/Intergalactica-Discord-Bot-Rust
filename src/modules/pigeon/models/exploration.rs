@@ -184,6 +184,9 @@ pub struct SimplePlanetLocation {
 
     #[sql_type = "VarChar"]
     pub image_url: String,
+
+    #[sql_type = "BigInt"]
+    pub travel_distance_in_minutes: i64,
 }
 
 #[derive(QueryableByName)]

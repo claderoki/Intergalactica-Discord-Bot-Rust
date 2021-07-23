@@ -100,7 +100,7 @@ impl ReminderRepository {
             Err(e) => {
                 println!("{:?}", e);
                 Err("Something went wrong with set_sent_multiple query.".into())
-            },
+            }
         }
     }
 }
