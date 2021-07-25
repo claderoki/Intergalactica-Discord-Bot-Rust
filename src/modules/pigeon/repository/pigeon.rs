@@ -64,6 +64,30 @@ impl PigeonRepository {
         }
     }
 
+    pub fn add_pooped_on_count(human_id: i32) {
+        let connection = get_connection_diesel();
+
+        let result = sql_query(include_str!("queries/pigeon/add_pooped_on_count.sql"))
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
+
+        if let Err(e) = result {
+            println!("{:?}", e);
+        }
+    }
+
+    pub fn add_poop_victim_count(human_id: i32) {
+        let connection = get_connection_diesel();
+
+        let result = sql_query(include_str!("queries/pigeon/add_poop_victim_count.sql"))
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
+
+        if let Err(e) = result {
+            println!("{:?}", e);
+        }
+    }
+
     pub fn get_decaying_pigeons() -> Result<Vec<DecayingPigeon>, String> {
         let connection = get_connection_diesel();
 

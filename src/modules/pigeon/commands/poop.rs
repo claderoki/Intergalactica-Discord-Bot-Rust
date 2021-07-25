@@ -2,6 +2,7 @@ use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
+use chrono::Duration;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
 use crate::modules::pigeon::helpers::utils::PigeonWinnable;
@@ -10,11 +11,16 @@ use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
 use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::caching::bucket::Bucket;
 
 #[command("poop")]
 #[description("Poop on another pigeon.")]
 pub async fn poop(ctx: &Context, msg: &Message) -> CommandResult {
+    let bucket = Bucket::user("pigeon_poop", msg.author.id, Duration::minutes(60));
+    let now = bucket.validate()?;
+
     let recipient = msg.mentions.get(0).ok_or("No one mentioned")?;
+
     let initiator = &msg.author;
 
     let mut validator = PigeonValidation::new();
@@ -41,6 +47,10 @@ pub async fn poop(ctx: &Context, msg: &Message) -> CommandResult {
     )
     .await?;
 
+    PigeonRepository::add_poop_victim_count(initiator_human_id);
+    PigeonRepository::add_pooped_on_count(recipient_human_id);
+
+    bucket.spend(now);
     Ok(())
 }
 

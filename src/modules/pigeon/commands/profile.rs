@@ -97,6 +97,7 @@ fn get_embed_thumbnail_url(status: &PigeonStatus) -> String {
         PigeonStatus::Mailing        => "",
         PigeonStatus::Exploring      => "https://media.discordapp.net/attachments/744172199770062899/863422074927317052/exploring.png",
         PigeonStatus::Fighting       => "",
+        PigeonStatus::Jailed         => "",
         PigeonStatus::Dating         => "",
         PigeonStatus::SpaceExploring => "https://media.discordapp.net/attachments/744172199770062899/863421831532511242/space_exploring.png",
     }.into()

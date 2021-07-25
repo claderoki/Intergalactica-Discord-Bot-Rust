@@ -85,7 +85,12 @@ impl PigeonValidation {
         query.push_str("(`pigeon`.`id` IS NOT NULL) as has_active_pigeon, ");
 
         if self.required_pigeon_status.is_some() {
-            query.push_str("(`pigeon`.`status` IS NOT NULL AND `pigeon`.`status` = ?) as has_required_status, ");
+            query.push_str("
+            (
+                `pigeon`.`status` IS NOT NULL
+                AND `pigeon`.`status` = ?
+                AND (`pigeon`.`jailed_until` IS NULL OR `pigeon`.`jailed_until` <= UTC_TIMESTAMP())
+            ) AS has_required_status, ");
         } else {
             query.push_str("(1 OR ? = 1) as has_required_status, ");
         }
@@ -125,7 +130,10 @@ impl PigeonValidation {
 
         return match results {
             Ok(result) => Ok(result),
-            Err(e) => Err(format!("{:?}", e)),
+            Err(e) => {
+                println!("{:?}", e);
+                Err("Query get_validation_result is messed up".into())
+            },
         };
     }
 

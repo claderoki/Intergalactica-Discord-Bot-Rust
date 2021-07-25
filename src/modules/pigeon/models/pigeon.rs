@@ -21,6 +21,7 @@ pub enum PigeonStatus {
     Fighting,
     Dating,
     SpaceExploring,
+    Jailed,
 }
 
 impl PigeonStatus {
@@ -32,6 +33,7 @@ impl PigeonStatus {
             "space_exploring" => Self::SpaceExploring,
             "fighting" => Self::Fighting,
             "dating" => Self::Dating,
+            "jailed" => Self::Jailed,
             _ => Self::Idle,
         }
     }
@@ -44,6 +46,7 @@ impl PigeonStatus {
             PigeonStatus::Fighting => "in a fight",
             PigeonStatus::SpaceExploring => "exploring space",
             PigeonStatus::Dating => "on a date",
+            PigeonStatus::Jailed => "in jail"
         })
     }
 
@@ -55,6 +58,7 @@ impl PigeonStatus {
             PigeonStatus::Fighting => "fighting",
             PigeonStatus::SpaceExploring => "space_exploring",
             PigeonStatus::Dating => "dating",
+            PigeonStatus::Jailed => "jailed",
         })
     }
 }
