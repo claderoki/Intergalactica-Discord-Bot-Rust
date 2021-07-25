@@ -8,7 +8,8 @@ use super::poop::*;
 use super::profile::*;
 use super::space::*;
 use super::spaceplore::*;
-use super::train::*;
+use super::rob::*;
+// use super::train::*;
 
 use serenity::framework::standard::macros::group;
 
@@ -25,6 +26,7 @@ use serenity::framework::standard::macros::group;
     play,
     battle,
     poop,
+    rob,
     // train,
 )]
 pub struct Pigeon;

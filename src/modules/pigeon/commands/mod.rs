@@ -10,3 +10,4 @@ pub mod space;
 pub mod spaceplore;
 pub mod train;
 pub mod battle;
+pub mod rob;

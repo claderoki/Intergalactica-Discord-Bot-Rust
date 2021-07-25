@@ -26,6 +26,13 @@ pub struct PigeonValidationResult {
 
     #[sql_type = "Bool"]
     has_item_needed: bool,
+
+    #[sql_type = "Bool"]
+    has_available_pvp_action: bool,
+
+    #[sql_type = "Bool"]
+    has_pvp_enabled: bool,
+
 }
 
 pub struct PigeonValidation {
@@ -33,6 +40,8 @@ pub struct PigeonValidation {
     item_needed: Option<String>,
     needs_active_pigeon: Option<bool>,
     required_pigeon_status: Option<PigeonStatus>,
+    needs_pvp_enabled: bool,
+    needs_available_pvp_action: bool,
     other: bool,
     human_id: Option<i32>,
 }
@@ -46,7 +55,20 @@ impl PigeonValidation {
             human_id: None,
             needs_active_pigeon: None,
             required_pigeon_status: None,
+            needs_pvp_enabled: false,
+            needs_available_pvp_action: false,
         }
+    }
+
+    pub fn needs_pvp_enabled(&mut self, value: bool) -> &mut Self {
+        self.needs_pvp_enabled = value;
+        self
+    }
+
+
+    pub fn needs_available_pvp_action(&mut self, value: bool) -> &mut Self {
+        self.needs_available_pvp_action = value;
+        self
     }
 
     pub fn gold_needed(&mut self, value: i32) -> &mut Self {
@@ -63,11 +85,6 @@ impl PigeonValidation {
         self.needs_active_pigeon = Some(value);
         self
     }
-
-    // pub fn human_id(&mut self, value: i32) -> &mut Self {
-    //     self.human_id = Some(value);
-    //     self
-    // }
 
     pub fn required_pigeon_status(&mut self, value: PigeonStatus) -> &mut Self {
         self.required_pigeon_status = Some(value);
@@ -93,6 +110,13 @@ impl PigeonValidation {
             ) AS has_required_status, ");
         } else {
             query.push_str("(1 OR ? = 1) as has_required_status, ");
+        }
+
+        query.push_str("`pigeon`.`pvp` AS has_pvp_enabled,");
+        if self.needs_available_pvp_action {
+            query.push_str("(`pigeon`.`last_used_pvp` IS NULL OR DATE_ADD(`pigeon`.`last_used_pvp`, INTERVAL 3 HOUR) <= UTC_TIMESTAMP()) AS `has_available_pvp_action`,");
+        } else {
+            query.push_str("1 AS has_available_pvp_action,");
         }
 
         query.push_str("(SELECT COUNT(*) from `pigeon` p WHERE `p`.`human_id` = `human`.`id` AND `p`.`condition` = 'dead' AND `p`.`death_notified` = 0) as should_notify_death,");
@@ -148,6 +172,22 @@ impl PigeonValidation {
         if result.should_notify_death && !self.other {
             PigeonRepository::update_death_notified(human_id, true);
             return Err("Your pigeon has died. Better take better care of it next time!".into());
+        }
+
+        if self.needs_pvp_enabled && !result.has_pvp_enabled {
+            return Err(if self.other {
+                format!("The other persons pigeon does not have PvP enabled..")
+            } else {
+                format!("Your pigeon does not have PvP enabled.")
+            });
+        }
+
+        if self.needs_available_pvp_action && !result.has_available_pvp_action {
+            return Err(if self.other {
+                format!("The other persons pigeon does not have an available PvP action yet.")
+            } else {
+                format!("Your pigeon does not have an available PvP action yet.")
+            });
         }
 
         if self.gold_needed > 0 && !result.has_gold_needed {

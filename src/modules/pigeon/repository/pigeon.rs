@@ -21,7 +21,7 @@ impl PigeonRepository {
     pub fn update_winnings(human_id: i32, winnings: &PigeonWinnings) -> Result<(), String> {
         let connection = get_connection_diesel();
 
-        let _results = sql_query(include_str!("queries/pigeon/update_winnings.sql"))
+        let result = sql_query(include_str!("queries/pigeon/update_winnings.sql"))
             .bind::<Integer, _>(winnings.health)
             .bind::<Integer, _>(winnings.health)
             .bind::<Integer, _>(winnings.happiness)
@@ -32,17 +32,27 @@ impl PigeonRepository {
             .bind::<Integer, _>(human_id)
             .execute(&connection);
 
-        // TODO: if let
-        match _results {
-            Err(e) => {
-                error!("{:?}", e);
-                return Err("Failed to update winnings.".into());
-            }
-            _ => {}
+        if let Err(e) = result {
+            println!("{:?}", e);
+            return Err("Failed to update winnings.".into());
         }
 
         if !winnings.item_ids.is_empty() {
             let _ = ItemRepository::add_items((*winnings.item_ids).to_vec(), human_id)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn unjail_all() -> Result<(), String> {
+        let connection = get_connection_diesel();
+
+        let result = sql_query(include_str!("queries/pigeon/unjail_all.sql"))
+            .execute(&connection);
+
+        if let Err(e) = result {
+            println!("{:?}", e);
+            return Err("Failed to unjail winnings.".into());
         }
 
         Ok(())
@@ -68,6 +78,31 @@ impl PigeonRepository {
         let connection = get_connection_diesel();
 
         let result = sql_query(include_str!("queries/pigeon/add_pooped_on_count.sql"))
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
+
+        if let Err(e) = result {
+            println!("{:?}", e);
+        }
+    }
+
+    pub fn jail(human_id: i32, hours: i32) {
+        let connection = get_connection_diesel();
+
+        let result = sql_query(include_str!("queries/pigeon/jail.sql"))
+            .bind::<Integer, _>(hours)
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
+
+        if let Err(e) = result {
+            println!("{:?}", e);
+        }
+    }
+
+    pub fn set_pvp_action_used(human_id: i32) {
+        let connection = get_connection_diesel();
+
+        let result = sql_query(include_str!("queries/pigeon/set_pvp_action_used.sql"))
             .bind::<Integer, _>(human_id)
             .execute(&connection);
 

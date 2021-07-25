@@ -153,6 +153,10 @@ pub struct PigeonProfile {
 
     #[sql_type = "VarChar"]
     pub status: PigeonStatus,
+
+    #[sql_type = "BigInt"]
+    pub jail_time_left_in_seconds: i64,
+
 }
 
 #[derive(QueryableByName)]

@@ -13,6 +13,7 @@ use tracing::info;
 
 use crate::client::Environment;
 use crate::modules::pigeon::tasks::decay::decay_pigeons;
+use crate::modules::pigeon::tasks::unjail::unjail_all;
 use crate::modules::shared::tasks::reminders::reminder;
 
 pub struct Handler {
@@ -66,6 +67,15 @@ impl EventHandler for Handler {
                     tokio::time::sleep(Duration::from_secs(20)).await;
                 }
             });
+
+            let ctx3 = Arc::clone(&ctx);
+            tokio::spawn(async move {
+                loop {
+                    unjail_all(Arc::clone(&ctx3)).await;
+                    tokio::time::sleep(Duration::from_secs(40)).await;
+                }
+            });
+
 
             self.is_loop_running.swap(true, Ordering::Relaxed);
         }

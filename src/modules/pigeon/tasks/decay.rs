@@ -20,29 +20,6 @@ pub async fn decay_pigeons(ctx: Arc<Context>) {
     }
 }
 
-/**
- * 
-* data = {
-"food"        : -1,
-"health"      : -0,
-"happiness"   : -1,
-"cleanliness" : -1,
-}
-for pigeon_buff in pigeon.buffs:
-if pigeon_buff.buff.code == "fully_fed":
-data["food"] = 0
-if pigeon_buff.buff.code == "bleeding":
-data["health"] += -2
-
-if pigeon.food <= 20 or pigeon.cleanliness <= 20:
-data["health"] += -1
-if pigeon.food == 0:
-data["health"] += -2
- * 
- * 
- * 
- */
-
 async fn decay_pigeon(ctx: &Context, pigeon: &DecayingPigeon) {
     let mut builder = PigeonWinningsBuilder::new();
     builder.cleanliness(-1).happiness(-1).food(-1);

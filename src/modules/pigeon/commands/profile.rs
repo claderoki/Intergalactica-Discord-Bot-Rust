@@ -13,6 +13,7 @@ use crate::modules::pigeon::models::pigeon::PigeonProfile;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::exploration::ExplorationRepository;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::helpers::utils::TimeDelta;
 
 #[command("profile")]
 #[description("View your pigeons profile.")]
@@ -61,13 +62,14 @@ fn create_profile_embed<'a>(
         .title(&profile.name.fill(15))
         .thumbnail(get_embed_thumbnail_url(&profile.status))
         .normal_embed(&profile.to_string())
-        .footer(|f| create_status_footer(f, human_id, &profile.status))
+        .footer(|f| create_status_footer(f, human_id, &profile.status, profile.jail_time_left_in_seconds))
 }
 
 fn create_status_footer<'a>(
     footer: &'a mut CreateEmbedFooter,
     human_id: i32,
     status: &PigeonStatus,
+    jail_time_left: i64,
 ) -> &'a mut CreateEmbedFooter {
     match status {
         PigeonStatus::SpaceExploring => {
@@ -82,6 +84,10 @@ fn create_status_footer<'a>(
                     format!("traveling to {}", location.planet_name)
                 }
             });
+        },
+        PigeonStatus::Jailed => {
+            let delta = TimeDelta::from_seconds(jail_time_left);
+            footer.text(format!("In jail for another {}", delta.to_text()));
         }
         _ => {
             footer.text(status.get_friendly_verb());
@@ -97,7 +103,7 @@ fn get_embed_thumbnail_url(status: &PigeonStatus) -> String {
         PigeonStatus::Mailing        => "",
         PigeonStatus::Exploring      => "https://media.discordapp.net/attachments/744172199770062899/863422074927317052/exploring.png",
         PigeonStatus::Fighting       => "",
-        PigeonStatus::Jailed         => "",
+        PigeonStatus::Jailed         => "https://cdn.discordapp.com/attachments/744172199770062899/868835590211264542/jailed_pigeon.png",
         PigeonStatus::Dating         => "",
         PigeonStatus::SpaceExploring => "https://media.discordapp.net/attachments/744172199770062899/863421831532511242/space_exploring.png",
     }.into()
