@@ -15,7 +15,7 @@ use serenity::framework::standard::macros::group;
 #[group]
 #[prefix("pigeon")]
 #[commands(
-    // buy,
+    buy,
     spaceplore,
     space,
     profile,

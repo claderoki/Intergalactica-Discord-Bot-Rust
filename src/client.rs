@@ -25,8 +25,6 @@ impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
-const PREFIX: &str = "/";
-
 #[hook]
 async fn after_hook(
     ctx: &Context,
@@ -44,8 +42,33 @@ async fn after_hook(
     }
 }
 
+pub enum Environment {
+    Production,
+    Development,
+}
+
+impl TypeMapKey for Environment {
+    type Value = Environment;
+}
+
+fn get_environment() -> Environment {
+    let args: Vec<String> = env::args().collect();
+    match args.get(1) {
+        Some(mode) => {
+            match mode.as_str() {
+                "production" => Environment::Production,
+                _ => Environment::Development
+            }
+
+        },
+        None => Environment::Development,
+    }
+}
+
 pub async fn get_client() -> Client {
     dotenv::dotenv().expect("Failed to load .env file");
+
+    let environment = get_environment();
 
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
@@ -68,7 +91,10 @@ pub async fn get_client() -> Client {
     };
 
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix(PREFIX))
+        .configure(|c| c.owners(owners).prefix(match environment {
+            Environment::Production => "/",
+            Environment::Development => ".",
+        }))
         .after(after_hook)
         .group(&GAMES_GROUP)
         .group(&PIGEON_GROUP);
@@ -83,6 +109,7 @@ pub async fn get_client() -> Client {
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+        data.insert::<Environment>(environment);
     }
 
     client

@@ -11,6 +11,7 @@ use serenity::prelude::*;
 
 use tracing::info;
 
+use crate::client::Environment;
 use crate::modules::pigeon::tasks::decay::decay_pigeons;
 use crate::modules::shared::tasks::reminders::reminder;
 
@@ -38,7 +39,17 @@ impl EventHandler for Handler {
 
     async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
         let ctx = Arc::new(ctx);
-        if !self.is_loop_running.load(Ordering::Relaxed) {
+
+        let production = {
+            let data_read = ctx.data.read().await;
+            let environment = data_read.get::<Environment>().expect("Expected Environment.");
+            match environment {
+                Environment::Production => true,
+                Environment::Development => false,
+            }
+        };
+
+        if production && !self.is_loop_running.load(Ordering::Relaxed) {
             let ctx1 = Arc::clone(&ctx);
             tokio::spawn(async move {
                 loop {
