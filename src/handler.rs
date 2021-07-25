@@ -68,10 +68,9 @@ impl EventHandler for Handler {
                 }
             });
 
-            let ctx3 = Arc::clone(&ctx);
             tokio::spawn(async move {
                 loop {
-                    unjail_all(Arc::clone(&ctx3)).await;
+                    unjail_all().await;
                     tokio::time::sleep(Duration::from_secs(40)).await;
                 }
             });

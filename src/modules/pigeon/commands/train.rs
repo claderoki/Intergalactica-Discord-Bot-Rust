@@ -25,6 +25,10 @@ pub async fn train(ctx: &Context, msg: &Message) -> CommandResult {
         .validate(&msg.author)?;
 
     let gold_modifier = PigeonRepository::get_gold_modifier(human_id)?;
+    if gold_modifier.value + increase > 1.5 {
+        return Err("You can't go over 1.5 for now".into());
+    }
+
     let cost = calculate_cost(gold_modifier.value);
 
     if !HumanRepository::has_gold(human_id, cost)? {
