@@ -1,8 +1,8 @@
+use chrono::Duration;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
-use chrono::Duration;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
 use crate::modules::pigeon::helpers::utils::PigeonWinnable;

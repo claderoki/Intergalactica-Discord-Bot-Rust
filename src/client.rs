@@ -54,12 +54,9 @@ impl TypeMapKey for Environment {
 fn get_environment() -> Environment {
     let args: Vec<String> = env::args().collect();
     match args.get(1) {
-        Some(mode) => {
-            match mode.as_str() {
-                "production" => Environment::Production,
-                _ => Environment::Development
-            }
-
+        Some(mode) => match mode.as_str() {
+            "production" => Environment::Production,
+            _ => Environment::Development,
         },
         None => Environment::Development,
     }
@@ -91,10 +88,12 @@ pub async fn get_client() -> Client {
     };
 
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix(match environment {
-            Environment::Production => "/",
-            Environment::Development => ".",
-        }))
+        .configure(|c| {
+            c.owners(owners).prefix(match environment {
+                Environment::Production => "/",
+                Environment::Development => ".",
+            })
+        })
         .after(after_hook)
         .group(&GAMES_GROUP)
         .group(&PIGEON_GROUP);

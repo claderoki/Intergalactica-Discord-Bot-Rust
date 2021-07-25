@@ -32,7 +32,6 @@ pub struct PigeonValidationResult {
 
     #[sql_type = "Bool"]
     has_pvp_enabled: bool,
-
 }
 
 pub struct PigeonValidation {
@@ -64,7 +63,6 @@ impl PigeonValidation {
         self.needs_pvp_enabled = value;
         self
     }
-
 
     pub fn needs_available_pvp_action(&mut self, value: bool) -> &mut Self {
         self.needs_available_pvp_action = value;
@@ -102,17 +100,19 @@ impl PigeonValidation {
         query.push_str("(`pigeon`.`id` IS NOT NULL) as has_active_pigeon, ");
 
         if self.required_pigeon_status.is_some() {
-            query.push_str("
+            query.push_str(
+                "
             (
                 `pigeon`.`status` IS NOT NULL
                 AND `pigeon`.`status` = ?
                 AND (`pigeon`.`jailed_until` IS NULL OR `pigeon`.`jailed_until` <= UTC_TIMESTAMP())
-            ) AS has_required_status, ");
+            ) AS has_required_status, ",
+            );
         } else {
             query.push_str("(1 OR ? = 1) as has_required_status, ");
         }
 
-        query.push_str("`pigeon`.`pvp` AS has_pvp_enabled,");
+        query.push_str("(IFNULL(`pigeon`.`pvp`, 0)) AS has_pvp_enabled,");
         if self.needs_available_pvp_action {
             query.push_str("(`pigeon`.`last_used_pvp` IS NULL OR DATE_ADD(`pigeon`.`last_used_pvp`, INTERVAL 3 HOUR) <= UTC_TIMESTAMP()) AS `has_available_pvp_action`,");
         } else {
@@ -157,7 +157,7 @@ impl PigeonValidation {
             Err(e) => {
                 println!("{:?}", e);
                 Err("Query get_validation_result is messed up".into())
-            },
+            }
         };
     }
 

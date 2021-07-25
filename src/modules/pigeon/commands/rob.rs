@@ -1,6 +1,6 @@
 use crate::discord_helpers::embed_utils::EmbedExtension;
-use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
 use crate::modules::pigeon::helpers::utils::winning_to_string;
+use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
 use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
@@ -18,19 +18,20 @@ pub async fn rob(ctx: &Context, msg: &Message) -> CommandResult {
     let initiator = &msg.author;
 
     let mut validator = PigeonValidation::new();
-    validator
-        .needs_active_pigeon(true)
-        .required_pigeon_status(PigeonStatus::Idle)
-        .needs_pvp_enabled(true);
-
-    let initiator_human_id = validator
-        .needs_available_pvp_action(true)
-        .validate(initiator)?;
+    validator.needs_active_pigeon(true).needs_pvp_enabled(true);
 
     let recipient_human_id = validator
         .other(true)
         .needs_available_pvp_action(false)
+        .gold_needed(100)
         .validate(recipient)?;
+
+    let initiator_human_id = validator
+        .required_pigeon_status(PigeonStatus::Idle)
+        .other(false)
+        .gold_needed(0)
+        .needs_available_pvp_action(true)
+        .validate(initiator)?;
 
     let success = {
         let mut rng = thread_rng();
@@ -47,14 +48,23 @@ pub async fn rob(ctx: &Context, msg: &Message) -> CommandResult {
             let hours = 3;
             PigeonRepository::set_pvp_action_used(initiator_human_id);
             PigeonRepository::jail(initiator_human_id, hours);
-            return Err(format!("You fail to rob {} and are put in jail for {} hours.", recipient, hours).into());
+            return Err(format!(
+                "You fail to rob {} and are put in jail for {} hours.",
+                recipient, hours
+            )
+            .into());
         }
     };
 
     Ok(())
 }
 
-async fn success_scenario(ctx: &Context, msg: &Message, initiator_human_id: i32, recipient_human_id: i32) -> Result<(), String> {
+async fn success_scenario(
+    ctx: &Context,
+    msg: &Message,
+    initiator_human_id: i32,
+    recipient_human_id: i32,
+) -> Result<(), String> {
     let gold_stolen = {
         let mut rng = thread_rng();
         rng.gen_range(10, 101)
@@ -76,9 +86,7 @@ async fn success_scenario(ctx: &Context, msg: &Message, initiator_human_id: i32,
 
     let _ = msg
         .channel_id
-        .send_message(&ctx, |m| {
-            m.embed(|e| e.normal_embed(&text))
-        })
+        .send_message(&ctx, |m| m.embed(|e| e.normal_embed(&text)))
         .await
         .or(Err("Failed to send success_scenario"));
 

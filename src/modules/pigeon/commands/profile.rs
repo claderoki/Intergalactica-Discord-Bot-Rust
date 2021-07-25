@@ -62,7 +62,14 @@ fn create_profile_embed<'a>(
         .title(&profile.name.fill(15))
         .thumbnail(get_embed_thumbnail_url(&profile.status))
         .normal_embed(&profile.to_string())
-        .footer(|f| create_status_footer(f, human_id, &profile.status, profile.jail_time_left_in_seconds))
+        .footer(|f| {
+            create_status_footer(
+                f,
+                human_id,
+                &profile.status,
+                profile.jail_time_left_in_seconds,
+            )
+        })
 }
 
 fn create_status_footer<'a>(
@@ -84,7 +91,7 @@ fn create_status_footer<'a>(
                     format!("traveling to {}", location.planet_name)
                 }
             });
-        },
+        }
         PigeonStatus::Jailed => {
             let delta = TimeDelta::from_seconds(jail_time_left);
             footer.text(format!("In jail for another {}", delta.to_text()));

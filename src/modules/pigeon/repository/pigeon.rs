@@ -47,8 +47,7 @@ impl PigeonRepository {
     pub fn unjail_all() -> Result<(), String> {
         let connection = get_connection_diesel();
 
-        let result = sql_query(include_str!("queries/pigeon/unjail_all.sql"))
-            .execute(&connection);
+        let result = sql_query(include_str!("queries/pigeon/unjail_all.sql")).execute(&connection);
 
         if let Err(e) = result {
             println!("{:?}", e);

@@ -42,7 +42,7 @@ where
                 //                     o.description("Option 1").label("1").value("option 1")
                 //                 })
                 //                 .create_option(|o| {
-                //                     o.description("Option 2").label("2").value("otpion 2")
+                //                     o.description("Option 2").label("2").value("option 2")
                 //                 })
                 //         })
                 //     })

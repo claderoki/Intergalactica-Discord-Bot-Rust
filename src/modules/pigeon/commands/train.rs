@@ -12,11 +12,22 @@ use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
 use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::caching::bucket::Bucket;
 use crate::modules::shared::repository::human::HumanRepository;
+use chrono::Duration;
 
 #[command("train")]
+#[only_in(guild)]
 #[description("Bulk up your bird.")]
 pub async fn train(ctx: &Context, msg: &Message) -> CommandResult {
+    let bucket = Bucket::user("pigeon_train", msg.author.id, Duration::minutes(10));
+    let now = bucket.validate().map_err(|e| {
+        format!(
+            "Your pigeon is still resting from his last, intense training session.\n{}",
+            e
+        )
+    })?;
+
     let increase = 0.01;
 
     let human_id = PigeonValidation::new()
@@ -51,6 +62,8 @@ pub async fn train(ctx: &Context, msg: &Message) -> CommandResult {
         })
         .await?;
 
+    bucket.spend(now);
+
     Ok(())
 }
 
@@ -70,6 +83,6 @@ fn create_modifier_embed<'a>(
 
 fn calculate_cost(modifier: f64) -> i32 {
     let base_cost = 100.0;
-    let cost = base_cost * (modifier * 1.5);
+    let cost = base_cost * (modifier * 3.0);
     cost as i32
 }

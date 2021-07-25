@@ -22,6 +22,7 @@ use crate::modules::shared::repository::item::ItemRepository;
 use crate::modules::shared::repository::item::SimpleItem;
 
 #[command("space")]
+#[only_in(guild)]
 #[description("Retrieve a space exploration.")]
 pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
     let human_id = PigeonValidation::new()

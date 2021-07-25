@@ -46,7 +46,7 @@ impl PigeonStatus {
             PigeonStatus::Fighting => "in a fight",
             PigeonStatus::SpaceExploring => "exploring space",
             PigeonStatus::Dating => "on a date",
-            PigeonStatus::Jailed => "in jail"
+            PigeonStatus::Jailed => "in jail",
         })
     }
 
@@ -156,7 +156,6 @@ pub struct PigeonProfile {
 
     #[sql_type = "BigInt"]
     pub jail_time_left_in_seconds: i64,
-
 }
 
 #[derive(QueryableByName)]

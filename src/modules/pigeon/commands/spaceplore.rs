@@ -21,6 +21,7 @@ use crate::modules::shared::repository::reminder::NewReminder;
 use crate::modules::shared::repository::reminder::ReminderRepository;
 
 #[command("spaceplore")]
+#[only_in(guild)]
 #[description("Send your pigeon into space.")]
 pub async fn spaceplore(ctx: &Context, msg: &Message) -> CommandResult {
     let human_id = PigeonValidation::new()
@@ -31,7 +32,9 @@ pub async fn spaceplore(ctx: &Context, msg: &Message) -> CommandResult {
 
     let simple_location = ExplorationRepository::get_random_location()?;
 
-    let arrival_date = (chrono::offset::Utc::now() + chrono::Duration::minutes(simple_location.travel_distance_in_minutes)).naive_utc();
+    let arrival_date = (chrono::offset::Utc::now()
+        + chrono::Duration::minutes(simple_location.travel_distance_in_minutes))
+    .naive_utc();
 
     ExplorationRepository::create_exploration(human_id, simple_location.id, arrival_date)?;
     PigeonRepository::update_status(human_id, PigeonStatus::SpaceExploring);

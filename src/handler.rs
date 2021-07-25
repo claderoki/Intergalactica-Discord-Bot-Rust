@@ -43,7 +43,9 @@ impl EventHandler for Handler {
 
         let production = {
             let data_read = ctx.data.read().await;
-            let environment = data_read.get::<Environment>().expect("Expected Environment.");
+            let environment = data_read
+                .get::<Environment>()
+                .expect("Expected Environment.");
             match environment {
                 Environment::Production => true,
                 Environment::Development => false,
@@ -54,7 +56,7 @@ impl EventHandler for Handler {
             let ctx1 = Arc::clone(&ctx);
             tokio::spawn(async move {
                 loop {
-                    tokio::time::sleep(Duration::from_secs(60*60)).await;
+                    tokio::time::sleep(Duration::from_secs(60 * 60)).await;
                     println!("Decaying...");
                     decay_pigeons(Arc::clone(&ctx1)).await;
                 }
@@ -74,7 +76,6 @@ impl EventHandler for Handler {
                     tokio::time::sleep(Duration::from_secs(40)).await;
                 }
             });
-
 
             self.is_loop_running.swap(true, Ordering::Relaxed);
         }
