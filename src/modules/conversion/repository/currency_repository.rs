@@ -25,7 +25,7 @@ type CurrencyResult = Result<Currency, &'static str>;
 pub struct CurrencyRepository;
 impl CurrencyRepository {
     pub fn create(c: Currency) -> CurrencyResult {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let code = String::from(c.code.as_str());
 
@@ -46,7 +46,7 @@ impl CurrencyRepository {
     }
 
     pub fn update(c: Currency) -> CurrencyResult {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
         diesel::update(&c)
             .set(&c)
             .execute(&connection)
@@ -66,7 +66,7 @@ impl CurrencyRepository {
     pub fn get(currency_code: &str) -> CurrencyResult {
         use crate::database::schema::currency::dsl::*;
 
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
         currency
             .filter(code.eq(currency_code))
             .first::<Currency>(&connection)
@@ -76,7 +76,7 @@ impl CurrencyRepository {
     pub fn get_all() -> Result<Vec<Currency>, &'static str> {
         use crate::database::schema::currency::dsl::*;
 
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
         currency
             .load::<Currency>(&connection)
             .map_err(|_| "No currencies found.")
@@ -85,14 +85,14 @@ impl CurrencyRepository {
     pub fn get_multiple(currency_codes: Vec<&str>) -> Result<Vec<Currency>, &'static str> {
         use crate::database::schema::currency::dsl::*;
 
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
         currency
             .load::<Currency>(&connection)
             .map_err(|_| "No currencies found.")
     }
 
     // fn update_rate(code: &'static str, rate: i64) -> CurrencyResult {
-    //     let connection = get_connection_diesel();
+    //     let connection = get_connection_diesel()?;
 
     //     diesel::update(&h)
     //         .set(&h)

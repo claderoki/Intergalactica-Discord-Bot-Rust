@@ -32,7 +32,7 @@ type MeasurementResult = Result<Measurement, &'static str>;
 pub struct MeasurementRepository;
 impl MeasurementRepository {
     pub fn create(m: Measurement) -> MeasurementResult {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let code = String::from(m.code.as_str());
 
@@ -54,7 +54,7 @@ impl MeasurementRepository {
     }
 
     pub fn update(m: Measurement) -> MeasurementResult {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
         diesel::update(&m)
             .set(&m)
             .execute(&connection)
@@ -74,7 +74,7 @@ impl MeasurementRepository {
     pub fn get(measurement_code: &str) -> MeasurementResult {
         use crate::database::schema::measurement::dsl::*;
 
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
         measurement
             .filter(code.eq(measurement_code))
             .first::<Measurement>(&connection)
@@ -84,7 +84,7 @@ impl MeasurementRepository {
     pub fn get_all() -> Result<Vec<Measurement>, &'static str> {
         use crate::database::schema::measurement::dsl::*;
 
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
         measurement
             .load::<Measurement>(&connection)
             .map_err(|_| "No currencies found.")

@@ -19,7 +19,7 @@ use tracing::error;
 
 impl PigeonRepository {
     pub fn update_winnings(human_id: i32, winnings: &PigeonWinnings) -> Result<(), String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let result = sql_query(include_str!("queries/pigeon/update_winnings.sql"))
             .bind::<Integer, _>(winnings.health)
@@ -45,7 +45,7 @@ impl PigeonRepository {
     }
 
     pub fn unjail_all() -> Result<(), String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let result = sql_query(include_str!("queries/pigeon/unjail_all.sql")).execute(&connection);
 
@@ -58,7 +58,7 @@ impl PigeonRepository {
     }
 
     pub fn get_name(human_id: i32) -> Result<PigeonName, String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let results: Result<PigeonName, _> = sql_query(include_str!("queries/pigeon/get_name.sql"))
             .bind::<Integer, _>(human_id)
@@ -73,57 +73,65 @@ impl PigeonRepository {
         }
     }
 
-    pub fn add_pooped_on_count(human_id: i32) {
-        let connection = get_connection_diesel();
+    pub fn add_pooped_on_count(human_id: i32) -> Result<(), String> {
+        let connection = get_connection_diesel()?;
 
-        let result = sql_query(include_str!("queries/pigeon/add_pooped_on_count.sql"))
+        match sql_query(include_str!("queries/pigeon/add_pooped_on_count.sql"))
             .bind::<Integer, _>(human_id)
-            .execute(&connection);
-
-        if let Err(e) = result {
-            println!("{:?}", e);
-        }
+            .execute(&connection) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    println!("{:?}", e);
+                    Err("Failed to add pooped on count.".into())
+                }
+            }
     }
 
-    pub fn jail(human_id: i32, hours: i32) {
-        let connection = get_connection_diesel();
+    pub fn jail(human_id: i32, hours: i32) -> Result<(), String> {
+        let connection = get_connection_diesel()?;
 
-        let result = sql_query(include_str!("queries/pigeon/jail.sql"))
+        match sql_query(include_str!("queries/pigeon/jail.sql"))
             .bind::<Integer, _>(hours)
             .bind::<Integer, _>(human_id)
-            .execute(&connection);
-
-        if let Err(e) = result {
-            println!("{:?}", e);
+            .execute(&connection) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    println!("{:?}", e);
+                    Err("Failed to".into())
+            }
         }
     }
 
-    pub fn set_pvp_action_used(human_id: i32) {
-        let connection = get_connection_diesel();
+    pub fn set_pvp_action_used(human_id: i32) -> Result<(), String> {
+        let connection = get_connection_diesel()?;
 
-        let result = sql_query(include_str!("queries/pigeon/set_pvp_action_used.sql"))
+        match sql_query(include_str!("queries/pigeon/set_pvp_action_used.sql"))
             .bind::<Integer, _>(human_id)
-            .execute(&connection);
-
-        if let Err(e) = result {
-            println!("{:?}", e);
-        }
+            .execute(&connection) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    println!("{:?}", e);
+                    Err("Failed to".into())
+                }
+            }
     }
 
-    pub fn add_poop_victim_count(human_id: i32) {
-        let connection = get_connection_diesel();
+    pub fn add_poop_victim_count(human_id: i32) -> Result<(), String> {
+        let connection = get_connection_diesel()?;
 
-        let result = sql_query(include_str!("queries/pigeon/add_poop_victim_count.sql"))
+        match sql_query(include_str!("queries/pigeon/add_poop_victim_count.sql"))
             .bind::<Integer, _>(human_id)
-            .execute(&connection);
-
-        if let Err(e) = result {
-            println!("{:?}", e);
-        }
+            .execute(&connection) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    println!("{:?}", e);
+                    Err("Failed to add_poop_victim_count".into())
+                }
+            }
     }
 
     pub fn get_decaying_pigeons() -> Result<Vec<DecayingPigeon>, String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let results: Result<Vec<DecayingPigeon>, _> =
             sql_query(include_str!("queries/pigeon/get_decaying_pigeons.sql"))
@@ -139,7 +147,7 @@ impl PigeonRepository {
     }
 
     pub fn get_profile(human_id: i32) -> Result<PigeonProfile, String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let results: Result<PigeonProfile, _> =
             sql_query(include_str!("queries/pigeon/get_profile.sql"))
@@ -156,7 +164,7 @@ impl PigeonRepository {
     }
 
     pub fn get_stat_value(human_id: i32, stat_name: &str) -> Result<PigeonStatValue, String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let results: Result<PigeonStatValue, _> = sql_query(format!(
             "SELECT {} as value FROM pigeon WHERE human_id = ? AND `condition` = 'active' LIMIT 1",
@@ -175,7 +183,7 @@ impl PigeonRepository {
     }
 
     pub fn get_gold_modifier(human_id: i32) -> Result<GoldModifier, String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let results: Result<GoldModifier, _> =
             sql_query(include_str!("queries/pigeon/get_gold_modifier.sql"))
@@ -191,41 +199,51 @@ impl PigeonRepository {
         }
     }
 
-    pub fn increase_gold_modifier(human_id: i32, value: f64) {
-        let connection = get_connection_diesel();
+    pub fn increase_gold_modifier(human_id: i32, value: f64) -> Result<(), String> {
+        let connection = get_connection_diesel()?;
 
-        let _results = sql_query(include_str!("queries/pigeon/increase_gold_modifier.sql"))
+        match sql_query(include_str!("queries/pigeon/increase_gold_modifier.sql"))
             .bind::<Double, _>(value)
             .bind::<Integer, _>(human_id)
-            .execute(&connection);
+            .execute(&connection) {
+                Ok(_) => Ok(()),
+                Err(_) => Err("Failed to increase gold modifier".into())
+            }
     }
 
-    pub fn update_status(human_id: i32, status: PigeonStatus) {
-        let connection = get_connection_diesel();
+    pub fn update_status(human_id: i32, status: PigeonStatus) -> Result<(), &'static str> {
+        let connection = get_connection_diesel()?;
 
-        let _results = sql_query(include_str!("queries/pigeon/update_status.sql"))
+        match sql_query(include_str!("queries/pigeon/update_status.sql"))
             .bind::<Varchar, _>(status.to_string())
             .bind::<Integer, _>(human_id)
-            .execute(&connection);
+            .execute(&connection) {
+                Ok(_) => Ok(()),
+                Err(_) => Err("Failed to update status".into())
+            }
     }
 
-    pub fn update_death_notified(human_id: i32, value: bool) {
-        let connection = get_connection_diesel();
+    pub fn update_death_notified(human_id: i32, value: bool) -> Result<(), &'static str> {
+        let connection = get_connection_diesel()?;
 
-        let _results = sql_query(include_str!("queries/pigeon/update_death_notified.sql"))
+        match sql_query(include_str!("queries/pigeon/update_death_notified.sql"))
             .bind::<Bool, _>(value)
             .bind::<Integer, _>(human_id)
-            .execute(&connection);
+            .execute(&connection) {
+                Ok(_) => Ok(()),
+                Err(_) => Err("Failed to ".into())
+            }
     }
 
     pub fn create(human_id: i32, name: &str) -> Result<(), &'static str> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
-        let _results = sql_query(include_str!("queries/pigeon/create.sql"))
+        match sql_query(include_str!("queries/pigeon/create.sql"))
             .bind::<Varchar, _>(name)
             .bind::<Integer, _>(human_id)
-            .execute(&connection)
-            .or(Err("Failed to update pigeon."))?;
-        Ok(())
+            .execute(&connection) {
+                Ok(_) => Ok(()),
+                Err(_) => Err("Failed to create pigeon".into())
+            }
     }
 }

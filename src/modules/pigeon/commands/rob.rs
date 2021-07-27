@@ -41,13 +41,13 @@ pub async fn rob(ctx: &Context, msg: &Message) -> CommandResult {
     match success {
         true => {
             success_scenario(ctx, msg, initiator_human_id, recipient_human_id).await?;
-            PigeonRepository::set_pvp_action_used(initiator_human_id);
+            PigeonRepository::set_pvp_action_used(initiator_human_id)?;
         }
         false => {
-            PigeonRepository::update_status(initiator_human_id, PigeonStatus::Jailed);
+            PigeonRepository::update_status(initiator_human_id, PigeonStatus::Jailed)?;
             let hours = 3;
-            PigeonRepository::set_pvp_action_used(initiator_human_id);
-            PigeonRepository::jail(initiator_human_id, hours);
+            PigeonRepository::set_pvp_action_used(initiator_human_id)?;
+            PigeonRepository::jail(initiator_human_id, hours)?;
             return Err(format!(
                 "You fail to rob {} and are put in jail for {} hours.",
                 recipient, hours

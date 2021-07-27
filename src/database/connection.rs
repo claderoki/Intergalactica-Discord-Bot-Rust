@@ -24,6 +24,7 @@ fn get_db_url() -> String {
     )
 }
 
-pub fn get_connection_diesel() -> MysqlConnection {
-    MysqlConnection::establish(&get_db_url()).unwrap_or_else(|_| panic!("Error connecting to db"))
+pub fn get_connection_diesel() -> Result<MysqlConnection, &'static str> {
+    MysqlConnection::establish(&get_db_url()).map_err(|_|"Couldn't connect to db.")
+    // MysqlConnection::establish(&get_db_url()).unwrap_or_else(|_| panic!("Error connecting to db"))
 }

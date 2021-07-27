@@ -139,7 +139,7 @@ impl PigeonValidation {
     }
 
     fn get_validation_result(&self, human_id: i32) -> Result<PigeonValidationResult, String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let results: Result<PigeonValidationResult, _> = sql_query(self.get_query())
             .bind::<Integer, _>(self.gold_needed)
@@ -170,7 +170,9 @@ impl PigeonValidation {
         let result = self.get_validation_result(human_id)?;
 
         if result.should_notify_death && !self.other {
-            PigeonRepository::update_death_notified(human_id, true);
+            if let Err(e) = PigeonRepository::update_death_notified(human_id, true) {
+                println!("{:?}", e);
+            }
             return Err("Your pigeon has died. Better take better care of it next time!".into());
         }
 
@@ -219,40 +221,38 @@ impl PigeonValidation {
             }
         }
 
-        if self.item_needed.is_some() {
+        if let Some(item) = &self.item_needed {
             if !result.has_item_needed {
                 return Err(if self.other {
                     format!(
                         "To perform this action the other person needs the `{}` item ",
-                        self.item_needed.as_ref().unwrap()
+                        item
                     )
                 } else {
                     format!(
                         "To perform this action you need the `{}` item ",
-                        self.item_needed.as_ref().unwrap()
+                        item
                     )
                 });
             }
         }
 
-        match self.required_pigeon_status {
-            Some(_) => {
-                if !result.has_required_status {
-                    return Err(if self.other {
-                        format!(
-                            "The other pigeon needs to be {} to perform this action.",
-                            self.required_pigeon_status.unwrap().get_friendly_verb()
-                        )
-                    } else {
-                        format!(
-                            "Your pigeon needs to be {} to perform this action.",
-                            self.required_pigeon_status.unwrap().get_friendly_verb()
-                        )
-                    });
-                }
+
+        if let Some(status) = &self.required_pigeon_status {
+            if !result.has_required_status {
+                return Err(if self.other {
+                    format!(
+                        "The other pigeon needs to be {} to perform this action.",
+                        status.get_friendly_verb()
+                    )
+                } else {
+                    format!(
+                        "Your pigeon needs to be {} to perform this action.",
+                        status.get_friendly_verb()
+                    )
+                });
             }
-            None => {}
-        }
+        };
 
         Ok(human_id)
     }

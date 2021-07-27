@@ -51,7 +51,7 @@ impl NewReminder {
 pub struct ReminderRepository;
 impl ReminderRepository {
     pub fn create(reminder: &NewReminder) -> Result<(), String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let result = sql_query(include_str!("queries/reminder/create.sql"))
             .bind::<Unsigned<BigInt>, _>(reminder.user_id)
@@ -70,7 +70,7 @@ impl ReminderRepository {
     }
 
     pub fn get_due_reminders() -> Result<Vec<Reminder>, String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let results: Result<Vec<Reminder>, _> =
             sql_query(include_str!("queries/reminder/get_due_reminders.sql"))
@@ -83,7 +83,7 @@ impl ReminderRepository {
     }
 
     pub fn set_sent_multiple(reminder_ids: Vec<i32>) -> Result<(), String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let result = sql_query(include_str!("queries/reminder/set_sent_multiple.sql"))
             .bind::<VarChar, _>(

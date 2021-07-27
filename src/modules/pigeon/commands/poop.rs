@@ -47,8 +47,8 @@ pub async fn poop(ctx: &Context, msg: &Message) -> CommandResult {
     )
     .await?;
 
-    PigeonRepository::add_poop_victim_count(initiator_human_id);
-    PigeonRepository::add_pooped_on_count(recipient_human_id);
+    PigeonRepository::add_poop_victim_count(initiator_human_id)?;
+    PigeonRepository::add_pooped_on_count(recipient_human_id)?;
 
     bucket.spend(now);
     Ok(())

@@ -1,15 +1,7 @@
 use redis::Connection;
 
-pub fn get_connection_redis() -> Connection {
+pub fn get_connection_redis() -> Result<Connection, &'static str> {
     // TODO: remove hardcoded local ip?
-    redis::Client::open("redis://127.0.0.1/")
-        .unwrap()
-        .get_connection()
-        .unwrap()
-    //     Err(_) => return Err(""),
-    //     Ok(client) => match client.get_connection() {
-    //         Ok(conn) => return Ok(conn),
-    //         Err(_) => return Err(""),
-    //     },
-    // }
+    let client = redis::Client::open("redis://127.0.0.1/").map_err(|_|"Failed to get redis client")?;
+    client.get_connection().map_err(|_|"Failed to get Redis connection")
 }

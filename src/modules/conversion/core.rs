@@ -85,7 +85,7 @@ pub fn match_conversion(content: &str) {
     //return ();
 
     // println!("{}", get_regex().as_str());
-    let re = Regex::new(get_regex().as_str()).unwrap();
+    let re = Regex::new(get_regex().as_str());
 
     for cap in re.captures_iter(content) {
         println!("{:?}", cap);
@@ -110,6 +110,5 @@ pub fn get_embed() {
     //         .channel_id
     //         .send_message(&ctx, |m| m.embed(|e| e.color(ctx.get_color()).fields(vec)))
     //         .await
-    //         .unwrap();
     // }
 }

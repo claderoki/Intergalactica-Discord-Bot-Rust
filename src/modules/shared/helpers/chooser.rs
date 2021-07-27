@@ -116,7 +116,7 @@ where
         .custom_id(index)
         .label(choosable.get_description())
         .emoji(ReactionType::Unicode(
-            choosable.get_emoji().unwrap().to_string(),
+            choosable.get_emoji().unwrap_or("".to_string()).to_string(),
         ))
 }
 

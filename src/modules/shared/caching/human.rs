@@ -9,13 +9,17 @@ impl HumanCache {
     }
 
     pub fn get_id(user_id: u64) -> Option<i32> {
-        let mut connection = get_connection_redis();
-        let id: Result<i32, _> = connection.get(HumanCache::get_key(user_id).as_str());
-        id.ok()
+        match get_connection_redis() {
+            Ok(mut connection) => {
+                let id: Result<i32, _> = connection.get(HumanCache::get_key(user_id).as_str());
+                id.ok()
+            },
+            Err(_) => None
+        }
     }
 
     pub fn cache_id(user_id: u64, human_id: i32) -> Result<(), &'static str> {
-        let mut connection = get_connection_redis();
+        let mut connection = get_connection_redis()?;
 
         let result: Result<(), _> = connection.set(HumanCache::get_key(user_id).as_str(), human_id);
         if result.is_err() {

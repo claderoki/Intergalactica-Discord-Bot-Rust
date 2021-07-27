@@ -8,6 +8,7 @@ use serenity::model::interactions::ButtonStyle;
 use crate::discord_helpers::embed_utils::EmbedExtension;
 
 #[command("battle")]
+#[only_in(guild)]
 #[description("battle other pigeons.")]
 pub async fn battle(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id

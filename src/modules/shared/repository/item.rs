@@ -32,7 +32,7 @@ enum CategoryType {
 pub struct ItemRepository;
 impl ItemRepository {
     pub fn get_simple(id: i32) -> Result<SimpleItem, String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let results: Result<SimpleItem, _> =
             sql_query(include_str!("queries/item/get_simple_item.sql"))
@@ -49,7 +49,7 @@ impl ItemRepository {
     }
 
     // pub fn get_simple_items(ids: &Vec<i32>) -> Result<Vec<SimpleItem>, String> {
-    //     let connection = get_connection_diesel();
+    //     let connection = get_connection_diesel()?;
 
     //     let results: Result<Vec<SimpleItem>, _> =
     //         sql_query(include_str!("queries/item/get_simple_items.sql"))
@@ -139,7 +139,7 @@ impl ItemRepository {
     }
 
     pub fn get_random(category_id: i32) -> Result<SimpleItem, String> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let parents =
             ItemRepository::get_all_categories(&connection, category_id, &CategoryType::Children)?;
@@ -169,7 +169,7 @@ impl ItemRepository {
     }
 
     pub fn add_item(id: i32, human_id: i32, amount: i32) -> Result<(), &'static str> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let result = sql_query(include_str!("queries/item/add_item.sql"))
             .bind::<Integer, _>(id)
@@ -200,7 +200,7 @@ impl ItemRepository {
 //         use crate::database::schema::item::dsl::*;
 //         use diesel::prelude::*;
 
-//         let connection = get_connection_diesel();
+//         let connection = get_connection_diesel()?;
 //         item.filter(code.eq(item_code))
 //             .first::<Item>(&connection)
 //             .map_err(|_| "Item not found.")
@@ -211,7 +211,7 @@ impl ItemRepository {
 
 // impl HumanItemRepository {
 //     pub fn has_item(item_code: &str, human_id: i32, min_amount: i32) -> Result<bool, &'static str> {
-//         let connection = get_connection_diesel();
+//         let connection = get_connection_diesel()?;
 
 //         let results: Result<Countable, _> = sql_query(
 //             "
@@ -242,7 +242,7 @@ impl ItemRepository {
 //             So we need to either pass the human_id, or ensure it exists somewhere.
 //             Maybe use redis to map user_id to human_id?
 //          */
-//         let connection = get_connection_diesel();
+//         let connection = get_connection_diesel()?;
 //         let result = sql_query(
 //             "
 //             INSERT INTO human_item (item_id, human_id, amount)
@@ -272,7 +272,7 @@ impl ItemRepository {
 //         human_id: i32,
 //         amount: i32,
 //     ) -> Result<(), &'static str> {
-//         let connection = get_connection_diesel();
+//         let connection = get_connection_diesel()?;
 
 //         let result = sql_query(
 //             "

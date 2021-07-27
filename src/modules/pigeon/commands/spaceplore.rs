@@ -37,7 +37,7 @@ pub async fn spaceplore(ctx: &Context, msg: &Message) -> CommandResult {
     .naive_utc();
 
     ExplorationRepository::create_exploration(human_id, simple_location.id, arrival_date)?;
-    PigeonRepository::update_status(human_id, PigeonStatus::SpaceExploring);
+    PigeonRepository::update_status(human_id, PigeonStatus::SpaceExploring)?;
     success_scenario(msg, ctx, simple_location.image_url, arrival_date).await?;
 
     Ok(())

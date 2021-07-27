@@ -42,16 +42,16 @@ pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
         let mut winnings = scenario_winnings.to_pigeon_winnings();
         let item = get_item(&scenario_winnings, &mut winnings)?;
         PigeonRepository::update_winnings(human_id, &winnings)?;
-        ExplorationRepository::reduce_action_remaining(exploration.id);
-        ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings);
+        ExplorationRepository::reduce_action_remaining(exploration.id)?;
+        ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings)?;
         let remaining = exploration.actions_remaining - 1;
         scenario_winnings_message(msg, ctx, &scenario, &action, &winnings, remaining, &item).await;
     }
 
     if exploration.arrived && exploration.actions_remaining - 1 <= 0 {
         let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
-        PigeonRepository::update_status(human_id, PigeonStatus::Idle);
-        ExplorationRepository::finish_exploration(exploration.id);
+        PigeonRepository::update_status(human_id, PigeonStatus::Idle)?;
+        ExplorationRepository::finish_exploration(exploration.id)?;
         exploration_done_message(&msg, &ctx, &exploration, end_stats).await;
     }
 
@@ -62,10 +62,10 @@ fn get_item(
     scenario_winnings: &ExplorationActionScenarioWinnings,
     winnings: &mut PigeonWinnings,
 ) -> Result<Option<SimpleItem>, String> {
-    Ok(if winnings.item_ids.len() > 0 {
-        ItemRepository::get_simple(*winnings.item_ids.get(0).unwrap()).ok()
-    } else if scenario_winnings.item_category_id.is_some() {
-        let item = ItemRepository::get_random(scenario_winnings.item_category_id.unwrap())?;
+    Ok(if let Some(item_id) = winnings.item_ids.get(0) {
+        ItemRepository::get_simple(*item_id).ok()
+    } else if let Some(item_category_id) = scenario_winnings.item_category_id {
+        let item = ItemRepository::get_random(item_category_id)?;
         winnings.item_ids.push(item.id);
         Some(item)
     } else {
@@ -146,25 +146,24 @@ async fn exploration_done_message(
 }
 
 async fn still_travelling_message(msg: &Message, ctx: &Context, exploration: &Exploration) {
-    let location = ExplorationRepository::get_location(exploration.location_id).unwrap();
-
-    let text = format!(
-        "Your pigeon is still travelling to {} and is set to arrive in {}\n",
-        location.planet_name,
-        TimeDelta::from_seconds(exploration.remaining_seconds).to_text()
-    );
-
-    let _ = msg
-        .channel_id
-        .send_message(&ctx, |m| {
-            m.embed(|e| {
-                e.normal_embed(&text)
-                    .footer(|f| f.text(format!("progress: {}% / 100%", exploration.percentage)))
-                    .thumbnail(location.image_url)
+    if let Ok(location) = ExplorationRepository::get_location(exploration.location_id) {
+        let text = format!(
+            "Your pigeon is still travelling to {} and is set to arrive in {}\n",
+            location.planet_name,
+            TimeDelta::from_seconds(exploration.remaining_seconds).to_text()
+        );
+        let _ = msg
+            .channel_id
+            .send_message(&ctx, |m| {
+                m.embed(|e| {
+                    e.normal_embed(&text)
+                        .footer(|f| f.text(format!("progress: {}% / 100%", exploration.percentage)))
+                        .thumbnail(location.image_url)
+                })
             })
-        })
-        .await
-        .or(Err("Oops"));
+            .await
+            .or(Err("Oops"));
+    }
 }
 
 async fn choose_action(
@@ -173,7 +172,7 @@ async fn choose_action(
     exploration: &Exploration,
 ) -> Result<ExplorationAction, String> {
     let mut actions = ExplorationRepository::get_available_actions(exploration.location_id)?;
-    let location = ExplorationRepository::get_location(exploration.location_id).unwrap();
+    let location = ExplorationRepository::get_location(exploration.location_id)?;
 
     let index = choose::<ExplorationAction, _>(ctx, msg, &actions, |e| {
         e.normal_embed(&format!(

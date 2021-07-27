@@ -27,7 +27,7 @@ impl HumanRepository {
     }
 
     // pub fn get_user_id(human_id: i32) -> Result<u64, String> {
-    //     let connection = get_connection_diesel();
+    //     let connection = get_connection_diesel()?;
 
     //     let results: Result<HumanUserId, _> = sql_query(include_str!("queries/human/get_user_id.sql"))
     //     .bind::<Integer, _>(human_id)
@@ -43,7 +43,7 @@ impl HumanRepository {
     // }
 
     fn update_gold(human_id: i32, amount: i32) -> Result<(), &'static str> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
         let result = sql_query("UPDATE human SET gold = gold + ? WHERE id = ?")
             .bind::<Integer, _>(amount)
             .bind::<Integer, _>(human_id)
@@ -56,7 +56,7 @@ impl HumanRepository {
     }
 
     pub fn has_gold(human_id: i32, min_amount: i32) -> Result<bool, &'static str> {
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
 
         let results: Result<Countable, _> = sql_query(
             "
@@ -90,7 +90,7 @@ impl HumanRepository {
         use crate::database::schema::human::dsl::*;
         use diesel::prelude::*;
 
-        let connection = get_connection_diesel();
+        let connection = get_connection_diesel()?;
         human
             .filter(user_id.eq(uid))
             .first::<Human>(&connection)
@@ -104,7 +104,7 @@ impl HumanRepository {
             gold: 250,
             ..Default::default()
         };
-        let conn = get_connection_diesel();
+        let conn = get_connection_diesel()?;
         diesel::insert_into(human::table)
             .values(&new_human)
             .execute(&conn)

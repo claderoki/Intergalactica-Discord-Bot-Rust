@@ -15,7 +15,7 @@ mod wrappers;
 
 #[tokio::main]
 async fn main() {
-    get_connection_redis();
+    get_connection_redis().expect("No redis initialized.");
 
     let mut client = get_client().await;
     let shard_manager = client.shard_manager.clone();

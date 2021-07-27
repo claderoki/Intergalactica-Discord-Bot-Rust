@@ -50,7 +50,7 @@ pub async fn train(ctx: &Context, msg: &Message) -> CommandResult {
         return Err("Cancelled".into());
     }
 
-    PigeonRepository::increase_gold_modifier(human_id, increase);
+    PigeonRepository::increase_gold_modifier(human_id, increase)?;
     HumanRepository::spend_gold(human_id, cost)?;
 
     let winnings = PigeonWinningsBuilder::new().gold(-cost).build();

@@ -69,22 +69,30 @@ impl BucketCache {
     }
 
     pub fn get(bucket: &Bucket) -> Option<NaiveDateTime> {
-        let mut connection = get_connection_redis();
-
-        let value: Result<String, _> = connection.get(&BucketCache::get_key(bucket));
-        match value {
-            Ok(v) => NaiveDateTime::parse_from_str(&v, DT_FORMAT).ok(),
-            Err(_) => None,
+        match get_connection_redis() {
+            Ok(mut connection) => {
+                let value: Result<String, _> = connection.get(&BucketCache::get_key(bucket));
+                match value {
+                    Ok(v) => NaiveDateTime::parse_from_str(&v, DT_FORMAT).ok(),
+                    Err(_) => None,
+                }
+            },
+            Err(_) => None
         }
+
+
     }
 
     pub fn add(bucket: &Bucket, when: NaiveDateTime) -> bool {
-        let mut connection = get_connection_redis();
-
-        let result: Result<(), _> = connection.set(
-            &BucketCache::get_key(bucket),
-            when.format(DT_FORMAT).to_string(),
-        );
-        result.is_ok()
+        match get_connection_redis() {
+            Ok(mut connection) => {
+                let result: Result<(), _> = connection.set(
+                    &BucketCache::get_key(bucket),
+                    when.format(DT_FORMAT).to_string(),
+                );
+                result.is_ok()
+            },
+            Err(_) => false
+        }
     }
 }
