@@ -49,6 +49,9 @@ pub async fn get_member(ctx: &Context, msg: &Message) -> Option<Member> {
     if let Some(guild) = msg.guild(ctx).await {
         if let Ok(user_ids) = PigeonRepository::get_idle_pigeon_users(guild.id.0) {
             for user_id in user_ids {
+                if user_id.value == msg.author.id.0 {
+                    continue;
+                }
                 if FlagValidator::validate::<LastPoopedOn>(user_id.value, Duration::minutes(60)).is_ok() {
                     if let Ok(member) = guild.member(ctx, user_id.value).await {
                         return Some(member);
