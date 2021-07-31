@@ -39,7 +39,8 @@ pub async fn poopeable(ctx: &Context, msg: &Message) -> CommandResult {
         .dm(&ctx, |m| m.embed(|e| e.normal_embed(format!("{}", member))))
         .await
     {
-        Ok(_) => {}
+        Ok(_) => {
+        }
         Err(_) => {}
     }
 
@@ -50,7 +51,7 @@ pub async fn poopeable(ctx: &Context, msg: &Message) -> CommandResult {
 pub async fn get_member(ctx: &Context, msg: &Message) -> Option<Member> {
     if let Some(guild) = msg.guild(ctx).await {
         println!("Guild found.");
-        if let Ok(user_ids) = PigeonRepository::get_idle_pigeon_users() {
+        if let Ok(user_ids) = PigeonRepository::get_idle_pigeon_users(guild.id.0) {
             println!("User ids found.");
             for user_id in user_ids {
                 if let Ok(member) = guild.member(ctx, user_id.value).await {

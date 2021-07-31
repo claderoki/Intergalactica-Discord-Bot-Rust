@@ -10,6 +10,8 @@ use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::shared::repository::item::ItemRepository;
 use diesel::sql_query;
 use diesel::sql_types::Bool;
+use diesel::sql_types::Unsigned;
+use diesel::sql_types::BigInt;
 use diesel::sql_types::Double;
 use diesel::sql_types::Integer;
 use diesel::types::Varchar;
@@ -134,17 +136,22 @@ impl PigeonRepository {
         }
     }
 
-    pub fn get_idle_pigeon_users() -> Result<Vec<DbUserId>, String> {
+    pub fn get_idle_pigeon_users(guild_id: u64) -> Result<Vec<DbUserId>, String> {
         let connection = get_connection_diesel()?;
 
+        println!("abc");
         let results: Result<Vec<DbUserId>, _> =
             sql_query(include_str!("queries/pigeon/get_idle_pigeon_users.sql"))
+            .bind::<Unsigned<BigInt>, _>(guild_id)
                 .get_results(&connection);
+
+        println!("{:?}", results);
 
         match results {
             Ok(data) => Ok(data),
             Err(e) => {
                 error!("{:?}", e);
+                println!("{:?}", e);
                 Err("Failed to get idle pigeon users.".into())
             }
         }
