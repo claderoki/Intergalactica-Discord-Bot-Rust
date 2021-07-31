@@ -101,13 +101,10 @@ impl BucketCache {
     pub fn remove(bucket: &Bucket) -> bool {
         match get_connection_redis() {
             Ok(mut connection) => {
-                let result: Result<(), _> = connection.del(
-                    &BucketCache::get_key(bucket),
-                );
+                let result: Result<(), _> = connection.del(&BucketCache::get_key(bucket));
                 result.is_ok()
             }
             Err(_) => false,
         }
     }
-
 }

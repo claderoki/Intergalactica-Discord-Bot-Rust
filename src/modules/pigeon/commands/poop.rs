@@ -29,7 +29,8 @@ pub async fn poop(ctx: &Context, msg: &Message) -> CommandResult {
     let now = bucket.validate()?;
 
     let recipient = msg.mentions.get(0).ok_or("No one mentioned")?;
-    FlagValidator::validate::<LastPoopedOn>(recipient.id.0, Duration::minutes(60)).map_err(|e|format!("You can not poop on this pigeon yet. {}", e))?;
+    FlagValidator::validate::<LastPoopedOn>(recipient.id.0, Duration::minutes(60))
+        .map_err(|e| format!("You can not poop on this pigeon yet. {}", e))?;
 
     let initiator = &msg.author;
 
