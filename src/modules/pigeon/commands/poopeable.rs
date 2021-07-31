@@ -10,15 +10,12 @@ use crate::discord_helpers::ui::GoldConfirmation;
 use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
 use crate::modules::shared::caching::bucket::Bucket;
+use crate::modules::shared::repository::human::HumanRepository;
 
 #[command("poopeable")]
 #[only_in(guild)]
 #[description("Find a poopeable pigeon.")]
 pub async fn poopeable(ctx: &Context, msg: &Message) -> CommandResult {
-    if msg.author.id.0 != 120566758091259906 {
-        return Err("Not author".into());
-    }
-
     let bucket = Bucket::user("pigeon_poopeable", msg.author.id, Duration::minutes(60));
     let now = bucket.validate()?;
     let cost = 100;
@@ -34,16 +31,13 @@ pub async fn poopeable(ctx: &Context, msg: &Message) -> CommandResult {
 
     let member = get_member(ctx, msg).await.ok_or("No members found.")?;
 
-    match msg
+    msg
         .author
         .dm(&ctx, |m| m.embed(|e| e.normal_embed(format!("{}", member))))
         .await
-    {
-        Ok(_) => {
-        }
-        Err(_) => {}
-    }
+        .map_err(|e|"Unable to send you a DM.")?;
 
+    HumanRepository::spend_gold(human_id, cost)?;
     bucket.spend(now);
     Ok(())
 }
