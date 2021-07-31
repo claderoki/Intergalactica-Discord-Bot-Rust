@@ -5,6 +5,7 @@ use super::feed::*;
 use super::heal::*;
 use super::play::*;
 use super::poop::*;
+use super::poopeable::*;
 use super::profile::*;
 use super::rob::*;
 use super::space::*;
@@ -16,6 +17,6 @@ use serenity::framework::standard::macros::group;
 #[group]
 #[prefix("pigeon")]
 #[commands(
-    buy, spaceplore, space, profile, feed, heal, clean, play, battle, poop, rob, train
+    buy, spaceplore, space, profile, feed, heal, clean, play, battle, poop, rob, train, poopeable
 )]
 pub struct Pigeon;

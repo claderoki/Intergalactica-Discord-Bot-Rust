@@ -6,6 +6,7 @@ pub mod feed;
 pub mod heal;
 pub mod play;
 pub mod poop;
+pub mod poopeable;
 pub mod profile;
 pub mod rob;
 pub mod space;

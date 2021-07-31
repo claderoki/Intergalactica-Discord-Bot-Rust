@@ -1,5 +1,6 @@
 use crate::database::connection::get_connection_diesel;
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
+use crate::modules::pigeon::models::pigeon::DbUserId;
 use crate::modules::pigeon::models::pigeon::DecayingPigeon;
 use crate::modules::pigeon::models::pigeon::GoldModifier;
 use crate::modules::pigeon::models::pigeon::PigeonName;
@@ -56,7 +57,6 @@ impl PigeonRepository {
 
         Ok(())
     }
-
     pub fn get_name(human_id: i32) -> Result<PigeonName, String> {
         let connection = get_connection_diesel()?;
 
@@ -130,6 +130,22 @@ impl PigeonRepository {
             Err(e) => {
                 println!("{:?}", e);
                 Err("Failed to add_poop_victim_count".into())
+            }
+        }
+    }
+
+    pub fn get_idle_pigeon_users() -> Result<Vec<DbUserId>, String> {
+        let connection = get_connection_diesel()?;
+
+        let results: Result<Vec<DbUserId>, _> =
+            sql_query(include_str!("queries/pigeon/get_idle_pigeon_users.sql"))
+                .get_results(&connection);
+
+        match results {
+            Ok(data) => Ok(data),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get idle pigeon users.".into())
             }
         }
     }

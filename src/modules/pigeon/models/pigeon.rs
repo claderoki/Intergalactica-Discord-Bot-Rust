@@ -197,6 +197,12 @@ pub struct PigeonStatValue {
     pub value: i32,
 }
 
+#[derive(QueryableByName, Debug)]
+pub struct DbUserId {
+    #[sql_type = "Unsigned<BigInt>"]
+    pub value: u64,
+}
+
 impl PigeonWinnable for PigeonProfile {
     fn get_gold(&self) -> i32 {
         self.gold
