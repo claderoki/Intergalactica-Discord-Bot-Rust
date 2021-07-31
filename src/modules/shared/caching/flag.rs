@@ -1,152 +1,161 @@
-// use chrono::{Duration, NaiveDateTime};
-// use redis::{Commands, ToRedisArgs};
+use chrono::{Duration, NaiveDateTime};
+use redis::{Commands};
 
-// use crate::redis_utils::connection::get_connection_redis;
+use crate::{modules::shared::helpers::utils::TimeDelta, redis_utils::connection::get_connection_redis};
 
-// pub trait Flag {
-//     fn get_key() -> String;
-//     fn new(datetime: NaiveDateTime) -> Self;
-//     fn get_datetime(&self) -> NaiveDateTime;
-// }
+pub trait Flag {
+    fn get_key() -> String;
+    fn new(datetime: NaiveDateTime) -> Self;
+    fn get_datetime(&self) -> NaiveDateTime;
+}
 
-// // pub struct GenericFlag<T> {
-// //     pub when: NaiveDateTime,
-// //     pub identifier: T,
-// // }
+#[macro_export]
+macro_rules! flags {
+    ($($name:ident;)*) => {
+        $(
+            impl crate::modules::shared::caching::flag::Flag for $name {
+                fn get_key() -> String {
+                    stringify!($name).into()
+                }
 
-// // impl Flag for GenericFlag<T> where T: ToString {
-// //     fn get_key() -> String {
-// //         T.into()
-// //     }
+                fn new(when: NaiveDateTime) -> Self {
+                    Self {
+                        0: when
+                    }
+                }
 
-// //     fn new(when: NaiveDateTime) -> Self {
-// //         Self {
-// //             when,
-// //             identifier: (),
-// //         }
-// //     }
+                fn get_datetime(&self) -> NaiveDateTime {
+                    self.0
+                }
 
-// //     fn get_datetime(&self) -> NaiveDateTime {
-// //         todo!()
-// //     }
-// // }
+            }
+        )*
+    }
+}
+pub struct FlagValidator;
+impl FlagValidator {
+    pub fn validate<T>(user_id: u64, duration: Duration) -> Result<NaiveDateTime, String>
+    where
+        T: Flag,
+    {
+        let now = chrono::offset::Utc::now().naive_utc();
+        if let Some(flag) = FlagCache::get::<T>(user_id) {
+            let available_date = flag.get_datetime() + duration;
+            if available_date >= now {
+                let difference = available_date - now;
+                return Err(format!("Try again in {}", TimeDelta::from_seconds(difference.num_seconds()).to_text()));
+            }
+        }
+        Ok(now)
+    }
+}
 
-// // pub struct PigeonLastHealed {
-// //     pub datetime: NaiveDateTime,
-// //     pub identifier: String,
-// // }
-// // impl Flag for PigeonLastHealed {
-// //     fn get_key() -> String {
-// //         "pigeon_last_healed".into()
-// //     }
+const DT_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
-// //     fn new(datetime: NaiveDateTime, identifier: &'static str) -> Self {
-// //         Self {
-// //             datetime,
-// //             identifier: identifier.into(),
-// //         }
-// //     }
+pub struct FlagCache;
+impl FlagCache {
+    fn get_key<T>(user_id: u64) -> String
+    where
+        T: Flag,
+    {
+        format!("flags:{}:{}", user_id, T::get_key())
+    }
 
-// //     fn get_datetime(&self) -> NaiveDateTime {
-// //         self.datetime
-// //     }
-// // }
-// pub struct FlagValidator;
-// impl FlagValidator {
-//     pub fn validate<T>(human_id: i32, duration: Duration) -> Result<NaiveDateTime, String>
-//     where
-//         T: Flag,
-//     {
-//         let now = chrono::offset::Utc::now().naive_utc();
-//         if let Some(flag) = FlagCache::get::<T>(human_id) {
-//             let difference = flag.get_datetime() - now;
-//             if difference <= duration {
-//                 return Err(format!("You can only use this command every ..."));
-//             }
-//         }
-//         Ok(now)
-//     }
-// }
+    pub fn get<T>(user_id: u64) -> Option<T>
+    where
+        T: Flag,
+    {
+        match get_connection_redis() {
+            Ok(mut connection) => {
+                let value: Result<String, _> = connection.get(&FlagCache::get_key::<T>(user_id));
+                match value {
+                    Ok(v) => Some(T::new(
+                        NaiveDateTime::parse_from_str(&v, DT_FORMAT).unwrap(),
+                    )),
+                    Err(e) => {
+                        println!("{:?}", e);
+                        return None;
+                    },
+                }
+            },
+            Err(e) => {
+                println!("{:?}", e);
+                return None;
+            }
+        }
 
-// const DT_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+    }
 
-// pub struct FlagCache;
-// impl FlagCache {
-//     fn get_key<T>(human_id: i32) -> String
-//     where
-//         T: Flag,
-//     {
-//         format!("flags:{}:{}", human_id, T::get_key())
-//     }
-
-//     pub fn get<T>(human_id: i32) -> Option<T>
-//     where
-//         T: Flag,
-//     {
-//         let mut connection = get_connection_redis();
-
-//         let value: Result<String, _> = connection.get(&FlagCache::get_key::<T>(human_id));
-//         match value {
-//             Ok(v) => Some(T::new(
-//                 NaiveDateTime::parse_from_str(&v, DT_FORMAT).unwrap(),
-//             )),
-//             Err(_) => None,
-//         }
-//     }
-
-//     pub fn add<T>(human_id: i32, when: NaiveDateTime) -> bool
-//     where
-//         T: Flag,
-//     {
-//         let mut connection = get_connection_redis();
-
-//         let result: Result<(), _> = connection.set(
-//             &FlagCache::get_key::<T>(human_id),
-//             when.format(DT_FORMAT).to_string(),
-//         );
-//         result.is_ok()
-//     }
-// }
+    pub fn add<T>(user_id: u64, when: NaiveDateTime) -> bool
+    where
+        T: Flag,
+    {
+        match get_connection_redis() {
+            Ok(mut connection) => {
+                let result: Result<(), _> = connection.set(
+                    &FlagCache::get_key::<T>(user_id),
+                    when.format(DT_FORMAT).to_string(),
+                );
+                result.is_ok()
+            },
+            Err(_) => false
+        }
+    }
+}
 
 // trait CacheParams {
 //     fn get_key() -> String;
 //     fn get_value<T>(&self) -> T where T: ToRedisArgs;
 // }
 
-// // impl ToRedisArgs for NaiveDateTime {
-// //     fn write_redis_args<W>(&self, out: &mut W)
-// //     where
-// //         W: ?Sized + redis::RedisWrite {
-// //         self.format(DT_FORMAT).to_string()
-// //     }
-// // }
+// trait RedisValue {
+//     fn from(&self) -> String;
+//     fn to(value: &str) -> Result<Self, &'static str> where Self: Sized;
+// }
+
+// impl RedisValue for NaiveDateTime {
+//     fn from(&self) -> String {
+//         self.format(DT_FORMAT).to_string()
+//     }
+
+//     fn to(value: &str) -> Result<Self, &'static str> {
+//         NaiveDateTime::parse_from_str(value, DT_FORMAT).map_err(|_|"Failed to parse.")
+//     }
+// }
 
 // trait Cache {
-//     fn get_key<D>(params: D) -> String where D: CacheParams;
+//     fn get_key<D>(params: &D) -> String where D: CacheParams;
 
-//     fn get<T, D>(params: D) -> Option<T>
+//     fn get<T, D>(params: &D) -> Option<T>
 //     where
 //         T: Flag,
 //         D: CacheParams
 //     {
-//         let mut connection = get_connection_redis();
-
-//         let value: Result<String, _> = connection.get(Self::get_key::<D>(params));
-//         match value {
-//             Ok(v) => Some(T::new(
-//                 NaiveDateTime::parse_from_str(&v, DT_FORMAT).unwrap(),
-//             )),
-//             Err(_) => None,
+//         match get_connection_redis() {
+//             Ok(mut connection) => {
+//                 let value: Result<String, _> = connection.get(Self::get_key::<D>(params));
+//                 match value {
+//                     Ok(v) => Some(T::new(
+//                         NaiveDateTime::parse_from_str(&v, DT_FORMAT).unwrap(),
+//                     )),
+//                     Err(_) => None,
+//                 }
+//             },
+//             Err(_) => None
 //         }
 //     }
 
 //     fn add<T, D>(params: D) -> bool where T: Flag, D: CacheParams {
-//         let mut connection = get_connection_redis();
+//         match get_connection_redis() {
+//             Ok(mut connection) => {
 
-//         let result: Result<String, _> = connection.set::<_, String, String>(
-//             Self::get_key::<D>(params),
-//             params.get_value(),
-//         );
-//         result.is_ok()
+//                 let result: Result<String, _> = connection.set::<String, String, _>(
+//                     Self::get_key::<D>(&params),
+//                     params.get_value(),
+//                 );
+//                 result.is_ok()
+//             },
+//             Err(_) => false
+//         }
 //     }
 // }

@@ -1,3 +1,4 @@
+use chrono::Duration;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
@@ -15,6 +16,7 @@ use crate::modules::pigeon::models::exploration::ExplorationEndStats;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::exploration::ExplorationRepository;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
+use crate::modules::shared::caching::bucket::Bucket;
 use crate::modules::shared::helpers::chooser::choose;
 use crate::modules::shared::helpers::chooser::Choosable;
 use crate::modules::shared::helpers::utils::TimeDelta;
@@ -25,6 +27,17 @@ use crate::modules::shared::repository::item::SimpleItem;
 #[only_in(guild)]
 #[description("Retrieve a space exploration.")]
 pub async fn space(ctx: &Context, msg: &Message) -> CommandResult {
+    let bucket = Bucket::user("pigeon_space", msg.author.id, Duration::minutes(60));
+    let now = bucket
+        .validate()
+        .map_err(|_| "You can only run this command once at a time.")?;
+    bucket.spend(now);
+    let result = run_command(&ctx, &msg).await;
+    bucket.revert();
+    result
+}
+
+async fn run_command(ctx: &Context, msg: &Message) -> CommandResult {
     let human_id = PigeonValidation::new()
         .needs_active_pigeon(true)
         .required_pigeon_status(PigeonStatus::SpaceExploring)

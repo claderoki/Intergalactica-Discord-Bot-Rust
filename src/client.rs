@@ -1,6 +1,5 @@
 use serenity::client::bridge::gateway::GatewayIntents;
 use serenity::client::bridge::gateway::ShardManager;
-use serenity::framework::standard::buckets::LimitedFor;
 use serenity::framework::standard::macros::hook;
 use serenity::framework::standard::CommandError;
 use serenity::framework::StandardFramework;

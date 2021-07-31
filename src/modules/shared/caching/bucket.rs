@@ -55,6 +55,10 @@ impl Bucket {
     pub fn spend(&self, datetime: NaiveDateTime) {
         BucketCache::add(self, datetime);
     }
+
+    pub fn revert(&self) {
+        BucketCache::remove(self);
+    }
 }
 
 pub struct BucketCache;
@@ -93,4 +97,17 @@ impl BucketCache {
             Err(_) => false,
         }
     }
+
+    pub fn remove(bucket: &Bucket) -> bool {
+        match get_connection_redis() {
+            Ok(mut connection) => {
+                let result: Result<(), _> = connection.del(
+                    &BucketCache::get_key(bucket),
+                );
+                result.is_ok()
+            }
+            Err(_) => false,
+        }
+    }
+
 }

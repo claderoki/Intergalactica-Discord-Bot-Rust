@@ -1,10 +1,12 @@
 use chrono::Duration;
+use chrono::NaiveDateTime;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
+use crate::flags;
 use crate::modules::pigeon::helpers::utils::PigeonWinnable;
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
 use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
@@ -12,6 +14,13 @@ use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
 use crate::modules::shared::caching::bucket::Bucket;
+use crate::modules::shared::caching::flag::FlagCache;
+use crate::modules::shared::caching::flag::FlagValidator;
+
+struct LastPoopedOn(NaiveDateTime);
+flags! {
+    LastPoopedOn;
+}
 
 #[command("poop")]
 #[description("Poop on another pigeon.")]
@@ -20,6 +29,7 @@ pub async fn poop(ctx: &Context, msg: &Message) -> CommandResult {
     let now = bucket.validate()?;
 
     let recipient = msg.mentions.get(0).ok_or("No one mentioned")?;
+    FlagValidator::validate::<LastPoopedOn>(recipient.id.0, Duration::minutes(60)).map_err(|e|format!("You can not poop on this pigeon yet. {}", e))?;
 
     let initiator = &msg.author;
 
@@ -50,6 +60,7 @@ pub async fn poop(ctx: &Context, msg: &Message) -> CommandResult {
     PigeonRepository::add_poop_victim_count(initiator_human_id)?;
     PigeonRepository::add_pooped_on_count(recipient_human_id)?;
 
+    FlagCache::add::<LastPoopedOn>(recipient.id.0, now);
     bucket.spend(now);
     Ok(())
 }
