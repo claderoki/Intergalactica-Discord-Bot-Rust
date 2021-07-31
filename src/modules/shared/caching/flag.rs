@@ -1,7 +1,9 @@
-use chrono::{Duration, NaiveDateTime};
-use redis::{Commands};
+use chrono::Duration;
+use chrono::NaiveDateTime;
+use redis::Commands;
 
-use crate::{modules::shared::helpers::utils::TimeDelta, redis_utils::connection::get_connection_redis};
+use crate::modules::shared::helpers::utils::TimeDelta;
+use crate::redis_utils::connection::get_connection_redis;
 
 pub trait Flag {
     fn get_key() -> String;
@@ -43,7 +45,10 @@ impl FlagValidator {
             let available_date = flag.get_datetime() + duration;
             if available_date >= now {
                 let difference = available_date - now;
-                return Err(format!("Try again in {}", TimeDelta::from_seconds(difference.num_seconds()).to_text()));
+                return Err(format!(
+                    "Try again in {}",
+                    TimeDelta::from_seconds(difference.num_seconds()).to_text()
+                ));
             }
         }
         Ok(now)
@@ -75,15 +80,14 @@ impl FlagCache {
                     Err(e) => {
                         println!("{:?}", e);
                         return None;
-                    },
+                    }
                 }
-            },
+            }
             Err(e) => {
                 println!("{:?}", e);
                 return None;
             }
         }
-
     }
 
     pub fn add<T>(user_id: u64, when: NaiveDateTime) -> bool
@@ -97,8 +101,8 @@ impl FlagCache {
                     when.format(DT_FORMAT).to_string(),
                 );
                 result.is_ok()
-            },
-            Err(_) => false
+            }
+            Err(_) => false,
         }
     }
 }
