@@ -16,7 +16,7 @@ use crate::modules::shared::caching::bucket::Bucket;
 #[description("Find a poopeable pigeon.")]
 pub async fn poopeable(ctx: &Context, msg: &Message) -> CommandResult {
     if msg.author.id.0 != 120566758091259906 {
-        return Err("Not author");
+        return Err("Not author".into());
     }
 
     let bucket = Bucket::user("pigeon_poopeable", msg.author.id, Duration::minutes(60));
