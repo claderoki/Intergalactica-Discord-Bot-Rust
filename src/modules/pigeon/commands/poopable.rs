@@ -15,11 +15,11 @@ use crate::modules::shared::caching::bucket::Bucket;
 use crate::modules::shared::caching::flag::FlagValidator;
 use crate::modules::shared::repository::human::HumanRepository;
 
-#[command("poopeable")]
+#[command("poopable")]
 #[only_in(guild)]
-#[description("Find a poopeable pigeon.")]
-pub async fn poopeable(ctx: &Context, msg: &Message) -> CommandResult {
-    let bucket = Bucket::user("pigeon_poopeable", msg.author.id, Duration::minutes(60));
+#[description("Find a poopable pigeon.")]
+pub async fn poopable(ctx: &Context, msg: &Message) -> CommandResult {
+    let bucket = Bucket::user("pigeon_poopable", msg.author.id, Duration::minutes(60));
     let now = bucket.validate()?;
     let cost = 100;
 
