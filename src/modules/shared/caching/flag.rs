@@ -78,13 +78,13 @@ impl FlagCache {
                         NaiveDateTime::parse_from_str(&v, DT_FORMAT).unwrap(),
                     )),
                     Err(e) => {
-                        println!("{:?}", e);
+                        println!("get1 {:?}", e);
                         return None;
                     }
                 }
             }
             Err(e) => {
-                println!("{:?}", e);
+                println!("get2 {:?}", e);
                 return None;
             }
         }

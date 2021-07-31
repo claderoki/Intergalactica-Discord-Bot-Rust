@@ -17,7 +17,7 @@ use crate::modules::shared::caching::bucket::Bucket;
 use crate::modules::shared::caching::flag::FlagCache;
 use crate::modules::shared::caching::flag::FlagValidator;
 
-struct LastPoopedOn(NaiveDateTime);
+pub struct LastPoopedOn(NaiveDateTime);
 flags! {
     LastPoopedOn;
 }

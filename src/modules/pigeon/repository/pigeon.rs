@@ -139,19 +139,15 @@ impl PigeonRepository {
     pub fn get_idle_pigeon_users(guild_id: u64) -> Result<Vec<DbUserId>, String> {
         let connection = get_connection_diesel()?;
 
-        println!("abc");
         let results: Result<Vec<DbUserId>, _> =
             sql_query(include_str!("queries/pigeon/get_idle_pigeon_users.sql"))
             .bind::<Unsigned<BigInt>, _>(guild_id)
                 .get_results(&connection);
 
-        println!("{:?}", results);
-
         match results {
             Ok(data) => Ok(data),
             Err(e) => {
                 error!("{:?}", e);
-                println!("{:?}", e);
                 Err("Failed to get idle pigeon users.".into())
             }
         }
