@@ -77,14 +77,12 @@ impl FlagCache {
                     Ok(v) => Some(T::new(
                         NaiveDateTime::parse_from_str(&v, DT_FORMAT).unwrap(),
                     )),
-                    Err(e) => {
-                        println!("get1 {:?}", e);
+                    Err(_) => {
                         return None;
                     }
                 }
             }
-            Err(e) => {
-                println!("get2 {:?}", e);
+            Err(_) => {
                 return None;
             }
         }
