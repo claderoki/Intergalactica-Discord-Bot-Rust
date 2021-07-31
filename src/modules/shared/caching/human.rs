@@ -13,8 +13,8 @@ impl HumanCache {
             Ok(mut connection) => {
                 let id: Result<i32, _> = connection.get(HumanCache::get_key(user_id).as_str());
                 id.ok()
-            },
-            Err(_) => None
+            }
+            Err(_) => None,
         }
     }
 

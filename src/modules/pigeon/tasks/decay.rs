@@ -100,7 +100,8 @@ impl Notification {
             })
             .await;
 
-        if let Err(_) = result {
+        if let Err(e) = result {
+            println!("{:?}", e);
             return Err("Couldn't send notification");
         }
 

@@ -229,14 +229,10 @@ impl PigeonValidation {
                         item
                     )
                 } else {
-                    format!(
-                        "To perform this action you need the `{}` item ",
-                        item
-                    )
+                    format!("To perform this action you need the `{}` item ", item)
                 });
             }
         }
-
 
         if let Some(status) = &self.required_pigeon_status {
             if !result.has_required_status {

@@ -76,11 +76,9 @@ impl BucketCache {
                     Ok(v) => NaiveDateTime::parse_from_str(&v, DT_FORMAT).ok(),
                     Err(_) => None,
                 }
-            },
-            Err(_) => None
+            }
+            Err(_) => None,
         }
-
-
     }
 
     pub fn add(bucket: &Bucket, when: NaiveDateTime) -> bool {
@@ -91,8 +89,8 @@ impl BucketCache {
                     when.format(DT_FORMAT).to_string(),
                 );
                 result.is_ok()
-            },
-            Err(_) => false
+            }
+            Err(_) => false,
         }
     }
 }

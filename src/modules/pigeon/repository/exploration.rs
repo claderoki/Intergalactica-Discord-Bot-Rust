@@ -40,7 +40,8 @@ impl ExplorationRepository {
             "queries/exploration/reduce_action_remaining.sql"
         ))
         .bind::<Integer, _>(exploration_id)
-        .execute(&connection) {
+        .execute(&connection)
+        {
             Ok(_) => Ok(()),
             Err(e) => {
                 println!("{:?}", e);
@@ -71,13 +72,14 @@ impl ExplorationRepository {
 
         match sql_query(include_str!("queries/exploration/finish_exploration.sql"))
             .bind::<Integer, _>(exploration_id)
-            .execute(&connection) {
-                Ok(_) => Ok(()),
-                Err(e) => {
-                    println!("{:?}", e);
-                    Err("Failed to finish exploration".into())
-                }
+            .execute(&connection)
+        {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                println!("{:?}", e);
+                Err("Failed to finish exploration".into())
             }
+        }
     }
 
     pub fn add_exploration_winnings(

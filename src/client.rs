@@ -1,5 +1,6 @@
 use serenity::client::bridge::gateway::GatewayIntents;
 use serenity::client::bridge::gateway::ShardManager;
+use serenity::framework::standard::buckets::LimitedFor;
 use serenity::framework::standard::macros::hook;
 use serenity::framework::standard::CommandError;
 use serenity::framework::StandardFramework;
@@ -19,12 +20,6 @@ use crate::modules::pigeon::commands::base::*;
 
 use crate::handler::Handler;
 
-pub struct ShardManagerContainer;
-
-impl TypeMapKey for ShardManagerContainer {
-    type Value = Arc<Mutex<ShardManager>>;
-}
-
 #[hook]
 async fn after_hook(
     ctx: &Context,
@@ -40,6 +35,12 @@ async fn after_hook(
             })
             .await;
     }
+}
+
+pub struct ShardManagerContainer;
+
+impl TypeMapKey for ShardManagerContainer {
+    type Value = Arc<Mutex<ShardManager>>;
 }
 
 pub enum Environment {
@@ -81,7 +82,6 @@ pub async fn get_client() -> Client {
         Ok(info) => {
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
-
             (owners, info.id)
         }
         Err(why) => panic!("Could not access application info: {:?}", why),
