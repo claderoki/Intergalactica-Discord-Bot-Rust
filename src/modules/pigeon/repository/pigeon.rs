@@ -9,11 +9,11 @@ use crate::modules::pigeon::models::pigeon::PigeonStatValue;
 use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::shared::repository::item::ItemRepository;
 use diesel::sql_query;
-use diesel::sql_types::Bool;
-use diesel::sql_types::Unsigned;
 use diesel::sql_types::BigInt;
+use diesel::sql_types::Bool;
 use diesel::sql_types::Double;
 use diesel::sql_types::Integer;
+use diesel::sql_types::Unsigned;
 use diesel::types::Varchar;
 use diesel::RunQueryDsl;
 pub struct PigeonRepository;
@@ -141,7 +141,7 @@ impl PigeonRepository {
 
         let results: Result<Vec<DbUserId>, _> =
             sql_query(include_str!("queries/pigeon/get_idle_pigeon_users.sql"))
-            .bind::<Unsigned<BigInt>, _>(guild_id)
+                .bind::<Unsigned<BigInt>, _>(guild_id)
                 .get_results(&connection);
 
         match results {

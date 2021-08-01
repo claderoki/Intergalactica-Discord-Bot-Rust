@@ -36,7 +36,14 @@ pub async fn poopable(ctx: &Context, msg: &Message) -> CommandResult {
     let member = get_member(ctx, msg).await.ok_or("No members found.")?;
 
     msg.author
-        .dm(&ctx, |m| m.embed(|e| e.normal_embed(format!("{}", member))))
+        .dm(&ctx, |m| {
+            m.embed(|e| {
+                e.normal_embed(format!(
+                    "{}\n{}#{}",
+                    member, member.user.name, member.user.discriminator
+                ))
+            })
+        })
         .await
         .map_err(|_| "Unable to send you a DM.")?;
 
@@ -52,7 +59,9 @@ pub async fn get_member(ctx: &Context, msg: &Message) -> Option<Member> {
                 if user_id.value == msg.author.id.0 {
                     continue;
                 }
-                if FlagValidator::validate::<LastPoopedOn>(user_id.value, Duration::minutes(60)).is_ok() {
+                if FlagValidator::validate::<LastPoopedOn>(user_id.value, Duration::minutes(60))
+                    .is_ok()
+                {
                     if let Ok(member) = guild.member(ctx, user_id.value).await {
                         return Some(member);
                     }
