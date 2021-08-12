@@ -5,6 +5,7 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
+use crate::modules::pigeon::helpers::utils::winning_to_string;
 use crate::modules::pigeon::helpers::utils::PigeonWinnable;
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
 use crate::modules::pigeon::helpers::validation::PigeonValidation;
@@ -22,6 +23,7 @@ use crate::modules::shared::helpers::chooser::Choosable;
 use crate::modules::shared::helpers::utils::TimeDelta;
 use crate::modules::shared::repository::item::ItemRepository;
 use crate::modules::shared::repository::item::SimpleItem;
+use crate::modules::shared::repository::streak::StreakRepository;
 
 #[command("space")]
 #[only_in(guild)]
@@ -65,10 +67,35 @@ async fn run_command(ctx: &Context, msg: &Message) -> CommandResult {
         let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
         PigeonRepository::update_status(human_id, PigeonStatus::Idle)?;
         ExplorationRepository::finish_exploration(exploration.id)?;
-        exploration_done_message(&msg, &ctx, &exploration, end_stats).await;
+        exploration_done_message(&msg, &ctx, &exploration, end_stats, get_bonuses(human_id)?).await;
     }
 
     Ok(())
+}
+
+struct Bonus {
+    pub message: String,
+    pub gold: i32,
+}
+
+fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
+    let mut bonuses: Vec<Bonus> = Vec::new();
+
+    let streak = StreakRepository::get(human_id, "space_exploration")?;
+    if streak.is_available {
+        let gold_modifier = PigeonRepository::get_gold_modifier(human_id)?;
+        let streak_bonus = (((streak.current + 1) * 10) as f64 * gold_modifier.value) as i32;
+        StreakRepository::add(human_id, "space_exploration")?;
+        bonuses.push(Bonus {
+            message: format!(
+                "You're on a space exploration streak ({})! Come back tomorrow for more",
+                streak.current + 1
+            ),
+            gold: streak_bonus,
+        });
+    }
+
+    Ok(bonuses)
 }
 
 fn get_item(
@@ -124,6 +151,7 @@ async fn exploration_done_message(
     ctx: &Context,
     exploration: &Exploration,
     end_stats: ExplorationEndStats,
+    bonuses: Vec<Bonus>,
 ) {
     let text = format!(
         "After {} of exploring Luna, your pigeon finally returns home.\n\n",
@@ -138,6 +166,15 @@ async fn exploration_done_message(
             m.embed(|e| {
                 e.normal_embed(&text).footer(|f| f.text(""));
                 e.field("Stats", &winnings.to_string(), false);
+
+                for bonus in bonuses.iter() {
+                    e.field(
+                        &bonus.message,
+                        winning_to_string(bonus.gold, "gold", true),
+                        false,
+                    );
+                }
+
                 if !&winnings.item_ids.is_empty() {
                     let items_result = ExplorationRepository::get_end_items(exploration.id);
                     match items_result {
