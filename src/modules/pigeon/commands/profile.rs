@@ -80,17 +80,17 @@ fn create_status_footer<'a>(
 ) -> &'a mut CreateEmbedFooter {
     match status {
         PigeonStatus::SpaceExploring => {
-            let exploration =
-                ExplorationRepository::get_exploration(human_id).expect("no exploration");
-            let location =
-                ExplorationRepository::get_location(exploration.location_id).expect("no location");
-            footer.icon_url(location.image_url).text({
-                if exploration.arrived {
-                    format!("exploring {}", location.planet_name)
-                } else {
-                    format!("traveling to {}", location.planet_name)
+            if let Ok(exploration) = ExplorationRepository::get_exploration(human_id) {
+                if let Ok(location) = ExplorationRepository::get_location(exploration.location_id) {
+                    footer.icon_url(location.image_url).text({
+                        if exploration.arrived {
+                            format!("exploring {}", location.planet_name)
+                        } else {
+                            format!("traveling to {}", location.planet_name)
+                        }
+                    });
                 }
-            });
+            }
         }
         PigeonStatus::Jailed => {
             let delta = TimeDelta::from_seconds(jail_time_left);
