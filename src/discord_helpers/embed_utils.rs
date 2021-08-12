@@ -39,6 +39,6 @@ impl EmbedExtension for CreateEmbed {
     }
 
     fn error_embed<D: ToString>(&mut self, text: D) -> &mut Self {
-        self.color(serenity::utils::Color::RED).description(text)
+        self.danger_color().description(text)
     }
 }
