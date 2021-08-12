@@ -25,7 +25,7 @@ async fn decay_pigeon(ctx: &Context, pigeon: &DecayingPigeon) {
     builder.cleanliness(-1).happiness(-1).food(-1);
 
     if pigeon.cleanliness <= 20 || pigeon.food <= 20 {
-        builder.health(-1);
+        builder.health(-2);
     }
 
     let new_health = pigeon.health + builder.health;
