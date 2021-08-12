@@ -1,5 +1,4 @@
 use diesel::sql_query;
-use diesel::sql_types::Bool;
 use diesel::sql_types::Integer;
 use diesel::sql_types::VarChar;
 
@@ -12,8 +11,8 @@ pub struct Streak {
     #[sql_type = "Integer"]
     pub current: i32,
 
-    #[sql_type = "Bool"]
-    pub is_available: bool,
+    #[sql_type = "Integer"]
+    pub days_missed: i32,
 }
 
 pub struct StreakRepository;
@@ -34,6 +33,22 @@ impl StreakRepository {
             }
         }
     }
+    pub fn reset(human_id: i32, key: &'static str) -> Result<(), String> {
+        let connection = get_connection_diesel()?;
+
+        let result = sql_query(include_str!("queries/streak/reset.sql"))
+            .bind::<VarChar, _>(key)
+            .bind::<Integer, _>(human_id)
+            .execute(&connection);
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                println!("{:?}", e);
+                Err("Could not reset streak".into())
+            }
+        }
+    }
 
     pub fn get(human_id: i32, key: &'static str) -> Result<Streak, String> {
         let connection = get_connection_diesel()?;
@@ -49,7 +64,7 @@ impl StreakRepository {
                 println!("{}", e);
                 Ok(Streak {
                     current: 0,
-                    is_available: true,
+                    days_missed: 0,
                 })
             }
         }

@@ -82,7 +82,7 @@ fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
     let mut bonuses: Vec<Bonus> = Vec::new();
 
     let streak = StreakRepository::get(human_id, "space_exploration")?;
-    if streak.is_available {
+    if streak.days_missed <= 1 {
         let gold_modifier = PigeonRepository::get_gold_modifier(human_id)?;
         let streak_bonus = (((streak.current + 1) * 10) as f64 * gold_modifier.value) as i32;
         StreakRepository::add(human_id, "space_exploration")?;
@@ -93,6 +93,8 @@ fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
             ),
             gold: streak_bonus,
         });
+    } else {
+        StreakRepository::reset(human_id, "space_exploration")?;
     }
 
     Ok(bonuses)
