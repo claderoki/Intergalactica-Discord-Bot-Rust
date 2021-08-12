@@ -17,7 +17,7 @@ pub struct GoldConfirmation {
 
 impl GoldConfirmation {
     pub fn new() -> Self {
-        Self { threshhold: 75 }
+        Self { threshhold: 0 }
     }
 
     // pub fn threshhold(&mut self, value: i32) -> &mut Self {
