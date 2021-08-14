@@ -51,7 +51,13 @@ where
                 let length = choosables.len();
                 const MAX_ELEMENTS_PER_ROW: usize = 5;
                 let remainder = length % MAX_ELEMENTS_PER_ROW;
-                let row_count = (length / MAX_ELEMENTS_PER_ROW) + remainder;
+                let row_count = {
+                    if length < MAX_ELEMENTS_PER_ROW {
+                        1
+                    } else {
+                        (length / MAX_ELEMENTS_PER_ROW) + remainder
+                    }
+                };
                 let mut index = 0;
 
                 for i in 0..row_count {

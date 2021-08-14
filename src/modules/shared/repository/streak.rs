@@ -1,6 +1,7 @@
 use diesel::sql_query;
 use diesel::sql_types::Integer;
 use diesel::sql_types::VarChar;
+use diesel::sql_types::BigInt;
 
 use diesel::RunQueryDsl;
 
@@ -11,8 +12,8 @@ pub struct Streak {
     #[sql_type = "Integer"]
     pub current: i32,
 
-    #[sql_type = "Integer"]
-    pub days_missed: i32,
+    #[sql_type = "BigInt"]
+    pub days_missed: i64,
 }
 
 pub struct StreakRepository;
