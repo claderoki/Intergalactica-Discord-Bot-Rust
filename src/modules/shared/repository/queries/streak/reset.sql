@@ -1,5 +1,7 @@
 UPDATE `streak`
-    SET `streak`.`current` = 1
+    SET
+        `streak`.`current` = 1,
+        `streak`.`last_set` = UTC_TIMESTAMP()
 WHERE
     `streak`.`key`      = ?
 AND
