@@ -1,6 +1,8 @@
 UPDATE
-`pigeon`
+    `pigeon`
 SET
-`status` = ?
-WHERE `human_id` = ?
-AND `condition` = 'active'
+    `status` = ?
+WHERE
+    `human_id` = ?
+AND
+    `condition` = 'active'
