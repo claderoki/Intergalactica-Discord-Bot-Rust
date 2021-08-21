@@ -10,5 +10,5 @@ pub mod poopable;
 pub mod profile;
 pub mod rob;
 pub mod space;
-pub mod spaceplore;
+pub mod explore;
 pub mod train;

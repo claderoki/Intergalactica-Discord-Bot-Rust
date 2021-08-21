@@ -20,10 +20,11 @@ use crate::modules::pigeon::repository::pigeon::PigeonRepository;
 use crate::modules::shared::repository::reminder::NewReminder;
 use crate::modules::shared::repository::reminder::ReminderRepository;
 
-#[command("spaceplore")]
+#[command("explore")]
 #[only_in(guild)]
 #[description("Send your pigeon into space.")]
-pub async fn spaceplore(ctx: &Context, msg: &Message) -> CommandResult {
+#[aliases("spaceplore")]
+pub async fn explore(ctx: &Context, msg: &Message) -> CommandResult {
     let human_id = PigeonValidation::new()
         // .item_needed("space_shuttle")
         .needs_active_pigeon(true)
@@ -102,9 +103,10 @@ async fn success_scenario(
     match interactive_msg {
         Ok(message) => {
             if should_remind(ctx, &message, &msg.author).await {
-                let text = format!("Your pigeon has landed on {}", "Luna");
+                let text = format!("Your pigeon has landed on {}\n`/pigeon space` to check on it!", "Luna");
 
                 let mut reminder = NewReminder::new(msg.author.id.into(), text, arrival_date);
+                // reminder.command("pigeon space")
                 reminder.channel_id(msg.channel_id.into());
                 let result = ReminderRepository::create(&reminder);
                 match result {
