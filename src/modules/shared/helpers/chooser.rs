@@ -17,7 +17,7 @@ pub trait Choosable {
     fn get_emoji(&self) -> Option<String>;
 }
 
-pub async fn choose<T, F>(
+pub async fn _choose<T, F>(
     ctx: &Context,
     msg: &Message,
     choosables: &Vec<T>,
@@ -27,65 +27,7 @@ where
     T: Choosable,
     F: FnOnce(&mut CreateEmbed) -> &mut CreateEmbed,
 {
-    let interactive_msg = msg
-        .channel_id
-        .send_message(&ctx, |m| {
-            m.embed(|e| f(e)).components(|c| {
-                // c.create_action_row(|f| {
-                //     f.create_select_menu(|s| {
-                //         s.min_values(1)
-                //             .placeholder("hmm")
-                //             .max_values(2)
-                //             .custom_id("abc")
-                //             .options(|m| {
-                //                 m.create_option(|o| {
-                //                     o.description("Option 1").label("1").value("option 1")
-                //                 })
-                //                 .create_option(|o| {
-                //                     o.description("Option 2").label("2").value("option 2")
-                //                 })
-                //         })
-                //     })
-                // });
-
-                let length = choosables.len();
-                const MAX_ELEMENTS_PER_ROW: usize = 5;
-                let remainder = length % MAX_ELEMENTS_PER_ROW;
-                let row_count = {
-                    if length < MAX_ELEMENTS_PER_ROW {
-                        1
-                    } else {
-                        (length / MAX_ELEMENTS_PER_ROW) + remainder
-                    }
-                };
-                let mut index = 0;
-
-                for i in 0..row_count {
-                    let last = if i == row_count - 1 && remainder != 0 {
-                        length
-                    } else {
-                        MAX_ELEMENTS_PER_ROW
-                    };
-
-                    c.create_action_row(|f| {
-                        for choosable in choosables
-                            .get((i * MAX_ELEMENTS_PER_ROW)..last)
-                            .unwrap()
-                            .iter()
-                        {
-                            f.create_button(|b| {
-                                create_button_for_choosable::<T>(b, &choosable, index)
-                            });
-                            index += 1;
-                        }
-                        f
-                    });
-                }
-                c
-            })
-        })
-        .await
-        .or(Err("Oops"))?;
+    let interactive_msg = generate_msg(&ctx, &msg, &choosables, f).await?;
 
     let interaction = &interactive_msg
         .await_component_interaction(&ctx)
@@ -107,6 +49,58 @@ where
             Err(_) => Err("Can't convert to int"),
         },
     }
+}
+pub async fn generate_msg<T, F>(
+    ctx: &Context,
+    msg: &Message,
+    choosables: &Vec<T>,
+    f: F,
+) -> Result<Message, &'static str>
+where
+T: Choosable,
+F: FnOnce(&mut CreateEmbed) -> &mut CreateEmbed {
+    msg
+    .channel_id
+    .send_message(&ctx, |m| {
+        m.embed(|e| f(e)).components(|c| {
+            let length = choosables.len();
+            const MAX_ELEMENTS_PER_ROW: usize = 5;
+            let remainder = length % MAX_ELEMENTS_PER_ROW;
+            let row_count = {
+                if length < MAX_ELEMENTS_PER_ROW {
+                    1
+                } else {
+                    (length / MAX_ELEMENTS_PER_ROW) + remainder
+                }
+            };
+            let mut index = 0;
+
+            for i in 0..row_count {
+                let last = if i == row_count - 1 && remainder != 0 {
+                    length
+                } else {
+                    MAX_ELEMENTS_PER_ROW
+                };
+
+                c.create_action_row(|f| {
+                    for choosable in choosables
+                        .get((i * MAX_ELEMENTS_PER_ROW)..last)
+                        .unwrap()
+                        .iter()
+                    {
+                        f.create_button(|b| {
+                            create_button_for_choosable::<T>(b, &choosable, index)
+                        });
+                        index += 1;
+                    }
+                    f
+                });
+            }
+            c
+        })
+    })
+    .await
+    .or(Err("Oops"))
 }
 
 fn create_button_for_choosable<'a, T>(

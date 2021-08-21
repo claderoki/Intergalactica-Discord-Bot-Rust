@@ -3,6 +3,9 @@ use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
+use serenity::model::id::UserId;
+use serenity::model::interactions::InteractionData;
+use serenity::model::interactions::InteractionResponseType;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
 use crate::modules::pigeon::helpers::utils::winning_to_string;
@@ -18,7 +21,7 @@ use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::exploration::ExplorationRepository;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
 use crate::modules::shared::caching::bucket::Bucket;
-use crate::modules::shared::helpers::chooser::choose;
+use crate::modules::shared::helpers::chooser::generate_msg;
 use crate::modules::shared::helpers::chooser::Choosable;
 use crate::modules::shared::helpers::utils::TimeDelta;
 use crate::modules::shared::repository::item::ItemRepository;
@@ -46,24 +49,48 @@ async fn run_command(ctx: &Context, msg: &Message) -> CommandResult {
         .validate(&msg.author)?;
 
     let exploration = ExplorationRepository::get_exploration(human_id)?;
+    let mut actions_used = 0;
 
     if !exploration.arrived {
         still_travelling_message(msg, ctx, &exploration).await;
     } else if exploration.actions_remaining > 0 {
-        let action = choose_action(msg, ctx, &exploration).await?;
-        let scenario = ExplorationRepository::get_scenario(action.id)?;
-        let scenario_winnings =
-            ExplorationRepository::get_scenario_winnings(scenario.winnings_id, human_id)?;
-        let mut winnings = scenario_winnings.to_pigeon_winnings();
-        let item = get_item(&scenario_winnings, &mut winnings)?;
-        PigeonRepository::update_winnings(human_id, &winnings)?;
-        ExplorationRepository::reduce_action_remaining(exploration.id)?;
-        ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings)?;
-        let remaining = exploration.actions_remaining - 1;
-        scenario_winnings_message(msg, ctx, &scenario, &action, &winnings, remaining, &item).await;
+        let actions = ExplorationRepository::get_available_actions(exploration.location_id)?;
+        let location = ExplorationRepository::get_location(exploration.location_id)?;
+        let interactive_msg = generate_msg(&ctx, &msg, &actions, |e| {
+            e.normal_embed(&format!(
+                "You arrive at {}.\n\nWhat action would you like to perform?\n",
+                location.planet_name
+            ))
+            .footer(|f| {
+                f.text(format!(
+                    "{} / {} actions remaining",
+                    exploration.actions_remaining, exploration.total_actions,
+                ))
+            })
+            .thumbnail(location.image_url)
+        })
+        .await?;
+
+        for _ in 0..exploration.actions_remaining {
+            let index = get_action_index(&ctx, &interactive_msg, msg.author.id).await?;
+            let action = actions.get(index).ok_or("Index wrong.")?;
+            let scenario = ExplorationRepository::get_scenario(action.id)?;
+            let scenario_winnings =
+                ExplorationRepository::get_scenario_winnings(scenario.winnings_id, human_id)?;
+            let mut winnings = scenario_winnings.to_pigeon_winnings();
+            let item = get_item(&scenario_winnings, &mut winnings)?;
+            PigeonRepository::update_winnings(human_id, &winnings)?;
+            ExplorationRepository::reduce_action_remaining(exploration.id)?;
+            ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings)?;
+            let remaining = exploration.actions_remaining - 1;
+            scenario_winnings_message(msg, ctx, &scenario, &action, &winnings, remaining, &item)
+                .await;
+
+            actions_used += 1;
+        }
     }
 
-    if exploration.arrived && exploration.actions_remaining - 1 <= 0 {
+    if exploration.arrived && exploration.actions_remaining - actions_used <= 0 {
         let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
         PigeonRepository::update_status(human_id, PigeonStatus::Idle)?;
         ExplorationRepository::finish_exploration(exploration.id)?;
@@ -98,6 +125,35 @@ fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
     }
 
     Ok(bonuses)
+}
+
+async fn get_action_index(
+    ctx: &Context,
+    msg: &Message,
+    author_id: UserId,
+) -> Result<usize, &'static str> {
+    let interaction = &msg
+        .await_component_interaction(&ctx)
+        .author_id(author_id)
+        .timeout(std::time::Duration::from_secs(60))
+        .await
+        .ok_or("Timed out...")?;
+
+    let _ = interaction
+        .create_interaction_response(&ctx, |f| {
+            f.kind(InteractionResponseType::DeferredUpdateMessage)
+        })
+        .await;
+
+    let index = match interaction.data.as_ref().ok_or("")? {
+        InteractionData::ApplicationCommand(_) => Err("Wrong type of interaction"),
+        InteractionData::MessageComponent(value) => match value.custom_id.parse::<usize>() {
+            Ok(index) => Ok(index),
+            Err(_) => Err("Can't convert to int"),
+        },
+    }?;
+
+    Ok(index)
 }
 
 fn get_item(
@@ -218,28 +274,26 @@ async fn still_travelling_message(msg: &Message, ctx: &Context, exploration: &Ex
     }
 }
 
-async fn choose_action(
-    msg: &Message,
-    ctx: &Context,
-    exploration: &Exploration,
-) -> Result<ExplorationAction, String> {
-    let mut actions = ExplorationRepository::get_available_actions(exploration.location_id)?;
-    let location = ExplorationRepository::get_location(exploration.location_id)?;
+// async fn choose_action(
+//     msg: &Message,
+//     ctx: &Context,
+//     exploration: &Exploration,
+// ) -> Result<ExplorationAction, String> {
 
-    let index = choose::<ExplorationAction, _>(ctx, msg, &actions, |e| {
-        e.normal_embed(&format!(
-            "You arrive at {}.\n\nWhat action would you like to perform?\n",
-            location.planet_name
-        ))
-        .footer(|f| {
-            f.text(format!(
-                "{} / {} actions remaining",
-                exploration.actions_remaining, exploration.total_actions,
-            ))
-        })
-        .thumbnail(location.image_url)
-    })
-    .await?;
-    let action = actions.swap_remove(index);
-    Ok(action)
-}
+//     let index = choose::<ExplorationAction, _>(ctx, msg, &actions, |e| {
+//         e.normal_embed(&format!(
+//             "You arrive at {}.\n\nWhat action would you like to perform?\n",
+//             location.planet_name
+//         ))
+//         .footer(|f| {
+//             f.text(format!(
+//                 "{} / {} actions remaining",
+//                 exploration.actions_remaining, exploration.total_actions,
+//             ))
+//         })
+//         .thumbnail(location.image_url)
+//     })
+//     .await?;
+//     let action = actions.swap_remove(index);
+//     Ok(action)
+// }
