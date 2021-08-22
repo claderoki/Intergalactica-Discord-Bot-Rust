@@ -57,7 +57,6 @@ impl EventHandler for Handler {
             tokio::spawn(async move {
                 loop {
                     tokio::time::sleep(Duration::from_secs(60 * 60)).await;
-                    println!("Decaying...");
                     decay_pigeons(Arc::clone(&ctx1)).await;
                 }
             });

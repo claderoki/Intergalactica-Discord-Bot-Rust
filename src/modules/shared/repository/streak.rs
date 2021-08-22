@@ -61,8 +61,7 @@ impl StreakRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(e) => {
-                println!("{}", e);
+            Err(_) => {
                 Ok(Streak {
                     current: 0,
                     days_missed: 0,

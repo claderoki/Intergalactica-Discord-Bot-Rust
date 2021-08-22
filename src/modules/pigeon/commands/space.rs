@@ -111,7 +111,7 @@ fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
     let streak = StreakRepository::get(human_id, "space_exploration")?;
     if streak.days_missed == 1 {
         let gold_modifier = PigeonRepository::get_gold_modifier(human_id)?;
-        let streak_bonus = (((streak.current + 1) * 10) as f64 * gold_modifier.value) as i32;
+        let streak_bonus = ((std::cmp::min(streak.current+1, 10) * 10) as f64 * gold_modifier.value) as i32;
         StreakRepository::add(human_id, "space_exploration")?;
         bonuses.push(Bonus {
             message: format!(
