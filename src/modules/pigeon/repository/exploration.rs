@@ -9,6 +9,7 @@ use diesel::RunQueryDsl;
 use tracing::error;
 
 use crate::database::connection::get_connection_diesel;
+use crate::database::utils::Countable;
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
 use crate::modules::pigeon::models::exploration::*;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
@@ -186,6 +187,24 @@ impl ExplorationRepository {
             Err(e) => {
                 error!("{:?}", e);
                 Err("Failed to get random location.".into())
+            }
+        }
+    }
+
+    pub fn get_exploration_count(human_id: i32) -> Result<i64, String> {
+        let connection = get_connection_diesel()?;
+
+        let results: Result<Countable, _> = sql_query(include_str!(
+            "queries/exploration/get_exploration_count.sql"
+        ))
+        .bind::<Integer, _>(human_id)
+        .get_result(&connection);
+
+        match results {
+            Ok(countable) => Ok(countable.count),
+            Err(e) => {
+                error!("{:?}", e);
+                Err("Failed to get exploration count.".into())
             }
         }
     }

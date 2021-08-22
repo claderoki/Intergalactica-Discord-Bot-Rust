@@ -8,6 +8,7 @@ use serenity::model::interactions::InteractionData;
 use serenity::model::interactions::InteractionResponseType;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
+use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
 use crate::modules::pigeon::helpers::utils::winning_to_string;
 use crate::modules::pigeon::helpers::utils::PigeonWinnable;
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
@@ -94,15 +95,35 @@ async fn run_command(ctx: &Context, msg: &Message) -> CommandResult {
         let end_stats = ExplorationRepository::get_end_stats(exploration.id)?;
         PigeonRepository::update_status(human_id, PigeonStatus::Idle)?;
         ExplorationRepository::finish_exploration(exploration.id)?;
-        exploration_done_message(&msg, &ctx, &exploration, end_stats, get_bonuses(human_id)?).await;
+        let bonuses = get_bonuses(human_id)?;
+        let gold = {
+            let mut total = 0;
+            for bonus in bonuses.iter() {
+                total += bonus.gold;
+            }
+            total
+        };
+        exploration_done_message(&msg, &ctx, &exploration, end_stats, bonuses).await;
+        let bonus_winnings = PigeonWinningsBuilder::new().gold(gold).build();
+        PigeonRepository::update_winnings(human_id, &bonus_winnings)?;
     }
 
     Ok(())
 }
 
+
 struct Bonus {
-    pub message: String,
     pub gold: i32,
+    pub message: String,
+}
+
+impl Bonus {
+    pub fn new(gold: i32, message: String) -> Self {
+        Self {
+            gold: gold,
+            message: message
+        }
+    }
 }
 
 fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
@@ -122,6 +143,16 @@ fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
         });
     } else if streak.days_missed > 2 {
         StreakRepository::reset(human_id, "space_exploration")?;
+    }
+
+    let count = ExplorationRepository::get_exploration_count(human_id)?;
+    if (count+1) % 10 == 0 {
+        let text = format!("{}th space exploration!", count+1);
+        bonuses.push(match count+1 {
+            1000 => Bonus::new(80, text),
+            100 =>  Bonus::new(60, text),
+            _ =>    Bonus::new(40, text)
+        });
     }
 
     Ok(bonuses)
