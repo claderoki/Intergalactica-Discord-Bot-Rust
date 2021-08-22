@@ -273,27 +273,3 @@ async fn still_travelling_message(msg: &Message, ctx: &Context, exploration: &Ex
             .or(Err("Oops"));
     }
 }
-
-// async fn choose_action(
-//     msg: &Message,
-//     ctx: &Context,
-//     exploration: &Exploration,
-// ) -> Result<ExplorationAction, String> {
-
-//     let index = choose::<ExplorationAction, _>(ctx, msg, &actions, |e| {
-//         e.normal_embed(&format!(
-//             "You arrive at {}.\n\nWhat action would you like to perform?\n",
-//             location.planet_name
-//         ))
-//         .footer(|f| {
-//             f.text(format!(
-//                 "{} / {} actions remaining",
-//                 exploration.actions_remaining, exploration.total_actions,
-//             ))
-//         })
-//         .thumbnail(location.image_url)
-//     })
-//     .await?;
-//     let action = actions.swap_remove(index);
-//     Ok(action)
-// }
