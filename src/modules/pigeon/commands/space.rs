@@ -72,7 +72,7 @@ async fn run_command(ctx: &Context, msg: &Message) -> CommandResult {
         })
         .await?;
 
-        for _ in 0..exploration.actions_remaining {
+        for i in 0..exploration.actions_remaining {
             let index = get_action_index(&ctx, &interactive_msg, msg.author.id).await?;
             let action = actions.get(index).ok_or("Index wrong.")?;
             let scenario = ExplorationRepository::get_scenario(action.id)?;
@@ -83,7 +83,7 @@ async fn run_command(ctx: &Context, msg: &Message) -> CommandResult {
             PigeonRepository::update_winnings(human_id, &winnings)?;
             ExplorationRepository::reduce_action_remaining(exploration.id)?;
             ExplorationRepository::add_exploration_winnings(exploration.id, action.id, &winnings)?;
-            let remaining = exploration.actions_remaining - 1;
+            let remaining = exploration.actions_remaining - i;
             scenario_winnings_message(msg, ctx, &scenario, &action, &winnings, remaining, &item)
                 .await;
 
@@ -129,9 +129,9 @@ impl Bonus {
 fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
     let mut bonuses: Vec<Bonus> = Vec::new();
 
+    let gold_modifier = PigeonRepository::get_gold_modifier(human_id)?;
     let streak = StreakRepository::get(human_id, "space_exploration")?;
     if streak.days_missed == 1 {
-        let gold_modifier = PigeonRepository::get_gold_modifier(human_id)?;
         let streak_bonus = ((std::cmp::min(streak.current+1, 10) * 10) as f64 * gold_modifier.value) as i32;
         StreakRepository::add(human_id, "space_exploration")?;
         bonuses.push(Bonus {
