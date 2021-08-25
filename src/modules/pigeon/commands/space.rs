@@ -4,7 +4,6 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 use serenity::model::id::UserId;
-use serenity::model::interactions::InteractionData;
 use serenity::model::interactions::InteractionResponseType;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
@@ -176,15 +175,10 @@ async fn get_action_index(
         })
         .await;
 
-    let index = match interaction.data.as_ref().ok_or("")? {
-        InteractionData::ApplicationCommand(_) => Err("Wrong type of interaction"),
-        InteractionData::MessageComponent(value) => match value.custom_id.parse::<usize>() {
-            Ok(index) => Ok(index),
-            Err(_) => Err("Can't convert to int"),
-        },
-    }?;
-
-    Ok(index)
+    match interaction.data.custom_id.parse::<usize>() {
+        Ok(index) => Ok(index),
+        Err(_) => Err("Can't convert to int"),
+    }
 }
 
 fn get_item(

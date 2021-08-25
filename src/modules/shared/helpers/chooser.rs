@@ -5,9 +5,8 @@ use serenity::builder::CreateEmbed;
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
-use serenity::model::interactions::ButtonStyle;
-use serenity::model::interactions::InteractionData;
 use serenity::model::interactions::InteractionResponseType;
+use serenity::model::interactions::message_component::ButtonStyle;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
 
@@ -42,12 +41,9 @@ where
         })
         .await;
 
-    match interaction.data.as_ref().ok_or("")? {
-        InteractionData::ApplicationCommand(_) => Err("Wrong type of interaction"),
-        InteractionData::MessageComponent(value) => match value.custom_id.parse::<usize>() {
-            Ok(index) => Ok(index),
-            Err(_) => Err("Can't convert to int"),
-        },
+    match interaction.data.custom_id.parse::<usize>() {
+        Ok(index) => Ok(index),
+        Err(_) => Err("Can't convert to int"),
     }
 }
 pub async fn generate_msg<T, F>(
@@ -148,11 +144,8 @@ pub async fn confirm(ctx: &Context, msg: &Message, message: String) -> Result<bo
         })
         .await;
 
-    match interaction.data.as_ref().ok_or("")? {
-        InteractionData::ApplicationCommand(_) => Err("Wrong type of interaction"),
-        InteractionData::MessageComponent(value) => match value.custom_id.parse::<usize>() {
-            Ok(index) => Ok(index == 1),
-            Err(_) => Err("Can't convert to bool"),
-        },
+    match interaction.data.custom_id.parse::<usize>() {
+        Ok(index) => Ok(index == 1),
+        Err(_) => Err("Can't convert to bool"),
     }
 }

@@ -3,7 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
-use serenity::model::interactions::ButtonStyle;
+use serenity::model::interactions::message_component::ButtonStyle;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
 

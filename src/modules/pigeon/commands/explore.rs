@@ -7,9 +7,8 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
-use serenity::model::interactions::ButtonStyle;
-use serenity::model::interactions::InteractionData;
 use serenity::model::interactions::InteractionResponseType;
+use serenity::model::interactions::message_component::ButtonStyle;
 use serenity::model::prelude::User;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
@@ -71,12 +70,8 @@ async fn should_remind(ctx: &Context, msg: &Message, user: &User) -> bool {
                     f.kind(InteractionResponseType::DeferredUpdateMessage)
                 })
                 .await;
-            if let Some(data) = interaction.data.as_ref() {
-                if let InteractionData::MessageComponent(value) = data {
-                    if value.custom_id == "reminder" {
-                        return true;
-                    }
-                }
+            if interaction.data.custom_id == "reminder" {
+                return true;
             }
             false
         }

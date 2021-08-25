@@ -6,9 +6,8 @@ use serenity::builder::CreateComponents;
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
-use serenity::model::interactions::ButtonStyle;
-use serenity::model::interactions::InteractionData;
 use serenity::model::interactions::InteractionResponseType;
+use serenity::model::interactions::message_component::ButtonStyle;
 
 pub struct Player {
     pub number: i32,
@@ -295,14 +294,10 @@ pub async fn wait_for_response(
         })
         .await;
 
-    let index = match interaction.data.as_ref().ok_or("")? {
-        InteractionData::ApplicationCommand(_) => Err("Wrong type of interaction"),
-        InteractionData::MessageComponent(value) => match value.custom_id.parse::<usize>() {
-            Ok(index) => Ok(index),
-            Err(_) => Err("Can't convert to int"),
-        },
-    }?;
-    Ok(index)
+    match interaction.data.custom_id.parse::<usize>() {
+        Ok(index) => Ok(index),
+        Err(_) => Err("Can't convert to int"),
+    }
 }
 
 pub async fn run_game(ctx: &Context, msg: &Message, game: &mut Game) -> Result<(), &'static str> {
