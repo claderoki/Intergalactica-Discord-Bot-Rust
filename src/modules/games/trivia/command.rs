@@ -145,7 +145,7 @@ fn get_randomized_answers(trivia: &Trivia) -> Vec<Answer> {
             let mut i = 0;
             let correct_index = {
                 let mut rng = thread_rng();
-                rng.gen_range(0..trivia.incorrect_answers.len())
+                rng.gen_range(0, trivia.incorrect_answers.len())
             };
             for incorrect_answer in trivia.incorrect_answers.iter() {
                 if i == correct_index {
