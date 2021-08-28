@@ -7,8 +7,8 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
-use serenity::model::interactions::InteractionResponseType;
 use serenity::model::interactions::message_component::ButtonStyle;
+use serenity::model::interactions::InteractionResponseType;
 use serenity::model::prelude::User;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
@@ -98,7 +98,10 @@ async fn success_scenario(
     match interactive_msg {
         Ok(message) => {
             if should_remind(ctx, &message, &msg.author).await {
-                let text = format!("Your pigeon has landed on {}\n`/pigeon space` to check on it!", "Luna");
+                let text = format!(
+                    "Your pigeon has landed on {}\n`/pigeon space` to check on it!",
+                    "Luna"
+                );
 
                 let mut reminder = NewReminder::new(msg.author.id.into(), text, arrival_date);
                 // reminder.command("pigeon space")

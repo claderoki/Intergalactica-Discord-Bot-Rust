@@ -145,10 +145,10 @@ impl PigeonValidation {
             .bind::<Integer, _>(self.gold_needed)
             .bind::<VarChar, _>(match self.required_pigeon_status {
                 Some(status) => status.to_string(),
-                None => String::from(""),
+                None => String::new(),
             })
             .bind::<Integer, _>(1)
-            .bind::<VarChar, _>(self.item_needed.as_ref().unwrap_or(&String::from("")))
+            .bind::<VarChar, _>(self.item_needed.as_ref().unwrap_or(&String::new()))
             .bind::<Integer, _>(human_id)
             .get_result(&connection);
 

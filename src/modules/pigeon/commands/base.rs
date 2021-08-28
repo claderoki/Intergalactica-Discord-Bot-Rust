@@ -1,6 +1,7 @@
 use super::battle::*;
 use super::buy::*;
 use super::clean::*;
+use super::explore::*;
 use super::feed::*;
 use super::heal::*;
 use super::play::*;
@@ -9,7 +10,6 @@ use super::poopable::*;
 use super::profile::*;
 use super::rob::*;
 use super::space::*;
-use super::explore::*;
 use super::train::*;
 
 use serenity::framework::standard::macros::group;

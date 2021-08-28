@@ -35,7 +35,7 @@ pub async fn rob(ctx: &Context, msg: &Message) -> CommandResult {
 
     let success = {
         let mut rng = thread_rng();
-        rng.gen_range(0, 3) != 0
+        rng.gen_range(0..3) != 0
     };
 
     match success {
@@ -67,7 +67,7 @@ async fn success_scenario(
 ) -> Result<(), String> {
     let gold_stolen = {
         let mut rng = thread_rng();
-        rng.gen_range(10, 101)
+        rng.gen_range(10..101)
     };
 
     let initiator_winnings = PigeonWinningsBuilder::new().gold(gold_stolen).build();

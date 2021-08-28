@@ -10,7 +10,10 @@ dotenv             = "0.15"
 tracing            = "0.1.23"
 tracing-subscriber = "0.2"
 rand               = "*"
+reqwest            = "0.11.4"
+serde              = "1.0.129"
 chrono             = "*"
+htmlescape         = "0.3.1"
 async-trait        = "0.1.50"
 
 [dependencies.tokio]
@@ -23,3 +26,4 @@ features = ["cache", "framework", "standard_framework", "rustls_backend", "colle
 
 [dependencies.redis]
 version = "*"
+

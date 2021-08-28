@@ -1,7 +1,7 @@
 use diesel::sql_query;
+use diesel::sql_types::BigInt;
 use diesel::sql_types::Integer;
 use diesel::sql_types::VarChar;
-use diesel::sql_types::BigInt;
 
 use diesel::RunQueryDsl;
 
@@ -61,12 +61,10 @@ impl StreakRepository {
 
         match results {
             Ok(data) => Ok(data),
-            Err(_) => {
-                Ok(Streak {
-                    current: 0,
-                    days_missed: 0,
-                })
-            }
+            Err(_) => Ok(Streak {
+                current: 0,
+                days_missed: 0,
+            }),
         }
     }
 }

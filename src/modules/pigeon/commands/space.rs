@@ -7,10 +7,10 @@ use serenity::model::id::UserId;
 use serenity::model::interactions::InteractionResponseType;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
-use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
 use crate::modules::pigeon::helpers::utils::winning_to_string;
 use crate::modules::pigeon::helpers::utils::PigeonWinnable;
 use crate::modules::pigeon::helpers::utils::PigeonWinnings;
+use crate::modules::pigeon::helpers::utils::PigeonWinningsBuilder;
 use crate::modules::pigeon::helpers::validation::PigeonValidation;
 use crate::modules::pigeon::models::exploration::Exploration;
 use crate::modules::pigeon::models::exploration::ExplorationAction;
@@ -110,7 +110,6 @@ async fn run_command(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-
 struct Bonus {
     pub gold: i32,
     pub message: String,
@@ -120,7 +119,7 @@ impl Bonus {
     pub fn new(gold: i32, message: String) -> Self {
         Self {
             gold: gold,
-            message: message
+            message: message,
         }
     }
 }
@@ -131,7 +130,8 @@ fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
     let gold_modifier = PigeonRepository::get_gold_modifier(human_id)?;
     let streak = StreakRepository::get(human_id, "space_exploration")?;
     if streak.days_missed == 1 {
-        let streak_bonus = ((std::cmp::min(streak.current+1, 10) * 10) as f64 * gold_modifier.value) as i32;
+        let streak_bonus =
+            ((std::cmp::min(streak.current + 1, 10) * 10) as f64 * gold_modifier.value) as i32;
         StreakRepository::add(human_id, "space_exploration")?;
         bonuses.push(Bonus {
             message: format!(
@@ -145,12 +145,12 @@ fn get_bonuses(human_id: i32) -> Result<Vec<Bonus>, String> {
     }
 
     let count = ExplorationRepository::get_exploration_count(human_id)?;
-    if (count+1) % 10 == 0 {
-        let text = format!("{}th space exploration!", count+1);
-        bonuses.push(match count+1 {
+    if (count + 1) % 10 == 0 {
+        let text = format!("{}th space exploration!", count + 1);
+        bonuses.push(match count + 1 {
             1000 => Bonus::new(80, text),
-            100 =>  Bonus::new(60, text),
-            _ =>    Bonus::new(40, text)
+            100 => Bonus::new(60, text),
+            _ => Bonus::new(40, text),
         });
     }
 
@@ -262,7 +262,7 @@ async fn exploration_done_message(
                     let items_result = ExplorationRepository::get_end_items(exploration.id);
                     match items_result {
                         Ok(items) => {
-                            let mut value = String::from("");
+                            let mut value = String::new();
                             for item in items {
                                 value.push_str(&format!("{}x {}\n", item.amount, item.name));
                             }

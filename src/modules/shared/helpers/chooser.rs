@@ -5,8 +5,8 @@ use serenity::builder::CreateEmbed;
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::channel::ReactionType;
-use serenity::model::interactions::InteractionResponseType;
 use serenity::model::interactions::message_component::ButtonStyle;
+use serenity::model::interactions::InteractionResponseType;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
 
@@ -53,50 +53,50 @@ pub async fn generate_msg<T, F>(
     f: F,
 ) -> Result<Message, &'static str>
 where
-T: Choosable,
-F: FnOnce(&mut CreateEmbed) -> &mut CreateEmbed {
-    msg
-    .channel_id
-    .send_message(&ctx, |m| {
-        m.embed(|e| f(e)).components(|c| {
-            let length = choosables.len();
-            const MAX_ELEMENTS_PER_ROW: usize = 5;
-            let remainder = length % MAX_ELEMENTS_PER_ROW;
-            let row_count = {
-                if length < MAX_ELEMENTS_PER_ROW {
-                    1
-                } else {
-                    (length / MAX_ELEMENTS_PER_ROW) + remainder
-                }
-            };
-            let mut index = 0;
-
-            for i in 0..row_count {
-                let last = if i == row_count - 1 && remainder != 0 {
-                    length
-                } else {
-                    MAX_ELEMENTS_PER_ROW
-                };
-
-                c.create_action_row(|f| {
-                    for choosable in choosables
-                        .get((i * MAX_ELEMENTS_PER_ROW)..last)
-                        .unwrap()
-                        .iter()
-                    {
-                        f.create_button(|b| {
-                            create_button_for_choosable::<T>(b, &choosable, index)
-                        });
-                        index += 1;
+    T: Choosable,
+    F: FnOnce(&mut CreateEmbed) -> &mut CreateEmbed,
+{
+    msg.channel_id
+        .send_message(&ctx, |m| {
+            m.embed(|e| f(e)).components(|c| {
+                let length = choosables.len();
+                const MAX_ELEMENTS_PER_ROW: usize = 5;
+                let remainder = length % MAX_ELEMENTS_PER_ROW;
+                let row_count = {
+                    if length < MAX_ELEMENTS_PER_ROW {
+                        1
+                    } else {
+                        (length / MAX_ELEMENTS_PER_ROW) + remainder
                     }
-                    f
-                });
-            }
-            c
+                };
+                let mut index = 0;
+
+                for i in 0..row_count {
+                    let last = if i == row_count - 1 && remainder != 0 {
+                        length
+                    } else {
+                        MAX_ELEMENTS_PER_ROW
+                    };
+
+                    c.create_action_row(|f| {
+                        for choosable in choosables
+                            .get((i * MAX_ELEMENTS_PER_ROW)..last)
+                            .unwrap()
+                            .iter()
+                        {
+                            f.create_button(|b| {
+                                create_button_for_choosable::<T>(b, &choosable, index)
+                            });
+                            index += 1;
+                        }
+                        f
+                    });
+                }
+                c
+            })
         })
-    })
-    .await
-    .or(Err("Oops"))
+        .await
+        .or(Err("Oops"))
 }
 
 fn create_button_for_choosable<'a, T>(
