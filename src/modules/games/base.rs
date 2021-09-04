@@ -4,5 +4,5 @@ use super::trivia::command::*;
 use serenity::framework::standard::macros::group;
 
 #[group]
-#[commands(tictactoe, newtrivia)]
+#[commands(tictactoe, trivia)]
 struct Games;

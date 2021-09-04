@@ -12,7 +12,7 @@ use serenity::model::interactions::InteractionResponseType;
 use serenity::Error;
 
 use crate::discord_helpers::embed_utils::EmbedExtension;
-use crate::wrappers::opentrivia::api::ApiCall;
+use crate::wrappers::opentrivia::base_api::ApiCall;
 use crate::wrappers::opentrivia::api::TriviaCall;
 
 use crate::wrappers::opentrivia::models::Kind;
@@ -23,9 +23,9 @@ struct Answer {
     correct: bool,
 }
 
-#[command("newtrivia")]
+#[command("trivia")]
 #[description("Play Trivia.")]
-pub async fn newtrivia(ctx: &Context, msg: &Message) -> CommandResult {
+pub async fn trivia(ctx: &Context, msg: &Message) -> CommandResult {
     let mut scores: HashMap<u64, i32> = HashMap::new();
 
     let call = TriviaCall::new();
