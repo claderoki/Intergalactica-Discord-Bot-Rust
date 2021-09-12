@@ -21,6 +21,7 @@ use crate::modules::pigeon::models::pigeon::PigeonStatus;
 use crate::modules::pigeon::repository::exploration::ExplorationRepository;
 use crate::modules::pigeon::repository::pigeon::PigeonRepository;
 use crate::modules::shared::caching::bucket::Bucket;
+use crate::modules::shared::helpers::chooser::edit_msg;
 use crate::modules::shared::helpers::chooser::generate_msg;
 use crate::modules::shared::helpers::chooser::Choosable;
 use crate::modules::shared::helpers::utils::TimeDelta;
@@ -54,24 +55,49 @@ async fn run_command(ctx: &Context, msg: &Message) -> CommandResult {
     if !exploration.arrived {
         still_travelling_message(msg, ctx, &exploration).await;
     } else if exploration.actions_remaining > 0 {
+        let mut used_action_indexes: Vec<i32> = Vec::new();
+
         let actions = ExplorationRepository::get_available_actions(exploration.location_id)?;
         let location = ExplorationRepository::get_location(exploration.location_id)?;
-        let interactive_msg = generate_msg(&ctx, &msg, &actions, |e| {
+        let mut interactive_msg = generate_msg(&ctx, &msg, &actions, |e| {
             e.normal_embed(&format!(
                 "You arrive at {}.\n\nWhat action would you like to perform?\n",
-                location.planet_name
+                &location.planet_name
             ))
             .footer(|f| {
                 f.text(format!(
                     "{} / {} actions remaining",
-                    exploration.actions_remaining, exploration.total_actions,
+                    &exploration.actions_remaining, &exploration.total_actions,
                 ))
             })
-            .thumbnail(location.image_url)
+            .thumbnail(&location.image_url)
         })
         .await?;
 
         for i in 0..exploration.actions_remaining {
+            if i > 0 {
+                let _ = edit_msg(
+                    &ctx,
+                    &mut interactive_msg,
+                    &actions,
+                    &used_action_indexes,
+                    |e| {
+                        e.normal_embed(&format!(
+                            "You arrive at {}.\n\nWhat action would you like to perform?\n",
+                            &location.planet_name
+                        ))
+                        .footer(|f| {
+                            f.text(format!(
+                                "{} / {} actions remaining",
+                                &exploration.actions_remaining, &exploration.total_actions,
+                            ))
+                        })
+                        .thumbnail(&location.image_url)
+                    },
+                )
+                .await;
+            }
+
             let index = get_action_index(&ctx, &interactive_msg, msg.author.id).await?;
             let action = actions.get(index).ok_or("Index wrong.")?;
             let scenario = ExplorationRepository::get_scenario(action.id)?;
@@ -85,7 +111,7 @@ async fn run_command(ctx: &Context, msg: &Message) -> CommandResult {
             let remaining = exploration.actions_remaining - i;
             scenario_winnings_message(msg, ctx, &scenario, &action, &winnings, remaining, &item)
                 .await;
-
+            used_action_indexes.push(index as i32);
             actions_used += 1;
         }
     }

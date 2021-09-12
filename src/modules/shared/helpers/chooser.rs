@@ -46,6 +46,7 @@ where
         Err(_) => Err("Can't convert to int"),
     }
 }
+
 pub async fn generate_msg<T, F>(
     ctx: &Context,
     msg: &Message,
@@ -85,7 +86,7 @@ where
                             .iter()
                         {
                             f.create_button(|b| {
-                                create_button_for_choosable::<T>(b, &choosable, index)
+                                create_button_for_choosable::<T>(b, &choosable, index, false)
                             });
                             index += 1;
                         }
@@ -99,10 +100,69 @@ where
         .or(Err("Oops"))
 }
 
+pub async fn edit_msg<T, F>(
+    ctx: &Context,
+    msg: &mut Message,
+    choosables: &Vec<T>,
+    disableds: &Vec<i32>,
+    f: F,
+) -> Result<(), &'static str>
+where
+    T: Choosable,
+    F: FnOnce(&mut CreateEmbed) -> &mut CreateEmbed,
+{
+    msg.edit(&ctx, |m| {
+        m.embed(|e| f(e)).components(|c| {
+            let length = choosables.len();
+            const MAX_ELEMENTS_PER_ROW: usize = 5;
+            let remainder = length % MAX_ELEMENTS_PER_ROW;
+            let row_count = {
+                if length < MAX_ELEMENTS_PER_ROW {
+                    1
+                } else {
+                    (length / MAX_ELEMENTS_PER_ROW) + remainder
+                }
+            };
+            let mut index = 0;
+
+            for i in 0..row_count {
+                let last = if i == row_count - 1 && remainder != 0 {
+                    length
+                } else {
+                    MAX_ELEMENTS_PER_ROW
+                };
+
+                c.create_action_row(|f| {
+                    for choosable in choosables
+                        .get((i * MAX_ELEMENTS_PER_ROW)..last)
+                        .unwrap()
+                        .iter()
+                    {
+                        f.create_button(|b| {
+                            create_button_for_choosable::<T>(
+                                b,
+                                &choosable,
+                                index,
+                                disableds.contains(&(index as i32)),
+                            )
+                        });
+                        index += 1;
+                    }
+                    f
+                });
+            }
+            c
+        })
+    })
+    .await
+    .or(Err("Oops"))
+}
+
 fn create_button_for_choosable<'a, T>(
     button: &'a mut CreateButton,
     choosable: &T,
     index: usize,
+    disabled: bool,
 ) -> &'a mut CreateButton
 where
     T: Choosable,
@@ -110,6 +170,7 @@ where
     button
         .style(ButtonStyle::Secondary)
         .custom_id(index)
+        .disabled(disabled)
         .label(choosable.get_description())
         .emoji(ReactionType::Unicode(
             choosable.get_emoji().unwrap_or("".to_string()).to_string(),
